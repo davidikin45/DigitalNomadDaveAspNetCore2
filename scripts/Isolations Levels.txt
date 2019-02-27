@@ -1,0 +1,33 @@
+https://app.pluralsight.com/library/courses/enterprise-patterns-concurrency-business-applications/table-of-contents
+
+1. Read Uncommitted = Allows for Dirty Reads
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+
+2. Read Committed = Prevents Dirty Reads
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+
+Read Committed Snapshot = Used to improve performance for reads as a copy is stored in tempdb
+ALTER DATABASE DBNAME SET READ_COMMITTED_SNAPSHOT ON
+
+3. Repeatable Read = Prevents Non-repeatable Reads. Holds Read Locks
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
+
+4. Serializable = Most Isolated. Range Locks to Prevent Phantom Reads.
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE
+
+5. Snapshot = Like Repeatable Read but without locks. Stores row versions in temptb
+ALTER DATABASE DBNAME SET ALLOW_SNAPSHOT_ISOLATION ON
+SET TRANSACTION ISOLATION LEVEL SNAPSHOT
+
+
+Optimistic Versioning. Only on EF Core
+[Timestamp]
+public byte[] RowVersion {get; set;}
+
+or using Fluent .IsRowVersion()  
+
+needs to be hidden field on UI
+
+will throw a DbUpdateConcurrencyException
+
+Pessimistic Versioning involves creating a lock table

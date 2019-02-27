@@ -1,0 +1,47 @@
+TODO: Need to refactor dtos for purpose. e.g CreateDto, ReadDto, UpdateDto, DeleteDto
+Better security and more control over differentiating add/update/delete validation
+This will mean can't inherit from base Dto with Id and RowVersion.
+
+//https://docs.microsoft.com/en-us/dotnet/standard/microservices-architecture/microservice-ddd-cqrs-patterns/implement-value-objects
+EF Creating a good Data Model:
+1. Never have Many-To-Many relationships. Create a join Entity so the relationship becomes 1-To-Many and Many-To-1.
+2. Never have 1-To-1 Composition ENTITY Relationships!!! For Composition relationships use Value types instead if required. In EF6 extend from BaseValueObject. In EF Core decorate value type with [OwnedAttribute]. Not sure if this attribute can be applied on base class. ValueTypes are included by default.
+3. Use collections only for Composition/Owned relationships(1-To-Many, child cannot exist independent of the parent ) not Aggregation/Associated relationshiships(child can exist independently of the parent, reference relationship). Never use a Collection for Navigation purposes!!!!
+4. All Composition and Aggregation Properties should have an associated Id property
+5. Use Complex properties for Aggregation relationships only (Many-To-1, child can exist independently of the parent, reference relationship). e.g Navigation purposes
+
+IIS Express 44300 to 44399
+
+sqllocaldb.exe s MSSQLLocalDB
+sqllocaldb info MSSqlLocalDb
+
+
+dotnet tool install dotnet-dev-certs -g
+
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust
+
+dotnet dev-certs https --export-path ./localhost.private.pfx -p password
+dotnet dev-certs https -ep "localhost.private.pfx" -p password --trust
+
+Will use certificates in the following order
+1. Kestrel > Certificates > Default 
+2. Kestrel > Certificates > Development
+3. StoreName.My, localhost, true
+
+  "Kestrel": {
+    "Certificates": {
+      "Default": {
+        "Path": "Certificates/localhost.private.pfx",
+        "Password": "password"
+      }
+    }
+  }
+
+var basePort = context.Configuration.GetValue<int?>("BASE_PORT") ?? 5000;
+options.ListenAnyIP(basePort + 1, listenOptions =>
+{
+
+listenOptions.UseHttps(StoreName.My, "localhost", true);
+listenOptions.UseHttps();
+});
