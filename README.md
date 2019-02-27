@@ -1,4 +1,4 @@
-# Digital Nomad Dave ASP.NET Core
+# Digital Nomad Dave ASP.NET Core v2
 [![Build status](https://davidikin.visualstudio.com/Digital%20Nomad%20Dave/_apis/build/status/Digital%20Nomad%20Dave-ASP.NET%20Core%20(.NET%20Framework)-CI)](https://davidikin.visualstudio.com/Digital%20Nomad%20Dave/_build/latest?definitionId=1)
 
 A custom built Content Management System using Bootstrap 4, Angular, C# MVC Core, xUnit, SpecFlow, Selenium, Azure Devops - Previously VSTS, JwtTokens, OpenID Connect, Identity Server 4.
@@ -6,7 +6,7 @@ A custom built Content Management System using Bootstrap 4, Angular, C# MVC Core
 ## URLs
 * [Website](http://www.digitalnomaddave.com)
 * [Swagger UI](http://www.digitalnomaddave.com/swagger)
-* [GitHub](https://github.com/davidikin45/DigitalNomadDaveAspNetCore)
+* [GitHub](https://github.com/davidikin45/DigitalNomadDaveAspNetCore2)
 * [Azure DevOps](https://davidikin.visualstudio.com/Digital%20Nomad%20Dave)
 
 ## Getting Started
@@ -95,7 +95,6 @@ Publish DND.Web
 * [Bootstrap 4](https://v4-alpha.getbootstrap.com/) - responsive HTML, CSS, JS framework
 * [Angular](https://angular.io/) - Google JS framework
 * [Automapper](http://automapper.org/) - Convention based object-object mapper
-* [Entity Framework](https://msdn.microsoft.com/en-us/library/aa937723(v=vs.113).aspx) - Microsoft ORM framework
 * [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/) - Microsoft ORM framework
 * [MongoDB](https://www.mongodb.com) - NoSQL database
 * [Serilog](https://serilog.net/) - Structured Logging
@@ -132,7 +131,6 @@ This project is licensed under the MIT License
 * [Mehdi El Gueddari](http://mehdi.me/ambient-dbcontext-in-ef6/)
 * [Favicon.io](https://favicon.io/)
 * [Favic-o-matic](http://www.favicomatic.com/)
-* [Highway.Data EF6 InMemory DbContext](https://github.com/HighwayFramework/Highway.Data)
 * [Privacy Policies](https://privacypolicies.com)
 * [Jwt Tokens](https://jwt.io/)
 * [OpenID Connect](http://openid.net/connect/)
