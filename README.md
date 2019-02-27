@@ -16,7 +16,7 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 ```
-.NET Framework 4.7.2
+.NET Core 2.1
 ```
 
 ### Installing
