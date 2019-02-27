@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Data.Common;
 using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
