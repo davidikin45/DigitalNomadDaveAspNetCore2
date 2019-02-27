@@ -1,0 +1,81 @@
+﻿
+@inject AppSettings AppSettings
+@inject IHttpContextAccessor HttpContext
+
+ <!--Footer-->
+<footer class="page-footer center-on-small-only @(ViewBag.LandingPage == true ? "landing-page" : "content-page")">
+
+    <!--Footer Links-->
+    <div class="page-footer-image text-center">
+        <img src="@Url.Content(AppSettings.SiteFooterImage)" alt="footer" />
+    </div>
+    <div class="page-footer-inner">
+        <div class="container-fluid">
+            <div class="row">
+
+                <!--First column-->
+                <div class="col-md-3 offset-md-1 ">
+                    <div class="text-md-right text-xs-center font-italic small skyscannerlink">
+                        <a title="Instagram" href="@(AppSettings.InstagramLink)" target="_blank"><img src="~/images/insta.png" alt="Instagram" /></a>
+                        <a title="Facebook" href="@(AppSettings.FacebookLink)" target="_blank"><img src="~/images/fb.png" alt="Facebook" /></a>
+                        <a title="LinkedIn" href="@(AppSettings.LinkedInLink)" target="_blank"><img src="~/images/linkedin.png" alt="LinkedIn" /></a>
+                        <a title="GitHub" href="@(AppSettings.GitHubLink)" target="_blank"><img src="~/images/github.jpg" alt="GitHub" /></a>
+                        <a title="YouTube" href="@(AppSettings.YouTubeLink)" target="_blank"><img src="~/images/youtube.png" alt="YouTube" /></a>
+                        @*<a class="logo" href="http://www.skyscanner.net">Powered by <img width="211" height="47" alt="Skyscanner" src="~/images/Skyscanner-Logo-Original-white.png"></a>*@
+                    </div>
+
+                </div>
+                <!--/.First column-->
+
+                <hr class="hidden-md-up hidden-sm-down">
+
+                <!--Second column-->
+                <div class="col-md-2 offset-md-1 hidden-sm-down">
+                    <h5 class="title">Company</h5>
+                    <ul>
+                        <li><a title="About" href="@(Url.Action<HomeController>(c => c.About()))">About</a></li>
+                        <li><a title="Work With Me" href="@(Url.Action<HomeController>(c => c.WorkWithMe()))">Work With Me</a></li>
+                        @*<li><a href="@(Html.BuildUrlFromExpression<HomeController>(c => c.PrivacyPolicy()))">Privacy Policy</a></li>
+                            <li><a href="@(Html.BuildUrlFromExpression<HomeController>(c => c.TermsOfService()))">Terms of Service</a></li>*@
+                    </ul>
+                </div>
+                <!--/.Second column-->
+
+                <hr class="hidden-md-up hidden-sm-down">
+
+                <!--Third column-->
+                <div class="col-md-2 hidden-sm-down">
+                    <h5 class="title">Associates</h5>
+                    <ul>
+                        <li>Coming Soon</li>
+                        @*<li><a href="http://www.skyscanner.net" target="_blank">Skyscanner</a></li>*@
+                    </ul>
+                </div>
+                <!--/.Third column-->
+
+                <hr class="hidden-md-up hidden-sm-down">
+
+                <!--Fourth column-->
+                <div class="col-md-2 hidden-sm-down">
+                    <h5 class="title">Help</h5>
+                    <ul>
+                        <li><a href="@(Url.Action<HomeController>(c => c.HelpFAQ()))">Help/FAQ</a></li>
+                        <li><a title="Contact" href="@(Url.Action<HomeController>(c => c.Contact()))">Contact</a></li>
+                    </ul>
+                </div>
+                <!--/.Fourth column-->
+
+            </div>
+        </div>
+        <!--/.Footer Links-->
+        <!--Copyright-->
+        <div class="footer-copyright">
+            <div class="container-fluid">
+                © 2019 Copyright: <a href="@(AppSettings.SiteUrl)"> @(AppSettings.Domain).com </a>
+
+            </div>
+        </div>
+    </div>
+    <!--/.Copyright-->
+
+</footer>

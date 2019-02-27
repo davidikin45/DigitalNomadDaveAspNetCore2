@@ -1,0 +1,20 @@
+﻿@model IList<BlogPostDto>
+
+<div class="sidebar-module">
+    <h3>Latest Blog Posts</h3>
+
+    @if (Model.Count > 0)
+    {
+        <ul>
+            @foreach (var post in Model)
+            {
+              
+                <li>@(Html.ActionLink<BlogController>(c => c.Post(post.CreatedOn.Year, post.CreatedOn.Month, post.UrlSlug), post.Title, new { title = post.Title }))</li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>There are no posts yet!</p>
+    }
+</div>

@@ -1,0 +1,83 @@
+﻿@model ProjectsViewModel
+@inject AppSettings appSettings
+@inject IHostingEnvironment hostingEnvironment
+
+@{
+    var i = 0;
+}
+
+<div class="gallery">
+    @foreach (ProjectDto project in Model.Projects)
+    {
+        if (i % 2 == 0)
+        {
+            @Html.Raw(@"<div class=""card-deck"">")
+        }
+        <div class="card mb-4">
+            @if ((!string.IsNullOrEmpty(project.File) && FileHelper.FileExists(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Projects]) + project.File)) || (!string.IsNullOrEmpty(project.Album) && FileHelper.FolderExists(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + project.Album)))
+            {
+                bool isVideo = false;
+                bool isImage = false;
+                bool isText = false;
+                var media = FileHelper.GetFileInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Projects]) + project.File);
+
+                if (media == null)
+                {
+                    media = FileHelper.GetDirectoryInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + project.Album).MainPhotoOrVideoOrText();
+                }
+
+                if (media != null)
+                {
+                    isVideo = media.IsVideo();
+                    isImage = media.IsImage();
+                    isText = media.IsText();
+                }
+
+                if (isImage)
+                {
+                    <a class="gallery-image" href="@(media.VirtualPathSlug(hostingEnvironment))" title="@project.Name"><img class="card-img-top" src="@(media.VirtualPathSlug(hostingEnvironment, 800, 500))" alt="@project.Name"></a>
+                }
+                else if (isText)
+                {
+                    var url = media.ReadFileLine(0);
+                    var poster = media.ReadFileLine(1);
+                    if (url.ToLower().Contains("mp4"))
+                    {
+                        <video class="full-width-height" src="@url" @if (!string.IsNullOrEmpty(poster)) { <text> poster="@poster" preload="none" </text>  } else { <text> preload="metadata" </text> } controls></video>
+                    }
+                    else if (url.IsYouTube())
+                    {
+                        <div>
+                            <div class="youtube-container">
+                                <iframe src="@url.YouTubeEmbedUrl()" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            @*<YouTubeEmbed you-tube-id="@url"></YouTubeEmbed>*@
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="gallery-image" title="@project.Name" href="@url">
+                            <img class="card-img-top" src="@url" alt="@project.Name">
+                        </a>
+                    }
+                }
+            }
+            <div class="card-body">
+                @if (string.IsNullOrEmpty(project.Link))
+                {
+                    <h4 class="card-title">@project.Name</h4>
+                }
+                else
+                {
+                    <h4 class="card-title"><a target="_blank" href="@project.Link" title="@project.Name">@project.Name</a></h4>
+                }
+                <p class="card-text">@project.DescriptionText</p>
+            </div>
+        </div>
+        i = i + 1;
+        if (i % 2 == 0 || Model.Projects.Count == i)
+        {
+            @Html.Raw(@"</div>")
+        }
+    }
+</div>

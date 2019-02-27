@@ -1,0 +1,55 @@
+﻿@model WebApiPagedResponseDto<FileInfo>
+@inject IHostingEnvironment hostingEnvironment
+@inject AppSettings  appSettings
+@{
+    ViewBag.PageTitle = "Bucket List";
+    ViewBag.Blog = false;
+}
+
+<div class="row">
+    <!-- AddThis -->
+    <div class="col-12 blog-post-share-links">
+        @Html.AddThisLinks(appSettings.SiteUrl, Url.Action("Index").ToString(), string.Format("{0} | {1}", "Bucket List", appSettings.SiteTitle), "Bucket List", Url.Content(Url.Content(appSettings.SiteShareImage, true, appSettings)))
+    </div>
+</div>
+
+<div class="polaroid-images">
+    @foreach (var bucketListItem in Model.Data)
+    {
+
+        if (bucketListItem.IsImage())
+        {
+            <a href="" title="@bucketListItem.Caption()">
+                <img style="height:200px" src="@bucketListItem.VirtualPathSlug(hostingEnvironment, 0, 250)" alt="@bucketListItem.NameWithoutExtensionAndMain().GetStringWithSpacesAndFirstLetterUpper()" title="@bucketListItem.Caption()" />
+                <div class="polaroid-images-caption">@bucketListItem.Caption() @if (@bucketListItem.FullName.Contains("complete"))
+                {<i class="fa fa-check completed"></i>}</div>
+            </a>
+        }
+        else if (bucketListItem.IsVideo())
+        {
+            <a href="" title="@bucketListItem.Caption()">
+                <video style="height:170px" src="@bucketListItem.VirtualPathSlug(hostingEnvironment)" poster="@bucketListItem.VirtualPathSlug(hostingEnvironment, 0, 250)" controls preload="none"></video>
+                <div class="polaroid-images-caption">@bucketListItem.Caption() @if (@bucketListItem.FullName.Contains("complete"))
+                {<i class="fa fa-check completed"></i>}</div>
+            </a>
+        }
+
+    }
+</div>
+
+<br />
+<br />
+
+@{Func<int, string> link = pageIndex => Url.Action("Index", new { page = pageIndex });}
+@HtmlHelperExtensions.BootstrapPager(Html, Model.Page, link, Model.TotalItems, Model.PageSize, 5)
+
+@Html.FacebookCommentsThread(
+        appSettings.SiteTitle,
+        Url.Action("Index").ToString(),
+        (string)ViewBag.PageTitle.ToString())
+
+@*@Html.DisqusThread(
+    System.Configuration.ConfigurationManager.AppSettings["DisqusShortName"].ToString(),
+    System.Configuration.ConfigurationManager.AppSettings["SiteUrl"].ToString(),
+    Url.Action("Index").ToString(),
+    (string)ViewBag.PageTitle.ToString())*@

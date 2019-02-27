@@ -1,0 +1,8 @@
+﻿@{
+    ViewBag.PageTitle = "Resume";
+    ViewBag.Description = "Resume";
+    ViewBag.Blog = true;
+    ViewBag.BlogFullWidth = true;
+}
+
+@await Component.InvokeAsync(nameof(ContentHTMLViewComponent).Replace("ViewComponent",""), new { id = CMS.ContentHtml.Resume })

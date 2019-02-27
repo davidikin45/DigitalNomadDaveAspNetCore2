@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Http.Features
+@inject IHttpContextAccessor HttpContext
+
+@{
+    var consentFeature = Context.Features.Get<ITrackingConsentFeature>();
+    var showBanner = !consentFeature?.CanTrack ?? false;
+    var cookieString = consentFeature?.CreateConsentCookie();
+}
+
+@if (showBanner)
+{
+    {
+        HttpContext.HttpContext.Response.Headers["Cache-Control"] = "no-cache";
+     }
+
+    <nav id="cookieConsent" class="navbar navbar-expand-md navbar-dark fixed-top" role="alert">
+        <div class="container">
+            <span class="navbar-brand"><span class="fa fa-info-circle" aria-hidden="true"></span></span>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#cookieConsentNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="cookieConsentNav">
+                <span class="navbar-text">
+                    This website uses cookies to ensure you get the best experience.
+                </span>
+                <div class="form-inline ml-auto">
+                    <a asp-controller="Home" asp-action="PrivacyPolicy" class="btn btn-info mr-2">Learn More</a>
+                    <button type="button" class="btn btn-primary" data-cookie-string="@cookieString">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <script>
+        (function () {
+            document.querySelector("#cookieConsent button[data-cookie-string]").addEventListener("click", function (el) {
+                document.cookie = el.target.dataset.cookieString;
+                document.querySelector("#cookieConsent").classList.add("d-none");
+            }, false);
+        })();
+    </script>
+}

@@ -1,0 +1,54 @@
+﻿/* The Overlay (background) */
+.overlayMenu {
+    /* Height & width depends on how you want to reveal the overlay (see JS below) */
+    height: 110%;
+    width: 0;
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 54px;
+    background-color: rgb(0,0,0); /* Black fallback color */
+    background-color: rgba(0,0,0, 0.9); /* Black w/opacity */
+    overflow: hidden;
+    transition: 0.5s; /* 0.5 second transition effect to slide in or slide down the overlay (height or width, depending on reveal) */
+}
+
+/* Position the content inside the overlay */
+.overlayMenu-content {
+    position: relative;
+    top: 2%; /* 25% from the top */
+    width: 100%; /* 100% width */
+    text-align: center; /* Centered text/links */
+    margin-top: 0px; /* 30px top margin to avoid conflict with the close button on smaller screens */
+}
+
+/* The navigation links inside the overlay */
+.overlayMenu a {
+    padding: 5px;
+    text-decoration: none;
+    font-size: 28px;
+    color: #818181;
+    display: block; /* Display block instead of inline */
+    transition: 0.3s; /* Transition effects on hover (color) */
+}
+
+/* When you mouse over the navigation links, change their color */
+.overlayMenu a:hover, .overlayMenu a:focus {
+    color: #f1f1f1;
+}
+
+/* Position the close button (top right corner) */
+.overlayMenu .closebtn {
+    position: absolute;
+    top: 20px;
+    right: 45px;
+    font-size: 60px;
+}
+
+.navbar-toggler{
+    cursor:pointer;
+}
+
+/*.stop-scrolling {
+  /*height: 100%  !important;
+  overflow: hidden !important;}*/

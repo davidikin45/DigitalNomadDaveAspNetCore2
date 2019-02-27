@@ -1,0 +1,86 @@
+﻿@inject IHostingEnvironment hostingEnvironment
+@inject AppSettings appSettings
+@{
+    ViewBag.PageTitle = "Instagram";
+    ViewBag.Description = "Dave on Instagram";
+    ViewBag.Blog = true;
+    //ViewBag.BlogFullWidth = true;
+}
+
+<div class="row">
+    <!-- AddThis -->
+    <div class="col-12 blog-post-share-links">
+        @Html.AddThisLinks(appSettings.SiteUrl, Url.Action("Gallery", "Instagram"), string.Format("{0} | {1}", (string)ViewBag.PageTitle.ToString(), appSettings.SiteTitle), (string)ViewBag.Description, "")
+    </div>
+</div>
+
+<div id="instafeedMainImageDiv" style="display:none"></div>
+
+<div id="instafeedPhotos" class="instafeed card-columns-md-2 share-images"></div>
+
+@Html.FacebookCommentsThread(
+        appSettings.SiteUrl,
+        Url.Action("Gallery", new { name = "instagram" }).ToString(),
+        (string)ViewBag.PageTitle.ToString())
+
+@*@Html.DisqusThread(
+    System.Configuration.ConfigurationManager.AppSettings["DisqusShortName"].ToString(),
+    System.Configuration.ConfigurationManager.AppSettings["SiteUrl"].ToString(),
+    Url.Action("Gallery", new { name = "instagram" }).ToString(),
+    (string)ViewBag.PageTitle.ToString())*@
+
+
+@section scripts {
+    <script type="text/javascript">
+        var userFeed = new Instafeed({
+            get: 'user',
+            userId: '@appSettings.InstagramUserId',
+            accessToken: '@appSettings.InstagramAccessToken',
+            template: '<div class="card card-spacer-bottom" style="display:inline-block" >{{model.template}}<div class="card-body"><p class="card-text"><small class="text-muted pull-left">{{likes}} likes</small><small class="text-muted pull-right">{{comments}} comments</small></p><p class="card-text voffset2"><a class="instagram-caption" href="{{link}}" target="_blank">{{caption}}</a></p></div></div>',
+            resolution: 'standard_resolution',
+            filter: function (image) {
+                if(image.type === 'video')
+                {
+                    var src = image.videos.standard_resolution.url;
+                    image.template = '<video width="100%" src="' + src + '" controls preload="metadata"></video>';
+                }
+                else
+                {
+                    var instafeed = new Instafeed({});
+                    var caption = instafeed._getObjectProperty(image, 'caption.text');
+                    var link = image.link;
+                    var src = image.images.standard_resolution.url;
+                    image.template = '<a class="card-img-top gallery-image" target="_blank" href="' + link + '" title="' + caption +'"><img src="' + src + '" alt="' + caption + '" /></a>';
+                }
+                return true;
+            },
+            target: 'instafeedPhotos',
+            after: function (event) {
+                var links = document.querySelectorAll('.instagram-caption'), i;
+                for (i = 0; i < links.length; ++i) {
+                    links[i].innerHTML = links[i].innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br />');
+                }
+            }
+        });
+        userFeed.run();
+
+         var userFeed2 = new Instafeed({
+            get: 'user',
+            resolution: 'standard_resolution',
+            userId: '@appSettings.InstagramUserId',
+            accessToken: '@appSettings.InstagramAccessToken',
+            template: '<img id="instafeedMainImage" src="{{image}}" />',
+            limit:1,
+            target: 'instafeedMainImageDiv',
+            after: function (event) {
+                var mainImage = document.getElementById('instafeedMainImage').src;
+                document.getElementsByClassName('addthis_inline_share_toolbox_p3ki')[0].setAttribute("data-media", mainImage);
+                document.querySelector('meta[property="og:image"]').setAttribute("content", mainImage);
+            }
+
+        });
+        userFeed2.run();
+        //https://api.instagram.com/oauth/authorize/?client_id=CLIENT-ID&redirect_uri=REDIRECT-URI&response_type=token
+        //model.images.standard_resolution.url
+    </script>
+}

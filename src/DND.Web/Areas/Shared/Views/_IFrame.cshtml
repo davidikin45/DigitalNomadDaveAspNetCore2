@@ -1,0 +1,84 @@
+﻿@inject IUrlHelper Url
+@inject AppSettings AppSettings
+@inject IHttpContextAccessor HttpContext
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="@if (!string.IsNullOrEmpty(ViewBag.Description)) {<text>@ViewBag.Description</text>} else {@(AppSettings.SiteDescription)} ">
+    <meta name="keywords" content="@if (!string.IsNullOrEmpty(ViewBag.Keywords)) {<text>@ViewBag.Keywords, </text>}@(AppSettings.SiteKeyWords)">
+    <meta name="author" content="@if (!string.IsNullOrEmpty(ViewBag.Author)) {<text>@ViewBag.Author</text>} else {@(AppSettings.SiteAuthor)}" />
+
+    <meta property="og:type" content="@if (!string.IsNullOrEmpty(ViewBag.Description)) {<text>article</text>} else {<text>website</text>}" />
+    <meta property="og:site_name" content="@(AppSettings.SiteTitle)">
+
+    <meta property="og:title" content="@if (!string.IsNullOrEmpty(ViewBag.PageTitle)) {<text>@ViewBag.PageTitle @(AppSettings.TitleSeparator) </text>}@(AppSettings.SiteTitle)">
+    <meta property="og:description" content="@if (!string.IsNullOrEmpty(ViewBag.Description)) {<text>@ViewBag.Description</text>} else {@(AppSettings.SiteDescription)}"> 
+    <meta property="og:url" content="@(Url.Content(HttpContext.HttpContext.Request.Path, true, AppSettings))">
+
+    <meta name="ROBOTS" content="INDEX, FOLLOW">
+
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="apple-touch-icon-57x57.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="apple-touch-icon-114x114.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="apple-touch-icon-144x144.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="apple-touch-icon-60x60.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="apple-touch-icon-152x152.png" />
+    <link rel="icon" type="image/png" href="favicon-196x196.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="favicon-128.png" sizes="128x128" />
+
+    <meta name="application-name" content="@(AppSettings.SiteTitle)" />
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
+    <meta name="msapplication-TileImage" content="mstile-144x144.png" />
+    <meta name="msapplication-square70x70logo" content="mstile-70x70.png" />
+    <meta name="msapplication-square150x150logo" content="mstile-150x150.png" />
+    <meta name="msapplication-wide310x150logo" content="mstile-310x150.png" />
+    <meta name="msapplication-square310x310logo" content="mstile-310x310.png" />
+
+    <base href="/">
+    <title>
+        @if (!string.IsNullOrEmpty(ViewBag.PageTitle))
+        {<text>@ViewBag.PageTitle @(AppSettings.TitleSeparator) </text>}@(AppSettings.SiteTitle)
+    </title>
+
+    @Html.GoogleFontAsync(new List<string> { (AppSettings.BodyFont), (AppSettings.NavBarFont) }, true, true, true, true, true, true, 2000)
+    @Html.GetFontBodyCSSAsync((AppSettings.BodyFont))
+
+    <partial name="_IFrameCSS" />
+
+    @RenderSection("styles", required: false)
+    @if ((ViewBag.Admin == null || !ViewBag.Admin) && !String.IsNullOrWhiteSpace(AppSettings.GoogleAnalyticsTrackingId))
+    {
+        @(Html.GoogleAnalyticsScript((AppSettings.GoogleAnalyticsTrackingId)))
+    }
+    @if ((ViewBag.Admin == null || !ViewBag.Admin) && !String.IsNullOrWhiteSpace(AppSettings.GoogleAdSenseId))
+    {
+        @(Html.GoogleAdSenseScript((AppSettings.GoogleAdSenseId)))
+    }
+</head>
+<body>
+    <div class="pt-2 pb-2 pl-2 pr-2">
+        <div class="container-fluid">
+            @RenderBody()
+        </div>
+    </div>
+    <!-- SCRIPTS -->
+    <partial name="_IFrameJS" />
+
+    @RenderSection("scripts", required: false)
+
+    @Html.PostScrollHeight()
+
+    <partial name="_Alerts" />
+    <partial name="_Error" />
+</body>
+</html>

@@ -1,0 +1,5 @@
+﻿@model WebApiPagedResponseDto<FileInfo>
+
+<partial name="_GalleryList" model="@Model" />
+@{Func<int, string> link = pageIndex => Url.Action("Gallery", new { name = ViewContext.RouteData.Values["name"], page = pageIndex });}
+@HtmlHelperExtensions.BootstrapPager(Html, Model.Page, link, Model.TotalItems, Model.PageSize, 5)

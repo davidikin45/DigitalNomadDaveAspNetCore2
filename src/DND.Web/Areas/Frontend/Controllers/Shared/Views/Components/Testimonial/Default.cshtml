@@ -1,0 +1,28 @@
+﻿@model TestimonialsViewModel
+@inject AppSettings appSettings
+@inject IHostingEnvironment hostingEnvironment
+
+@if (Model.Testimonials.Count > 0)
+{
+    <br />
+    <h2>Testimonials</h2>
+}
+@{
+    int i = 0;
+}
+@foreach (TestimonialDto testimonial in Model.Testimonials)
+{
+    <div class="card card-inverse @if (i % 2 == 0) {<text>card-info</text>}else{<text>card-primary</text>} mb-3 text-center">
+        @if (!string.IsNullOrEmpty(testimonial.File) && FileHelper.FileExists(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Testimonials]) + testimonial.File))
+        {
+            <img class="card-img-top rounded-circle mt-3 mx-auto img-shadow" style="width:100px" src="@FileHelper.GetFileInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Testimonials]) + testimonial.File).VirtualPathSlug(hostingEnvironment, 300)" alt="@testimonial.Source">
+        }
+        <div class="card-body">
+            <blockquote class="card-blockquote">
+                <p>@testimonial.QuoteText</p>
+                <footer><cite title="@testimonial.Source">@testimonial.Source</cite></footer>
+            </blockquote>
+        </div>
+    </div>
+    i = i + 1;
+}

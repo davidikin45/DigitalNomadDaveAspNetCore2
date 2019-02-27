@@ -1,0 +1,9 @@
+﻿<ProjectConfiguration>
+  <Settings>
+    <IgnoredTests>
+      <NamedTestSelector>
+        <TestName>DND.UnitTests.Data.SqlServerDbTests.HangfireInitialization</TestName>
+      </NamedTestSelector>
+    </IgnoredTests>
+  </Settings>
+</ProjectConfiguration>

@@ -1,0 +1,36 @@
+﻿@model LocationDto
+@inject AppSettings appSettings
+@inject IHostingEnvironment hostingEnvironment
+
+@{
+    var mainPhotoVideo = FileHelper.GetDirectoryInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + Model.Album).MainPhotoOrVideo();
+    var mainImageShare = mainPhotoVideo != null ? mainPhotoVideo.AbsoluteShareUrlSlug(appSettings, hostingEnvironment) : "";
+
+    ViewBag.PageTitle = Model.Name;
+    ViewBag.Description = Model.DescriptionBody;
+
+    ViewBag.MainImage = mainImageShare;
+    ViewBag.Blog = true;
+}
+
+<div class="row">
+    <!-- AddThis -->
+    <div class="col-12 blog-post-share-links">
+        @Html.AddThisLinks(appSettings.SiteUrl, Url.RouteUrl<LocationsController>(c => c.Location(Model.UrlSlug)), string.Format("{0} | {1}", (string)ViewBag.PageTitle.ToString(), appSettings.SiteTitle), Model.DescriptionBody, mainImageShare)
+    </div>
+</div>
+<div class="blog-post-body gallery">
+    <partial name="_Location" model="@Model" view-data="@(new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) { { "HideName", true } })" /> @if (Model.HasGPSCoordinates())
+    {
+        <ng-map style="height:400px;" center="@Model.GPSLocation.Y.ToString(),@Model.GPSLocation.X.ToString()" zoom="@if (Model.LocationType == LocationType.Country){<text>3</text>}else{<text>7</text>}" ng-controller="MapCtrl as vm">
+            <marker position="@Model.GPSLocation.Y.ToString(),@Model.GPSLocation.X.ToString()" title="@Model.Name" on-click="vm.openGoogleMap(event, '@(Model.PlaceId)')"></marker>
+        </ng-map>}
+</div>
+<br />
+
+@*INCLUDE DISQUS *@
+@Html.FacebookCommentsThread(appSettings.SiteUrl, Url.RouteUrl<LocationsController>(c => c.Location(Model.UrlSlug)), Model.Name)
+
+@*@Html.DisqusThread(System.Configuration.ConfigurationManager.AppSettings["DisqusShortName"], System.Configuration.ConfigurationManager.AppSettings["SiteUrl"], Url.RouteUrl<LocationsController>(c => c.Location(Model.UrlSlug)), Model.Name)*@
+
+

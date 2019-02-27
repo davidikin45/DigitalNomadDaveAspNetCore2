@@ -1,0 +1,12 @@
+﻿using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AspNetCore.Base.Dtos
+{
+    public abstract class DtoAggregateRootBase<T> : DtoBase<T>, IDtoConcurrencyAware
+    {
+        //Optimistic Concurrency
+        [HiddenInput, Render(ShowForCreate = false, ShowForDisplay = false, ShowForEdit = true, ShowForGrid = false)]
+        public virtual byte[] RowVersion { get; set; }
+    }
+}

@@ -1,0 +1,27 @@
+﻿@if (TempData.GetAlertsForOutput(Html.ViewContext.HttpContext).Count > 0)
+{
+    <style>
+        .alert-container {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            padding-left: 3em;
+            padding-right: 3em;
+            z-index: 9999;
+        }
+    </style>
+    <script type="text/javascript">
+		$(function() {
+			@foreach (var alert in TempData.GetAlertsForOutput(Html.ViewContext.HttpContext))
+			{
+				<text>
+				window.alerts.showAlert({
+					message: '@alert.Message.Replace("'", "\\'")',
+					alertClass: '@alert.AlertClass'
+				});
+				</text>
+			}
+		});
+    </script>
+}

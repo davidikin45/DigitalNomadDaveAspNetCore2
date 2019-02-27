@@ -1,0 +1,14 @@
+﻿@inject NavigationService NavigationService
+<nav class="col-3 col-md-2 bg-faded sidebar">
+    <ul class="nav nav-pills flex-column">
+        @foreach (var menuItem in NavigationService.AdminMenu)
+        {
+            if (menuItem.Active == null || (bool)menuItem.Active)
+            {
+                <li class="nav-item">
+                    @(Html.MenuLink((string)menuItem.Area, (string)menuItem.Controller, (string)menuItem.Action, (string)menuItem.LinkText, "nav-link"))
+                </li>
+            }
+        }
+    </ul>
+</nav>

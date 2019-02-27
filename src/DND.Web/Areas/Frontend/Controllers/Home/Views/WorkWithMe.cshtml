@@ -1,0 +1,11 @@
+﻿@{
+    ViewBag.PageTitle = "Work With Me";
+    ViewBag.Description = "Work With Me";
+    ViewBag.Blog = true;
+}
+
+@await Component.InvokeAsync(nameof(ContentHTMLViewComponent).Replace("ViewComponent",""), new { id = CMS.ContentHtml.WorkWithMe })
+@await Component.InvokeAsync(nameof(TestimonialViewComponent).Replace("ViewComponent",""))
+<br />
+<h2>Projects</h2>
+@await Component.InvokeAsync(nameof(ProjectViewComponent).Replace("ViewComponent",""))

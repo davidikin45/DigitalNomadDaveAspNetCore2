@@ -1,0 +1,10 @@
+﻿@inject BundleConfigService BundleConfigService
+<environment include="Development">
+    @foreach (string style in BundleConfigService.Bundle("wwwroot/css/site.admin.min.css").inputFiles)
+    {
+        <link rel="stylesheet" href="@style.Replace("wwwroot","~")" asp-append-version="true" />
+    }
+</environment>
+<environment exclude="Development">
+    <link rel="stylesheet" href="~/css/site.admin.min.css" asp-append-version="true" />
+</environment>

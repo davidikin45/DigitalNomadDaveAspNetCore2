@@ -1,0 +1,58 @@
+@media (max-width: 768px) {
+  .modal-fullscreen {
+    background: transparent;
+  }
+  .modal-fullscreen .modal-content {
+    background: transparent;
+    border: 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+  .modal-backdrop.modal-backdrop-fullscreen {
+    background: #ffffff;
+  }
+  .modal-backdrop.modal-backdrop-fullscreen.in {
+    opacity: 1;
+    filter: alpha(opacity=100);
+  }
+  /* .modal-fullscreen size: we use Bootstrap media query breakpoints */
+  .modal-fullscreen .modal-dialog {
+    margin: 0;
+    margin-right: auto;
+    margin-left: auto;
+    width: 100%;
+  }
+}
+@media (min-width: 768px) {
+  .modal-fullscreen .modal-dialog {
+    width: 750px;
+    max-width: 750px !important;
+  }
+}
+@media (min-width: 992px) {
+  .modal-fullscreen .modal-dialog {
+    width: 970px;
+    max-width: 970px !important;
+  }
+}
+@media (min-width: 1200px) {
+  .modal-fullscreen .modal-dialog {
+    width: 1170px;
+    max-width: 1170px !important;
+  }
+}
+body.modal-open {
+  overflow: hidden;
+}
+.fade.in {
+  opacity: 1;
+}
+.modal.in .modal-dialog {
+  -webkit-transform: translate(0, 0%) !important;
+  -o-transform: translate(0, 0%) !important;
+  transform: translate(0, 0%) !important;
+}
+.modal-backdrop.in {
+  filter: alpha(opacity=50);
+  opacity: .5;
+}

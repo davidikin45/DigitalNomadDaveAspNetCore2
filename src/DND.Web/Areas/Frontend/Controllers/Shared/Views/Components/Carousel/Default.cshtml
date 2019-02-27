@@ -1,0 +1,180 @@
+﻿@model CarouselViewModel
+@inject AppSettings appSettings
+@inject IHostingEnvironment hostingEnvironment
+
+<div id="myCarousel" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+        @if (Model.ItemCount > 0)
+        {
+            <li data-target="#myCarousel" ng-non-bindable data-slide-to="0" class="active"></li>
+        }
+        @for (int i = 1; i < Model.ItemCount; i++)
+        {
+            <li data-target="#myCarousel" ng-non-bindable data-slide-to="@i"></li>
+        }
+    </ol>
+    <div class="carousel-inner" role="listbox">
+        @{
+            var first = true;
+        }
+
+        @foreach (BlogPostDto post in Model.Posts)
+        {
+            var mainPhoto = FileHelper.GetFileInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + post.CarouselImage);
+            if (mainPhoto == null)
+            {
+                mainPhoto = FileHelper.GetDirectoryInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + post.Album).MainPhotoOrVideo();
+            }
+
+            //var isVideo = mainPhoto.IsVideo();
+
+            var title = post.Title;
+            var description = post.CarouselText;
+            if (string.IsNullOrEmpty(description))
+            {
+                description = post.ShortDescription.Truncate(100);
+            }
+
+            var linkText = "Read Post";
+            var link = Url.Action<BlogController>(c => c.Post(post.CreatedOn.Year, post.CreatedOn.Month, post.UrlSlug));
+
+            if (mainPhoto != null)
+            {
+                <div class="carousel-item @(@first ? "active" : "")">
+                    @*@if (isVideo)
+                        {
+                            <video src="@mainPhoto.VirtualPathSlug()" poster="@mainPhoto.VirtualPathSlug(1600)" controls preload="none"></video>
+                        }
+                        else
+                        {
+                            <img src="@mainPhoto.VirtualPathSlug(1600)" alt="@post.Title">
+                        }*@
+                    <img src="@mainPhoto.VirtualPathSlug(hostingEnvironment, 1908, 900)" class="d-block w-100" alt="@title">
+                    <div class="container">
+                        <div class="hidden-xs-down carousel-caption d-none d-block text-right">
+                            <h1>@title</h1>
+                            <p>@description</p>
+                            <p><a class="btn btn-lg btn-primary" href="@link" title="@title" role="button">@linkText</a></p>
+                        </div>
+                        <div class="hidden-sm-up carousel-caption d-none d-block text-right" style="bottom:0">
+                            <h4>@title</h4>
+                            <p><a class="btn btn-sm btn-primary" href="@link" title="@title" role="button">@linkText</a></p>
+                        </div>
+                    </div>
+                </div>
+                first = false;
+            }
+        }
+
+        @{
+            int j = 0;
+        }
+        @foreach (DirectoryInfo album in Model.Albums)
+        {
+            var mainPhoto = album.MainPhotoOrVideo();
+            //var isVideo = mainPhoto.IsVideo();
+
+            var title = Model.AlbumCarouselItems[j].Title;
+            if (string.IsNullOrEmpty(title))
+            {
+                title = album.Name.PascalCase().GetStringWithSpacesAndFirstLetterUpper();
+            }
+
+            var description = Model.AlbumCarouselItems[j].CarouselText;
+
+            var linkText = Model.AlbumCarouselItems[j].ButtonText;
+            if (string.IsNullOrEmpty(linkText))
+            {
+                linkText = "Browse Gallery";
+            }
+
+            var link = Model.AlbumCarouselItems[j].Link;
+            if (string.IsNullOrEmpty(link))
+            {
+                link = Url.Action("Gallery", "Gallery", new { name = album.Name.ToSlug() });
+            }
+
+            if (mainPhoto != null)
+            {
+                <div class="carousel-item @(@first ? "active" : "")">
+
+                    @*@if (isVideo)
+                        {
+                            <video style="height:310px" src="@mainPhoto.VirtualPathSlug()" poster="@mainPhoto.VirtualPathSlug(1600)" controls preload="none"></video>
+                        }
+                        else
+                        {
+                            <img src="@mainPhoto.VirtualPathSlug(1600)" alt="@album.Name.PascalCase().GetStringWithSpacesAndFirstLetterUpper()">
+                        }*@
+                    <img src="@mainPhoto.VirtualPathSlug(hostingEnvironment, 1908, 900)" alt="@title">
+                    <div class="container">
+                        <div class="hidden-xs-down carousel-caption d-none d-block text-right">
+                            <h1>@title</h1>
+                            @if (!string.IsNullOrEmpty(description))
+                            {
+                                <p>@description</p>
+                            }
+                            <p><a class="btn btn-lg btn-primary" href="@link" title="@title" role="button">@linkText</a></p>
+                        </div>
+                        <div class="hidden-sm-up carousel-caption d-none d-block text-right" style="bottom:0">
+                            <h4>@title</h4>
+                            <p><a class="btn btn-sm btn-primary" href="@link" title="@title" role="button">@linkText</a></p>
+                        </div>
+                    </div>
+                </div>
+                first = false;
+            }
+
+            j++;
+        }
+
+        @foreach (CarouselItemDto item in Model.CarouselItems)
+        {
+            var mainPhoto = FileHelper.GetFileInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Carousel]) + item.File);
+
+            var title = item.Title;
+            var description = item.CarouselText;
+            var link = item.Link;
+            var linkText = item.ButtonText;
+            var openInNewWindow = item.OpenInNewWindow;
+
+            if (mainPhoto != null)
+            {
+                <div class="carousel-item @(@first ? "active" : "")">
+                    @*@if (isVideo)
+                        {
+                            <video style="height:310px" src="@mainPhoto.VirtualPathSlug()" poster="@mainPhoto.VirtualPathSlug(1600)" controls preload="none"></video>
+                        }
+                        else
+                        {
+                            <img src="@mainPhoto.VirtualPathSlug(1600)" alt="@album.Name.PascalCase().GetStringWithSpacesAndFirstLetterUpper()">
+                        }*@
+                    <img src="@mainPhoto.VirtualPathSlug(hostingEnvironment, 1908, 900)" alt="@item.Title">
+                    <div class="container">
+                        <div class="hidden-xs-down carousel-caption d-none d-block text-right">
+                            <h1>@title</h1>
+                            @if (!string.IsNullOrEmpty(description))
+                            {
+                                <p>@description</p>
+                            }
+                            <p><a class="btn btn-lg btn-primary" @(@openInNewWindow ? "target='_blank'" : "") href="@link" title="@title" role="button">@linkText</a></p>
+                        </div>
+                        <div class="hidden-sm-up carousel-caption d-none d-block text-right" style="bottom:0">
+                            <h4>@title</h4>
+                            <p><a class="btn btn-sm btn-primary" @(@openInNewWindow ? "target='_blank'" : "") href="@link" title="@title" role="button">@linkText</a></p>
+                        </div>
+                    </div>
+                </div>
+                first = false;
+            }
+        }
+    </div>
+    <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev" ng-non-bindable>
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next" ng-non-bindable>
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>

@@ -1,0 +1,41 @@
+﻿@model WebApiPagedResponseDto<LocationDto>
+@inject AppSettings appSettings
+@inject IHostingEnvironment hostingEnvironment
+
+@{
+    ViewBag.PageTitle = "Locations";
+    ViewBag.Description = "Locations";
+    ViewBag.Blog = true;
+}
+
+<form asp-controller="@Html.Controller()" asp-action="@Html.Action()" asp-antiforgery="false" method="get" class="form-inline">
+    <div class="input-group input-group-full-width mb-2">
+        @Html.TextBox("search", ViewBag.Search as string, new { placeholder = "Search", @class = "form-control" })
+        <span class="input-group-btn">
+            <input type="submit" value="Search" class="btn btn-primary" />
+        </span>
+    </div>
+</form>
+
+<div class="card-columns card-columns-sm-1 card-columns-md-2 card-columns-lg-2 card-columns-xl-2">
+    @foreach (var location in Model.Data.Where(l => !string.IsNullOrEmpty(l.Album) && FileHelper.GetDirectoryInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + l.Album) != null))
+    {
+        var mainPhoto = FileHelper.GetDirectoryInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + location.Album).MainPhotoOrVideo();
+        if (mainPhoto != null)
+        {
+            <div class="card card-inverse" style="display:inline-block">
+                <img class="card-img-top" alt="@location.Name" src="@(mainPhoto.VirtualPathSlug(hostingEnvironment, 640, 640))" />
+                <a class="card-img-top" title="@location.Name" href="@(Url.Action("Location", new { urlSlug = location.UrlSlug }))">
+                    <div class="card-img-overlay card-img-overlay-hover d-flex">
+                        <div class="my-auto mx-auto text-center">
+                            <h4 class="card-title">@location.Name</h4>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    }
+</div>
+
+@{Func<int, string> link = pageIndex => Url.Action("Index", new { page = pageIndex, pageSize = Model.PageSize, orderColumn = Model.OrderColumn, orderType = Model.OrderType, search = Model.Search });}
+@HtmlHelperExtensions.BootstrapPager(Html, Model.Page, link, Model.TotalItems, Model.PageSize, 5)

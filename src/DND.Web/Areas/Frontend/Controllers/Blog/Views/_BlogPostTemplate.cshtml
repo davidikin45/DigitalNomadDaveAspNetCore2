@@ -1,0 +1,95 @@
+﻿@model BlogPostDto
+@inject IHostingEnvironment hostingEnvironment
+@inject AppSettings appSettings
+
+@{
+    var mainPhotoVideoText = FileHelper.GetDirectoryInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + Model.Album).MainPhotoOrVideoOrText();
+    var mainImageShare = "";
+    if (mainPhotoVideoText != null)
+    {
+        if (mainPhotoVideoText.IsText())
+        {
+            var id = mainPhotoVideoText.ReadFileLine(0);
+            if (id.IsYouTube())
+            {
+                mainImageShare = id.YouTubeMaxResThumbailUrl();
+            }
+            else
+            {
+                mainImageShare = mainPhotoVideoText.ReadFileLine(1);
+            }
+        }
+        else
+        {
+            mainImageShare = mainPhotoVideoText.AbsoluteShareUrlSlug(appSettings, hostingEnvironment);
+        }
+    }
+}
+
+<div class="blog-post">
+    <div class="blog-post-meta">
+        <div class="row">
+
+            <!--Heading-->
+            <div class="col-12 blog-post-title">
+                <h2>@(Html.ActionLink<BlogController>(c => c.Post(Model.CreatedOn.Year, Model.CreatedOn.Month, Model.UrlSlug), Model.Title, new { title = Model.Title }))</h2>
+            </div>
+
+            <!-- AddThis -->
+            <div class="col-12 blog-post-share-links">
+                @Html.AddThisLinks(appSettings.SiteUrl, Url.RouteUrl<BlogController>(c => c.Post(Model.CreatedOn.Year, Model.CreatedOn.Month, Model.UrlSlug)), string.Format("{0} | {1}", Model.Title, appSettings.SiteTitle), Model.ShortDescription, mainImageShare)
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-6">
+                <div class="blog-post-author">
+                    <span>Author:</span> @(Html.ActionLink<BlogController>(c => c.Author(Model.Author.UrlSlug, 1), Model.Author.Name, new { title = String.Format("See all posts written by {0}", Model.Author.Name) }))
+                </div>
+                <!--Category-->
+                <div class="blog-post-category">
+                    <span>Category: </span>@(Html.ActionLink<BlogController>(c => c.Category(Model.Category.UrlSlug, 1), Model.Category.Name, new { title = String.Format("See all posts in {0}", Model.Category.Name) }))
+                </div>
+                <!--Tags-->
+                <div class="blog-post-tags">
+                    <span>Tags:</span>
+                    @foreach (var tag in Model.Tags)
+                    {
+                        <div class="blog-post-tags-div">
+                            @(Html.ActionLink<BlogController>(c => c.Tag(tag.Tag.UrlSlug, 1), tag.Tag.Name, new { title = String.Format("See all posts in {0}", tag.Tag.Name) }))
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-6 text-right">
+                <div class="blog-post-posted-date">
+                    @Html.ToConfigLocalTimeStringNoTimezone(@Model.CreatedOn)
+                </div>
+                <div class="blog-post-no-of-comments">
+                    @(Html.FacebookCommentCount(appSettings.SiteUrl, Url.RouteUrl<BlogController>(c => c.Post(Model.CreatedOn.Year, Model.CreatedOn.Month, Model.UrlSlug))))<text> Comments</text>
+                    @*@Html.DisqusCommentCount(Url.RouteUrl<BlogController>(c => c.Post(Model.DateCreated.Year, Model.DateCreated.Month, Model.UrlSlug)))*@
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!--Short Description-->
+    <div class="blog-post-body">
+        @if (mainPhotoVideoText != null)
+        {
+            <partial name="_Media" model="@mainPhotoVideoText" view-data="@(new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) { { "width", 800 }, { "height", 500 }, { "link", (Url.Action<BlogController>(c => c.Post(Model.CreatedOn.Year, Model.CreatedOn.Month, Model.UrlSlug))) } })" />
+        }
+        <br />
+        <br />
+        <p>@Html.Raw(Model.ShortDescription)</p>
+    </div>
+
+    <div class="blog-post-foot">
+        <a href="@(Url.Action<BlogController>(c => c.Post(Model.CreatedOn.Year, Model.CreatedOn.Month, Model.UrlSlug)))" title="Read More" class="btn btn-primary my-2 my-sm-0">read more</a>
+    </div>
+</div>

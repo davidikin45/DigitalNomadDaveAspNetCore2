@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AspNetCore.Base\AspNetCore.Base.csproj" />
+    <ProjectReference Include="..\DND.Core\DND.Core.csproj" />
+    <ProjectReference Include="..\DND.Domain\DND.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Blog\Authors\Commands\" />
+    <Folder Include="Blog\Authors\Dtos\" />
+    <Folder Include="Blog\Authors\DomainEventHandlers\" />
+    <Folder Include="Blog\Authors\Queries\" />
+    <Folder Include="Blog\BlogPosts\Commands\" />
+    <Folder Include="Blog\BlogPosts\DomainEventHandlers\" />
+    <Folder Include="Blog\BlogPosts\Dtos\" />
+    <Folder Include="Blog\BlogPosts\Queries\" />
+    <Folder Include="Blog\Categories\Commands\" />
+    <Folder Include="Blog\Categories\DomainEventHandlers\" />
+    <Folder Include="Blog\Categories\Queries\" />
+    <Folder Include="Blog\Locations\Commands\" />
+    <Folder Include="Blog\Locations\DomainEventHandlers\" />
+    <Folder Include="Blog\Locations\Queries\" />
+    <Folder Include="Blog\Tags\Commands\" />
+    <Folder Include="Blog\Tags\DomainEventHandlers\" />
+    <Folder Include="Blog\Tags\Queries\" />
+    <Folder Include="CMS\CarouselItems\Commands\" />
+    <Folder Include="CMS\CarouselItems\DomainEventHandlers\" />
+    <Folder Include="CMS\CarouselItems\Queries\" />
+    <Folder Include="CMS\ContentHtmls\Commands\" />
+    <Folder Include="CMS\ContentHtmls\DomainEventHandlers\" />
+    <Folder Include="CMS\ContentHtmls\Queries\" />
+    <Folder Include="CMS\ContentTexts\Commands\" />
+    <Folder Include="CMS\ContentTexts\DomainEventHandlers\" />
+    <Folder Include="CMS\ContentTexts\Queries\" />
+    <Folder Include="CMS\Faqs\Commands\" />
+    <Folder Include="CMS\Faqs\DomainEventHandlers\" />
+    <Folder Include="CMS\Faqs\Queries\" />
+    <Folder Include="CMS\MailingLists\Commands\" />
+    <Folder Include="CMS\MailingLists\DomainEventHandlers\" />
+    <Folder Include="CMS\MailingLists\Queries\" />
+    <Folder Include="CMS\Projects\Commands\" />
+    <Folder Include="CMS\Projects\DomainEventHandlers\" />
+    <Folder Include="CMS\Projects\Queries\" />
+    <Folder Include="CMS\Testimonials\Commands\" />
+    <Folder Include="CMS\Testimonials\DomainEventHandlers\" />
+    <Folder Include="CMS\Testimonials\Queries\" />
+  </ItemGroup>
+
+</Project>

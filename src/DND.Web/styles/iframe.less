@@ -1,0 +1,57 @@
+﻿/*wizard*/
+.wizard {
+    padding:0px;
+    overflow: hidden;
+    /*CSS counters to number the steps*/
+    counter-reset: step;
+}
+
+.wizard li {
+    text-align: center;
+    list-style-type: none;
+    color: black;
+    text-transform: uppercase;
+    font-size: 9px;
+    width: 25%;
+    float: left;
+    position: relative;
+    letter-spacing: 1px;
+}
+
+.wizard li:before {
+    content: counter(step);
+    counter-increment: step;
+    width: 24px;
+    height: 24px;
+    line-height: 26px;
+    display: block;
+    font-size: 12px;
+    color: white;
+    background: black;
+    border-radius: 25px;
+    margin: 0 auto 10px auto;
+}
+
+/*wizard connectors*/
+.wizard li:after {
+    content: '';
+    width: 100%;
+    height: 2px;
+    background: black;
+    position: absolute;
+    left: -50%;
+    top: 9px;
+    z-index: -1; /*put it behind the numbers*/
+}
+
+.wizard li:first-child:after {
+    /*connector not needed before the first step*/
+    content: none;
+}
+
+/*marking active/completed steps green*/
+/*The number of the step and the connector before it = green*/
+.wizard li.active:before, .wizard li.active:after {
+    background: #e74c3c;
+    color: black;
+}

@@ -1,0 +1,62 @@
+﻿@model FileInfo
+@inject IHostingEnvironment HostingEnvironment
+<div class="card card-spacer-bottom card-spacer-top media-item" style="display:inline-flex; width:100%">
+    @{
+        var link = Model.VirtualPathSlug(HostingEnvironment, 1600);
+
+        if (ViewData.ContainsKey("link"))
+        {
+            link = (string)ViewData["link"];
+        }
+    }
+
+    @if (Model.IsImage())
+    {
+        <a class="card-img-top gallery-image" href="@link" title="@Model.CaptionWithDate()">
+            <img alt="@Model.CaptionWithDate()" src="@Model.VirtualPathSlug(HostingEnvironment, (int)ViewBag.Width, (int)ViewBag.Height)" />
+        </a>
+    }
+    else if (Model.IsVideo())
+    {
+        <video class="full-width-height" src="@Model.VirtualPathSlug(HostingEnvironment)" poster="@Model.VirtualPathSlug(HostingEnvironment, 800, 0)" controls preload="none"></video>
+    }
+    else if (Model.IsText())
+    {
+        var url = Model.ReadFileLine(0);
+        var poster = Model.ReadFileLine(1);
+        if (url.ToLower().Contains("mp4"))
+        {
+            @if (!string.IsNullOrEmpty(poster))
+            {
+                <video class="full-width-height" src="@url" poster="@poster" preload="none" controls></video>
+            }
+            else
+            {
+                <video class="full-width-height" src="@url" preload="metadata" controls></video>
+            }
+        }
+        else if (url.IsYouTube())
+        {
+            <div>
+                <div class="youtube-container">
+                    <iframe src="@url.YouTubeEmbedUrl()" frameborder="0" allowfullscreen></iframe>
+                </div>
+                @*<YouTubeEmbed you-tube-id="@url"></YouTubeEmbed>*@
+            </div>
+        }
+        else
+        {
+            <a class="card-img-top gallery-image" href="@url" title="@Model.CaptionWithDate()">
+                <img alt="@Model.CaptionWithDate()" src="@url" />
+            </a>
+        }
+    }
+    <div class="card-img-overlay card-img-overlay-relative card-img-overlay-caption">
+        <p class="card-text">
+            <small class="text-muted">
+                @if (Model.HasGPSCoordinates())
+                {<google-map placeid="@Model.PlaceId()" latitude="@Model.Latitude().ToString()" longitude="@Model.Longitude().ToString()"></google-map>}@Model.CaptionWithDate()
+            </small>
+        </p>
+    </div>
+</div>

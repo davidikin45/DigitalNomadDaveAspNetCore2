@@ -1,0 +1,18 @@
+﻿@model IList<CategoryDto>
+
+<div class="sidebar-module">
+    <h3>Categories</h3>
+
+    @if (Model.Count > 0)
+    {    
+            foreach (var category in Model)
+            {
+                @(Html.ActionLink(String.Format("{0} ({1})", category.Name, category.Count.ToString()), nameof(BlogController.Category), "Blog", new { categorySlug = category.UrlSlug  }, new { title = String.Format("See all posts in {0} ({1})", category.Name, category.Count.ToString()), @class = "category" }))
+            }
+      
+    }
+    else
+    {
+        <p>No categories found!</p>
+    }
+</div>

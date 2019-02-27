@@ -1,0 +1,22 @@
+﻿@model ContactViewModel
+@{
+    ViewBag.PageTitle = "Contact Me";
+    ViewBag.Description = "Contact Me";
+    ViewBag.Blog = true;
+}
+
+@await Component.InvokeAsync(nameof(ContentHTMLViewComponent).Replace("ViewComponent", ""), new { id = CMS.ContentHtml.Contact })
+<br />
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    //Only displays Model level validation
+    @Html.ValidationSummary(true)
+    @Html.EditorForModel()
+    <div class="form-group row">
+        <div class="col-md-12">
+            <input id="ContactSubmit" type="submit" value="Submit" class="btn btn-primary" />
+        </div>
+    </div>
+}

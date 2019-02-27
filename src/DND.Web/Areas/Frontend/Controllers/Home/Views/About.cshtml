@@ -1,0 +1,7 @@
+﻿@{
+    ViewBag.PageTitle = "About";
+    ViewBag.Description = "About Digital Nomad Dave";
+    ViewBag.Blog = true;
+}
+
+@await Component.InvokeAsync(nameof(ContentHTMLViewComponent).Replace("ViewComponent",""), new { id = CMS.ContentHtml.About })

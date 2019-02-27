@@ -1,0 +1,17 @@
+@media only screen and (min-width: 576px) {
+  .flight-search .col-form-label,
+  .form-check-inline {
+    font-size: 1em;
+  }
+  /*.form-control{
+    margin-bottom: 1em;
+}*/
+  .carousel-item {
+    height: 330px;
+  }
+  .card-columns-sm-1 {
+    -webkit-column-count: 1;
+    -moz-column-count: 1;
+    column-count: 1;
+  }
+}

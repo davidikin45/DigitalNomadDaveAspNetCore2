@@ -1,0 +1,35 @@
+﻿@model WebApiPagedResponseDto<LocationDto>
+@inject AppSettings appSettings
+@inject IHostingEnvironment hostingEnvironment
+
+@{
+    ViewBag.PageTitle = "Travel Map";
+    ViewBag.FullWidthPage = true;
+    ViewBag.LandingPage = true;
+}
+
+<ng-map class="ng-map-fullscreen" default-style="false" zoom="3" center="23.0328257962019,30.9375" map-type-id="TERRAIN" ng-controller="MapCtrl as vm">
+    @foreach (var item in Model.Data)
+    {
+        bool outputImage = false;
+
+        if (!item.CurrentLocation && !string.IsNullOrEmpty(item.Album) && FileHelper.FolderExists(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + item.Album))
+        {
+            var mainPhoto = FileHelper.GetDirectoryInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + item.Album).MainPhotoOrVideoOrText();
+            if (mainPhoto != null)
+            {
+                outputImage = true;
+                var imgsrc = mainPhoto.VirtualPathSlugOrUrl(hostingEnvironment, 300, 300);
+
+                <custom-marker position="[@item.GPSLocation.Y.ToString(), @item.GPSLocation.X.ToString()]" title="@item.Name" @if (!string.IsNullOrEmpty(item.UrlSlug)) { <text> on-click="vm.openLocation(event,'@item.UrlSlug')" </text> }>
+                    <img width="45" alt="@item.Name" src="@imgsrc" align="left" onmouseover="this.width = 100; this.parentNode.style.zIndex=99;" onmouseout="this.width = 32; this.parentNode.style.zIndex='auto';" title="@item.Name" />
+                </custom-marker>
+            }
+        }
+        if (outputImage == false)
+        {
+            <marker position="[@item.GPSLocation.Y.ToString(), @item.GPSLocation.X.ToString()]" @if (item.CurrentLocation) { <text> animation="Animation.BOUNCE" </text> } title="@item.Name" @if (!string.IsNullOrEmpty(item.UrlSlug)) { <text> on-click="vm.openLocation(event,'@item.UrlSlug')" </text> }></marker>
+        }
+    }
+</ng-map>
+@*icon="http://maps.google.com/mapfiles/ms/icons/red-dot.png"*@

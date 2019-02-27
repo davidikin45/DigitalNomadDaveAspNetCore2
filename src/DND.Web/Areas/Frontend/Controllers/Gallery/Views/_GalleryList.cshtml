@@ -1,0 +1,14 @@
+﻿@model WebApiPagedResponseDto<FileInfo>
+@{
+    HashSet<string> files = new HashSet<string>();
+}
+
+@foreach (var item in Model.Data)
+{
+    var key = item.Name + item.Length.ToString();
+    if (!files.Contains(key))
+    {
+        <partial name="_Media" model="@item" view-data="@(new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) { { "width", 800 }, { "height", 0 } })" />
+        files.Add(key);
+    }
+}

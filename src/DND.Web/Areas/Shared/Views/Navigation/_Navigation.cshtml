@@ -1,0 +1,110 @@
+﻿@inject AppSettings AppSettings
+@inject IHttpContextAccessor HttpContext
+@inject NavigationService NavigationService
+
+<nav class="navbar fixed-top navbar-dark navbar-expand-md scrolling-navbar @(ViewBag.NavBarTransparent == true ? "navbar-transparent" : "")">
+    @*<div class="container">*@
+        @(Html.MenuLink("Frontend","Home","Index", AppSettings.SiteTitle, "navbar-brand ", "", @"<img src=""" + Url.Content(AppSettings.SiteLogoSmall) + @""" width=""32"" height=""32"" class=""d-inline-block align-top"" alt=""" + AppSettings.SiteTitle + @""">"))
+        <div class="navbar-toggler-right">
+            <button id="openNav" class="navbar-toggler hidden-lg-up" type="button" onclick="openNav()">
+                <i class="fa fa-bars"></i>
+            </button>
+            <button id="closeNav" style="display:none" class="navbar-toggler  hidden-lg-up" type="button" onclick="closeNav()">
+                <i class="fa fa-times"></i>
+            </button>
+
+        </div>
+        <div class="collapse navbar-collapse" id="navbarsExampleContainer">
+            <ul class="navbar-nav mr-auto mx-auto" itemscope itemtype="http://www.schema.org/SiteNavigationElement">
+                @foreach (var menuItem in NavigationService.Menu)
+                {
+                    <li class="nav-item" itemprop="name">
+                        @(Html.MenuLink((string)menuItem.Area, (string)menuItem.Controller, (string)menuItem.Action, (string)menuItem.LinkText, "nav-link"))
+                    </li>
+                }
+
+
+            </ul>
+
+            <partial name="_SelectLanguagePartialUrl" />
+
+            @using (Html.BeginForm<BlogController>(c => c.Search("", 1), FormMethod.Get, new { id = "search-form", @class = "form-inline my-2 my-md-0 hidden-lg-down" }))
+            {
+                <input id="s" name="s" class="form-control mr-sm-2" type="text" placeholder="Search">
+                <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+            }
+
+            <ul class="navbar-nav">
+                @if (User.Identity.IsAuthenticated)
+                {
+
+                    <li class="nav-item">
+                        @(Html.MenuLink("Identity", "Manage", "Index", "Manage", "nav-link", "fa-cog"))
+                    </li>
+                    <li class="nav-item">
+                        @using (Html.BeginForm("LogOut", "Account", FormMethod.Post, new { id = "logoutForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <a class="nav-link" href="javascript:document.getElementById('logoutForm').submit()" title="Sign Out">
+                                <i class="fa fa-sign-out"></i>
+                            </a>
+                        }
+                    </li>
+
+                }
+                else
+                {
+                    <li class="nav-item">
+                        @(Html.MenuLink("Identity", "Account", "Login", "Sign In", "nav-link", "fa-sign-in"))
+                    </li>
+                }
+                @*<locale-market-currency></locale-market-currency>*@
+            </ul>
+
+        </div>
+
+        <div id="mobileNav" class="overlayMenu">
+            <!-- Overlay content -->
+            <div class="overlayMenu-content">
+                <div class="nav-item">
+                    @foreach (var menuItem in NavigationService.Menu)
+                    {
+                        <a href="@(Url.Action((string)menuItem.Action,(string)menuItem.Controller))">@((string)menuItem.LinkText)</a>
+                    }
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        @(Html.MenuLink("Identity", "Manage", "Index", "Manage", ""))
+                        using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <a href="javascript:document.getElementById('logoutForm').submit()">Log off</a>
+                        }
+                    }
+                </div>
+
+                @*<div class="nav">
+                        <locale-market-currency></locale-market-currency>
+                    </div>*@
+            </div>
+
+            <script>
+                /* Open when someone clicks on the span element */
+                function openNav() {
+                    $('#openNav').toggle();
+                    $('#closeNav').toggle();
+                    document.getElementById("mobileNav").style.width = "100%";
+                    $('body').addClass('stop-scrolling');
+                }
+
+                /* Close when someone clicks on the "x" symbol inside the overlay */
+                function closeNav() {
+                    $('#openNav').toggle();
+                    $('#closeNav').toggle();
+                    document.getElementById("mobileNav").style.width = "0%";
+                    $('body').removeClass('stop-scrolling');
+                }
+            </script>
+            <div class="container alert-container"></div>
+        </div>
+    @*</div>*@
+</nav>

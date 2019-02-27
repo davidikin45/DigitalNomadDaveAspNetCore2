@@ -1,0 +1,167 @@
+﻿@inject IHostingEnvironment hostingEnvironment
+@inject AppSettings appSettings
+@inject DND.Data.AppContext db
+@inject IFileSystemGenericRepositoryFactory fileSystemGenericRepositoryFactory
+@{
+    ViewBag.PageTitle = "";
+    ViewBag.LandingPage = true;
+    ViewBag.NavBarTransparent = true;
+}
+
+@await Component.InvokeAsync(nameof(CarouselViewComponent).Replace("ViewComponent", ""))
+
+@*<div class="row">
+    <div class="col-12 col-xl-8 offset-xl-2">
+        <div class="card transparentpanel margin-top-30">
+            <div class="card-body">*@
+<!--Title-->
+@*<h4 class="card-title">Card title</h4>*@
+<!--Text-->
+@*<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <a class="btn btn-primary waves-effect waves-light pull-right" href="#">Search</a>*@
+
+@*<flight-search></flight-search>*@
+
+@*@Html.Partial("_Search")
+
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+
+@{
+    var currentLocationName = "";
+    var currentLocationLatitude = "";
+    var currentLocationLongitude = "";
+
+    var nextLocationName = "";
+    var nextLocationLatitude = "";
+    var nextLocationLongitude = "";
+
+    var currentLocation = db.Locations.Where(l => l.CurrentLocation).OrderByDescending(l => l.UpdatedOn).FirstOrDefault();
+    currentLocationName = currentLocation != null ? currentLocation.Name : "";
+    currentLocationLatitude = currentLocation != null ? currentLocation.Latitude.ToString() : "";
+    currentLocationLongitude = currentLocation != null ? currentLocation.Longitude.ToString() : "";
+
+    var nextLocation = db.Locations.Where(l => l.NextLocation).OrderByDescending(l => l.UpdatedOn).FirstOrDefault();
+    nextLocationName = nextLocation != null ? nextLocation.Name : "";
+    nextLocationLatitude = nextLocation != null ? nextLocation.Latitude.ToString() : "";
+    nextLocationLongitude = nextLocation != null ? nextLocation.Longitude.ToString() : "";
+}
+
+<div class="container-fluid section-grey">
+    <div class="row margin-bottom-15">
+        <div class="col-12 text-center"><h2>@(Html.ActionLink<BlogController>(c => c.Posts(1), "Latest Blog Posts"))</h2></div>
+    </div>
+    @await Component.InvokeAsync(nameof(LatestblogPostsViewComponent).Replace("ViewComponent", ""))
+</div>
+<app-root></app-root>
+<div class="section-white">
+    <div class="container">
+        <div class="row">
+            <div class="offset-1 col-5 text-center">
+                <h3 class="hidden-sm-down">Where Am I?</h3>
+                <h4 class="hidden-sm-up">Where Am I?</h4>
+                <p>
+                    @if (currentLocationName != "")
+                    {<text><google-map latitude="@currentLocationLatitude" longitude="@currentLocationLongitude"></google-map></text>} &nbsp; @currentLocationName
+                </p>
+            </div>
+            <div class="col-5 text-center">
+                <h3 class="hidden-sm-down">Where Next?</h3>
+                <h4 class="hidden-sm-up">Where Next?</h4>
+                <p>
+                    @if (nextLocationName != "")
+                    {<text><google-map latitude="@nextLocationLatitude" longitude="@nextLocationLongitude"></google-map></text>} &nbsp; @nextLocationName
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var repository = fileSystemGenericRepositoryFactory.CreateFileRepositoryReadOnly(default(CancellationToken), hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Parellax]), true, "*.*", ".jpg");
+    var data = repository.GetAll(AutoMapperHelper.GetOrderByFunc<FileInfo>(nameof(FileInfo.LastWriteTime), OrderByType.Descending), 0, 2).ToList();
+}
+
+@if (data.Count() > 0)
+{
+    <div class="parallax hidden-md-down" style="background-image: url('@(data[0].VirtualPathSlug(hostingEnvironment))');">
+        <h4 class="parallax-caption">
+            @(data[0].Caption())
+        </h4>
+    </div>
+}
+
+<div class="section-white margin-bottom-10">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <a href="@(Url.Action<HomeController>(c => c.Contact()))" title="Contact"><i class="fa fa-envelope fa-2x" aria-hidden="true"></i>&nbsp;&nbsp;<h3 style="display:inline">Available for Work</h3></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*<div class="container-fluid section-grey">
+        <div class="row margin-bottom-15">
+            <div class="col-12 text-center">
+                <h2>Mailing List</h2>
+            </div>
+        </div>
+        <div class="row margin-bottom-15">
+            <div class="col-md-6 offset-md-3">
+                @await Html.PartialAsync("_MailingList", new MailingListDto())
+            </div>
+        </div>
+    </div>*@
+
+@if (data.Count() > 1)
+{
+    <div class="parallax hidden-md-down" style="background-image: url('@(data[1].VirtualPathSlug(hostingEnvironment))');">
+        <h4 class="parallax-caption">
+            @(data[1].Caption())
+        </h4>
+    </div>
+}
+
+@await Component.InvokeAsync(nameof(ContentHTMLViewComponent).Replace("ViewComponent", ""), new { id = CMS.ContentHtml.Main })
+
+@section footerContent
+    {
+    <div class="container-fluid container-full">
+        <div id="instafeedFooter" class="row instafeed no-gutters">
+
+        </div>
+    </div>
+}
+
+@section Scripts
+    {
+    @*<script>
+            $("#priceFilter").slider();
+            $("#outboundDepatureTimeFilter").slider();
+            $("#outboundArrivalTimeFilter").slider();
+            $("#inboundDepatureTimeFilter").slider();
+            $("#inboundArrivalTimeFilter").slider();
+        </script>*@
+    <script>
+        $('#instafeedFooter').each(function () {
+            var userFeed = new Instafeed({
+                get: 'user',
+                userId: '@appSettings.InstagramUserId',
+                accessToken: '@appSettings.InstagramAccessToken',
+                template: '<a class="col-3 col-3-square remove-text-decoration" target="_blank" title="{{caption}}" alt="{{caption}}" href="{{link}}"><div class="hover-zoom text-center" style="display: table; background-image:url({{image}}); color:white;"><div class="hidden-sm-down overlay"><i class="fa fa-heart fa-2x"></i>&nbsp;{{likes}}&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-comment fa-2x"></i>&nbsp;{{comments}}</div><div class="hidden-md-up overlay"><i class="fa fa-heart"></i>&nbsp;{{likes}}<br/><i class="fa fa-comment"></i>&nbsp;{{comments}}</div></div></a>',
+                resolution: 'standard_resolution',
+                target: 'instafeedFooter',
+                limit: 8
+            });
+            userFeed.run();
+
+
+            //https://api.instagram.com/oauth/authorize/?client_id=CLIENT-ID&redirect_uri=REDIRECT-URI&response_type=token
+            //model.images.standard_resolution.url
+        });
+    </script>
+}

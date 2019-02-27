@@ -1,0 +1,77 @@
+﻿@model WebApiPagedResponseDto<FileInfo>
+@inject IHostingEnvironment hostingEnvironment
+@inject AppSettings appSettings
+
+@{
+    ViewBag.PageTitle = ((DirectoryInfo)ViewBag.Album).Name.PascalCase().GetStringWithSpacesAndFirstLetterUpper();
+    ViewBag.Description = ((DirectoryInfo)ViewBag.Album).Name.PascalCase().GetStringWithSpacesAndFirstLetterUpper() + " Album";
+
+    ViewBag.Blog = true;
+    //ViewBag.BlogFullWidth = true;
+    var mainPhotoVideoText = ((DirectoryInfo)ViewBag.Album).MainPhotoOrVideoOrText();
+    var mainImageShare = "";
+    if (mainPhotoVideoText != null)
+    {
+        if (mainPhotoVideoText.IsText())
+        {
+            var id = mainPhotoVideoText.ReadFileLine(0);
+            if (id.IsYouTube())
+            {
+                mainImageShare = id.YouTubeMaxResThumbailUrl();
+            }
+            else
+            {
+                mainImageShare = mainPhotoVideoText.ReadFileLine(1);
+            }
+        }
+        else
+        {
+            mainImageShare = mainPhotoVideoText.AbsoluteShareUrlSlug(appSettings, hostingEnvironment);
+        }
+    }
+
+
+    ViewBag.MainImage = mainImageShare;
+
+    HashSet<string> files = new HashSet<string>();
+}
+
+<div class="row">
+    <!-- AddThis -->
+    <div class="col-12 blog-post-share-links">
+        @Html.AddThisLinks(appSettings.SiteUrl, Url.Action("Gallery", new { name = ViewContext.RouteData.Values["name"] }).ToString(), string.Format("{0} | {1}", (string)ViewBag.PageTitle.ToString(), appSettings.SiteTitle), (string)ViewBag.PageTitle.ToString() + " Album", mainImageShare)
+    </div>
+</div>
+
+<div class="instafeed card-columns-md-2 gallery" id="gallery" data-infinite-scroll='{ "button" : ".view-more-button", "scrollThreshold" : false, "path": ".pagination__next", "append": ".media-item", "status":".page-load-status", "history" : false }'>
+    <partial name="_GalleryList" model="@Model" />
+</div>
+
+<div class="page-load-status" style="display:none">
+    <div class="loader-ellips infinite-scroll-request">
+        <span class="loader-ellips__dot"></span>
+        <span class="loader-ellips__dot"></span>
+        <span class="loader-ellips__dot"></span>
+        <span class="loader-ellips__dot"></span>
+    </div>
+    <p class="infinite-scroll-last"></p>
+    <p class="infinite-scroll-error"></p>
+</div>
+
+<p class="hidden-sm-up"><button class="view-more-button btn btn-primary w-100">View more</button></p>
+
+<div class="hidden-xs-down">
+    @{Func<int, string> link = pageIndex => Url.Action("Gallery", new { name = ViewContext.RouteData.Values["name"], page = pageIndex });}
+    @HtmlHelperExtensions.BootstrapPager(Html, Model.Page, link, Model.TotalItems, Model.PageSize, 5)
+</div>
+
+@Html.FacebookCommentsThread(
+        appSettings.SiteUrl,
+        Url.Action("Gallery", new { name = ViewContext.RouteData.Values["name"] }).ToString(),
+        (string)ViewBag.PageTitle.ToString())
+
+@*@Html.DisqusThread(
+    System.Configuration.ConfigurationManager.AppSettings["DisqusShortName"].ToString(),
+    System.Configuration.ConfigurationManager.AppSettings["SiteUrl"].ToString(),
+    Url.Action("Gallery", new { name = ViewContext.RouteData.Values["name"] }).ToString(),
+    (string)ViewBag.PageTitle.ToString())*@

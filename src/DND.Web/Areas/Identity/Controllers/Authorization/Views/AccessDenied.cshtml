@@ -1,0 +1,9 @@
+﻿@{
+    ViewBag.PageTitle = "Access Denied";
+    ViewBag.Description = "Access Denied";
+    ViewBag.Blog = true;
+    ViewBag.NoFollow = true;
+}
+
+<div class="h3">Woops, looks like you're not authorized to view this page.</div>
+<div>Would you prefer to <a asp-controller="Authentication" asp-action="Logout">log in as someone else</a>?</div>

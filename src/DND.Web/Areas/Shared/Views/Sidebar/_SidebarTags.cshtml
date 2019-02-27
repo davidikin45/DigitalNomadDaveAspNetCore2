@@ -1,0 +1,17 @@
+﻿@model IList<TagDto>
+
+<div class="tags sidebar-module">
+    <h3>Tags</h3>
+
+    @if (Model.Count > 0)
+    {
+        foreach (var tag in Model)
+        {
+            <a href="@(Url.Action(nameof(BlogController.Tag),"Blog", new { tagSlug = tag.UrlSlug }))" title="@(String.Format("See all posts in {0}", tag.Name))"><span class="badge badge-dark">@tag.Name</span></a>
+        }
+    }
+    else
+    {
+        <p>No tags found!</p>
+    }
+</div>

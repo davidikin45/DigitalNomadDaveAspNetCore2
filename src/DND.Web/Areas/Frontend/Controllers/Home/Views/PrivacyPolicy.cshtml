@@ -1,0 +1,7 @@
+﻿@{
+    ViewBag.PageTitle = "Privacy Policy";
+    ViewBag.Description = "Privacy Policy";
+    ViewBag.Blog = true;
+}
+
+@await Component.InvokeAsync(nameof(ContentHTMLViewComponent).Replace("ViewComponent",""), new { id = CMS.ContentHtml.PrivacyPolicy })

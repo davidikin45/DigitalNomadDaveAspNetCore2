@@ -1,0 +1,13 @@
+﻿@model dynamic
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    //Only displays Model level validation
+    @Html.ValidationSummary(true)
+    @Html.EditorForModel()
+    <div class="form-group row">
+        <div class="offset-md-2 col-md-10">
+            <input type="submit" value="Send Emails" class="btn btn-primary" />
+        </div>
+    </div>
+}

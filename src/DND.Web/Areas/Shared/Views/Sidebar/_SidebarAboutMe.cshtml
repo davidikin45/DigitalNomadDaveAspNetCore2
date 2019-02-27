@@ -1,0 +1,6 @@
+﻿<div class="sidebar-module sidebar-module-inset">
+    <a title="About" href="@(Url.Action<HomeController>(c => c.About()))"><h4>About</h4></a>
+    <div class="instagram-profile-picture text-center margin-bottom-10 instafeed"></div>
+    <p class="instagram-bio"></p>
+    @await Component.InvokeAsync(nameof(ContentHTMLViewComponent).Replace("ViewComponent",""), new { id = CMS.ContentHtml.SideBarAbout })
+</div>

@@ -1,0 +1,192 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;4014</NoWarn>
+    <DocumentationFile>bin\Debug\netcoreapp2.2\DND.Web.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netcoreapp2.2\DND.Web.xml</DocumentationFile>
+    <NoWarn>1701;1702;4014</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="wwwroot\uploads\**" />
+    <Content Remove="wwwroot\uploads\**" />
+    <EmbeddedResource Remove="wwwroot\uploads\**" />
+    <None Remove="wwwroot\uploads\**" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Areas\Admin\Controllers\Authors\Models\" />
+    <Folder Include="Areas\Admin\Controllers\Authors\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\BlogPosts\Models\" />
+    <Folder Include="Areas\Admin\Controllers\BlogPosts\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\CarouselItems\Models\" />
+    <Folder Include="Areas\Admin\Controllers\CarouselItems\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\Categories\Models\" />
+    <Folder Include="Areas\Admin\Controllers\Categories\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\ContentHtmls\Models\" />
+    <Folder Include="Areas\Admin\Controllers\ContentHtmls\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\ContentTexts\Models\" />
+    <Folder Include="Areas\Admin\Controllers\ContentTexts\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\Faqs\Models\" />
+    <Folder Include="Areas\Admin\Controllers\Faqs\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\Home\Models\" />
+    <Folder Include="Areas\Admin\Controllers\Home\Notifications\" />
+    <Folder Include="Areas\Admin\Controllers\Home\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\Home\Views\" />
+    <Folder Include="Areas\Admin\Controllers\Locations\Models\" />
+    <Folder Include="Areas\Admin\Controllers\Locations\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\MailingList\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\Projects\Models\" />
+    <Folder Include="Areas\Admin\Controllers\Projects\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\Tags\Models\" />
+    <Folder Include="Areas\Admin\Controllers\Tags\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\Testimonials\Models\" />
+    <Folder Include="Areas\Admin\Controllers\Testimonials\ViewComponents\" />
+    <Folder Include="Areas\Admin\Controllers\Testimonials\Views\" />
+    <Folder Include="Areas\Admin\Controllers\Locations\Views\" />
+    <Folder Include="Areas\Admin\Controllers\ContentHtmls\Views\" />
+    <Folder Include="Areas\Admin\Controllers\ContentTexts\Views\" />
+    <Folder Include="Areas\Admin\Controllers\Faqs\Views\" />
+    <Folder Include="Areas\Admin\Controllers\MailingList\Views\" />
+    <Folder Include="Areas\Admin\Controllers\Projects\Views\" />
+    <Folder Include="Areas\Admin\Controllers\CarouselItems\Views\" />
+    <Folder Include="Areas\Admin\Controllers\Tags\Views\" />
+    <Folder Include="Areas\Admin\Controllers\Categories\Views\" />
+    <Folder Include="Areas\Admin\Controllers\BlogPosts\Views\" />
+    <Folder Include="Areas\Admin\Controllers\Authors\Views\" />
+    <Folder Include="Areas\Identity\Controllers\Authorization\Models\" />
+    <Folder Include="Areas\Identity\Controllers\Authorization\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\BucketList\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\BucketList\Mvc\" />
+    <Folder Include="Areas\Frontend\Controllers\BucketList\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\BucketList\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\CarouselItem\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\ContentHtml\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\ContentHtml\Views\" />
+    <Folder Include="Areas\Identity\Controllers\Account\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\Blog\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\ContentText\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\ContentText\Views\" />
+    <Folder Include="Areas\Identity\Controllers\Manage\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\Countries\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\Countries\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\Countries\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\Faq\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\Faq\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\Gallery\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\Gallery\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\Gallery\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\Home\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\Locations\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\Locations\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\Locations\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\Project\Views\" />
+    <Folder Include="Controllers\Sidebar\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\Testimonial\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\TravelMap\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\TravelMap\ViewComponents\" />
+    <Folder Include="Areas\Frontend\Controllers\TravelMap\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\Videos\Models\" />
+    <Folder Include="Areas\Frontend\Controllers\Videos\Views\" />
+    <Folder Include="Areas\Frontend\Controllers\Videos\ViewComponents\" />
+    <Folder Include="Areas\Shared\Views\Bundles\" />
+    <Folder Include="Areas\Shared\Views\Navigation\" />
+    <Folder Include="Areas\Shared\Views\Footer\" />
+    <Folder Include="Areas\Shared\Views\Alerts\" />
+    <Folder Include="Areas\Shared\Views\CookieConsent\" />
+    <Folder Include="email_templates\" />
+    <Folder Include="logs\" />
+    <Folder Include="certificates\" />
+    <Folder Include="jobs\" />
+    <Folder Include="Properties\PublishProfiles\" />
+    <Folder Include="styles\" />
+    <Folder Include="signing_keys\" />
+    <Folder Include="wwwroot\css\" />
+    <Folder Include="wwwroot\lib\" />
+    <Folder Include="wwwroot\fonts\" />
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\AspNetCore.Base\AspNetCore.Base.csproj" />
+    <ProjectReference Include="..\DND.ApplicationServices\DND.ApplicationServices.csproj" />
+    <ProjectReference Include="..\DND.Data.Identity\DND.Data.Identity.csproj" />
+    <ProjectReference Include="..\DND.Data\DND.Data.csproj" />
+    <ProjectReference Include="..\DND.Domain\DND.Domain.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Content Update="bundleconfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="features.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="navigation-admin.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="navigation.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="certificates\localhost.private.pfx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="certificates\localhost.public.cer">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="signing_keys\private.rsa.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="signing_keys\public.x509.pem">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="MyPreCleanTarget" BeforeTargets="Clean">
+    <Exec Command="gulp clean" />
+  </Target>
+
+  <Target Name="MyPreCompileTarget" BeforeTargets="Build">
+    <Message Importance="high" Text="Starting Gulp Tasks" />
+    <Exec WorkingDirectory="$(ProjectDir)" Command="node_modules\.bin\gulp.cmd clean" ContinueOnError="false" />
+    <Exec WorkingDirectory="$(ProjectDir)" Command="node_modules\.bin\gulp.cmd less" ContinueOnError="false" />
+    <Exec WorkingDirectory="$(ProjectDir)" Command="node_modules\.bin\gulp.cmd scripts" ContinueOnError="false" />
+    <Exec WorkingDirectory="$(ProjectDir)" Command="node_modules\.bin\gulp.cmd min" ContinueOnError="false" />
+    <Message Importance="high" Text="Finished Gulp Tasks" />
+  </Target>
+
+  <Target Name="CustomActionsBeforePublish" BeforeTargets="BeforePublish">
+    <Message Text="BeforePublish" Importance="high" />
+    <Message Text="$(PublishDir)" Importance="high" />
+  </Target>
+
+  <Target Name="CustomActionsAfterFileSystemPublish" AfterTargets="FileSystemPublish">
+    <Message Text="AfterFileSystemPublish" Importance="high" />
+  </Target>
+
+  <Target Name="CustomActionsAfterPublish" AfterTargets="AfterPublish">
+    <Message Text="AfterPublish" Importance="high" />
+  </Target>
+</Project>

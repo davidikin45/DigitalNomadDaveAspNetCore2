@@ -1,0 +1,18 @@
+﻿@model dynamic
+@{
+    var properties = ((CustomModelMetadata)ViewData.ModelMetadata).PropertiesRuntime(ViewData.Model);
+    var propertyModelExplorers = Html.ModelExplorerPropertiesRuntime();
+}
+<dl class="row">
+    @foreach (var prop in ViewData.ModelMetadata.Properties
+                      .Where(p => p.ShowForDisplay))
+    {
+        <dt class="col-md-2">
+            @Html.DisplayName(prop.PropertyName)
+        </dt>
+
+        <dd class="col-md-10">
+            @Html.Display(prop.PropertyName)
+        </dd>
+    }
+</dl>

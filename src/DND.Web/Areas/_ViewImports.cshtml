@@ -1,0 +1,57 @@
+@using Microsoft.Extensions.Configuration
+@using Microsoft.AspNetCore.Http
+@using System.IO;
+@using System.Collections
+@using System.Threading
+@using Microsoft.AspNetCore.Mvc.ModelBinding
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Hosting
+
+@using AspNetCore.Base.Dtos;
+@using AspNetCore.Base.Settings;
+@using AspNetCore.Base.Extensions;
+@using AspNetCore.Base.MvcExtensions
+@using AspNetCore.Base.Helpers
+@using AspNetCore.Base.ModelMetadataCustom.Providers
+@using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes
+@using AspNetCore.Base.Mapping
+@using AspNetCore.Base.Data.RepositoryFileSystem
+@using AspNetCore.Base.Alerts
+@using AspNetCore.Base.MvcServices
+
+@using DND.Domain.Identity;
+@using DND.Core;
+
+@using DND.ApplicationServices
+@using DND.Domain.Blog.Locations
+
+@using DND.ApplicationServices.Blog.Authors.Dtos;
+@using DND.ApplicationServices.Blog.BlogPosts.Dtos;
+@using DND.ApplicationServices.Blog.Categories.Dtos;
+@using DND.ApplicationServices.Blog.Locations.Dtos;
+@using DND.ApplicationServices.Blog.Tags.Dtos;
+
+@using DND.ApplicationServices.CMS.CarouselItems.Dtos;
+@using DND.ApplicationServices.CMS.ContentHtmls.Dtos;
+@using DND.ApplicationServices.CMS.ContentTexts.Dtos;
+@using DND.ApplicationServices.CMS.Faqs.Dtos;
+@using DND.ApplicationServices.CMS.MailingLists.Dtos;
+@using DND.ApplicationServices.CMS.Projects.Dtos;
+@using DND.ApplicationServices.CMS.Testimonials.Dtos;
+
+@using DND.Web.Areas.Frontend.Controllers.Home
+@using DND.Web.Areas.Frontend.Controllers.Blog
+@using DND.Web.Areas.Frontend.Controllers.ContentHtml.ViewComponents
+@using DND.Web.Areas.Frontend.Controllers.ContentText.ViewComponents
+
+@using DND.Web.Controllers.Sidebar.Models
+@using DND.Web.Controllers.Sidebar.ViewComponents
+
+@using DND.Web.Areas.Identity.Controllers.Account;
+@using DND.Web.Areas.Identity.Controllers.Account.Models;
+@using DND.Web.Areas.Identity.Controllers.Authorization;
+@using DND.Web.Areas.Identity.Controllers.Manage;
+@using DND.Web.Areas.Identity.Controllers.Manage.Models;
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, AspNetCore.Base

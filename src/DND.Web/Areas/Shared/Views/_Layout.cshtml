@@ -1,0 +1,300 @@
+﻿@inject IUrlHelper Url
+@inject AppSettings AppSettings
+@inject IHttpContextAccessor HttpContext
+
+<!DOCTYPE html>
+<html lang="@(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)" ng-app="@(AppSettings.AssemblyPrefix)" class="@(ViewBag.LandingPage == true ? "landing-page" : "content-page")">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="@if (!string.IsNullOrEmpty(ViewBag.Description)) {<text>@ViewBag.Description</text>} else {@(AppSettings.SiteDescription)} ">
+    <meta name="keywords" content="@if (!string.IsNullOrEmpty(ViewBag.Keywords)) {<text>@ViewBag.Keywords, </text>}@(AppSettings.SiteKeyWords)">
+    <meta name="author" content="@if (!string.IsNullOrEmpty(ViewBag.Author)) {<text>@ViewBag.Author</text>} else {@(AppSettings.SiteAuthor)}" />
+
+    <meta property="og:type" content="@if (!string.IsNullOrEmpty(ViewBag.Description)) {<text>article</text>} else {<text>website</text>}" />
+    <meta property="og:site_name" content="@(AppSettings.SiteTitle)">
+    <meta property="fb:app_id" content="@(AppSettings.FacebookAppId)" />
+
+    <meta property="og:title" content="@if (!string.IsNullOrEmpty(ViewBag.PageTitle)) {<text>@ViewBag.PageTitle @(AppSettings.TitleSeparator) </text>}@(AppSettings.SiteTitle)">
+    <meta property="og:description" content="@if (!string.IsNullOrEmpty(ViewBag.Description)) {<text>@ViewBag.Description</text>} else {@(AppSettings.SiteDescription)}">
+    <meta property="og:url" content="@(Url.Content(HttpContext.HttpContext.Request.Path, true, AppSettings))">
+    @if (!string.IsNullOrEmpty(ViewBag.MainImage))
+    {
+        <meta property="og:image" content="@(ViewBag.MainImage)" />
+    }
+    else
+    {
+        <meta property="og:image" content="@(Url.Content((AppSettings.SiteShareImage), true, AppSettings))" />
+    }
+
+    @if (AppSettings.RSSFeed)
+    {
+        <link rel="alternate" type="application/rss+xml" title="@(AppSettings.SiteTitle) RSS Feed" href="/feed" />
+    }
+
+    @if (ViewBag.Admin == true || ViewBag.NoFollow == true)
+    {
+        <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+    }
+    else
+    {
+        <meta name="ROBOTS" content="INDEX, FOLLOW">
+    }
+
+    @if ((string)ViewContext.RouteData.Values["controller"] == "Home" && (string)ViewContext.RouteData.Values["action"] == "Index")
+    {
+        <script type="application/ld+json">
+            {
+            "@@context": "http://schema.org",
+            "@@type": "WebSite",
+            "name": "@(AppSettings.SiteTitle)",
+            "url": "@(AppSettings.SiteUrl)",
+            "potentialAction": [{
+            "@@type": "SearchAction",
+            "target": "@(AppSettings.SiteUrl)/blog/search?s={search_term_string}",
+            "query-input": "required name=search_term_string"
+            }]
+            }
+        </script>
+    }
+
+    <script type="application/ld+json">
+        {
+        "@@context": "http://schema.org",
+        "@@type": "Organization",
+        "name": "@(AppSettings.SiteTitle)",
+        "url": "@(AppSettings.SiteUrl)",
+        "logo": "@(AppSettings.SiteUrl)/fav-icon196x196.png",
+        "sameAs": [
+        "@(AppSettings.FacebookLink)",
+        "@(AppSettings.InstagramLink)",
+        "@(AppSettings.LinkedInLink)"
+        ]
+        }
+    </script>
+
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="apple-touch-icon-57x57.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="apple-touch-icon-114x114.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="apple-touch-icon-144x144.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="apple-touch-icon-60x60.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="apple-touch-icon-120x120.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="apple-touch-icon-76x76.png" />
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="apple-touch-icon-152x152.png" />
+    <link rel="icon" type="image/png" href="favicon-196x196.png" sizes="196x196" />
+    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="favicon-128.png" sizes="128x128" />
+    <meta name="application-name" content="@(AppSettings.SiteTitle)" />
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
+    <meta name="msapplication-TileImage" content="mstile-144x144.png" />
+    <meta name="msapplication-square70x70logo" content="mstile-70x70.png" />
+    <meta name="msapplication-square150x150logo" content="mstile-150x150.png" />
+    <meta name="msapplication-wide310x150logo" content="mstile-310x150.png" />
+    <meta name="msapplication-square310x310logo" content="mstile-310x310.png" />
+
+    @await Component.InvokeAsync(nameof(ContentHTMLViewComponent).Replace("ViewComponent", ""), new { id = CMS.ContentHtml.Head })
+
+    <base href="/">
+    <title>
+        @if (!string.IsNullOrEmpty(ViewBag.PageTitle))
+        {<text>@ViewBag.PageTitle @(AppSettings.TitleSeparator) </text>}@(AppSettings.SiteTitle)
+    </title>
+
+    @Html.GoogleFontAsync(new List<string> { (AppSettings.BodyFont), (AppSettings.NavBarFont) }, true, true, true, true, true, true, 2000)
+    @Html.GetFontBodyCSSAsync((AppSettings.BodyFont))
+    @Html.GetFontNavBarCSSAsync((AppSettings.NavBarFont), (AppSettings.NavBarFontStyleCSS))
+
+    @*@Html.GoogleFont((Settings.GetValue<String>("BodyFont")),"", true, false, true, true, true, true)
+        @Html.GoogleFont((Settings.GetValue<String>("NavBarFont")), (Settings.GetValue<String>("NavBarFontStyleCSS")), false, true, true, true, true, true)*@
+
+    <partial name="_CSS" />
+
+    @if (ViewBag.Admin == true)
+    {
+        <partial name="_AdminCSS" />
+    }
+    @RenderSection("styles", required: false)
+    @if ((ViewBag.Admin == null || !ViewBag.Admin) && !String.IsNullOrWhiteSpace(AppSettings.GoogleAnalyticsTrackingId))
+    {
+        @(Html.GoogleAnalyticsScript((AppSettings.GoogleAnalyticsTrackingId)))
+    }
+    @if ((ViewBag.Admin == null || !ViewBag.Admin) && !String.IsNullOrWhiteSpace(AppSettings.GoogleAdSenseId))
+    {
+        @(Html.GoogleAdSenseScript((AppSettings.GoogleAdSenseId)))
+    }
+</head>
+<body ng-cloak class="@(ViewBag.LandingPage == true ? "landing-page" : "content-page") @(ViewBag.FullWidthPage == true ? "full-width-page" : "")">
+    @if ((ViewBag.Admin == null || !ViewBag.Admin))
+    {
+        @(Html.FacebookCommentsScript((AppSettings.FacebookAppId)))
+    }
+    <div id="wrapper">
+        <!--Navbar-->
+        <partial name="_Navigation" />
+        <partial name="_CookieConsent" />
+        <!--/.Navbar-->
+        <!--Mask-->
+        @if (ViewBag.Admin == true)
+        {
+            <div class="container-fluid">
+                <div class="row">
+                    <partial name="_AdminNavigation" />
+                    <main class="col-9 offset-3 col-md-10 offset-md-2 pt-3">
+                        @RenderBody()
+                    </main>
+                </div>
+            </div>
+        }
+        else
+        {
+            if (ViewBag.LandingPage == true)
+            {
+                if (ViewBag.FullWidthPage == true)
+                {
+                    <div class="view view-full-screen">
+                        <div class="container-fluid container-full">
+                            @RenderBody()
+                        </div>
+                    </div>
+                }
+                else if (ViewBag.FullPageBackground == true)
+                {
+                    <div class="view view-bg hm-black-strong">
+                        <div class="full-bg-img flex-center">
+                            <div id="m" class="container-fluid container-full">
+
+                                @RenderBody()
+
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="container-fluid container-full">
+                        @RenderBody()
+                    </div>
+                }
+            }
+            else
+            {
+                if (ViewBag.FullWidthPage == true)
+                {
+                    <div class="container-fluid container-full">
+                        @RenderBody()
+                    </div>
+                }
+                else
+                {
+                    if (ViewBag.Blog != null && ViewBag.Blog == true)
+                    {
+                        <div class="container @if (ViewBag.BlogFullWidth != null && ViewBag.BlogFullWidth == true){<text>container-blog</text>}">
+                            <div class="row">
+                                <div class="col-lg-8 blog-main">
+                                    @if (ViewBag.c == null || ViewBag.CustomPageHeader == false)
+                                    {
+                                        <div class="page-header">
+                                            <h1>@ViewBag.PageTitle</h1>
+                                        </div>
+                                    }
+                                    @RenderBody()
+                                </div>
+                                <div class="col-lg-3 offset-lg-1 blog-sidebar">
+                                    @await Component.InvokeAsync(nameof(SidebarViewComponent).Replace("ViewComponent", ""))
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-12">
+                                    @if (ViewBag.CustomPageHeader == null || ViewBag.CustomPageHeader == false)
+                                    {
+                                        <div class="page-header">
+                                            <h1>@ViewBag.PageTitle</h1>
+                                        </div>
+                                    }
+                                    @RenderBody()
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+        }
+
+        @RenderSection("footerContent", required: false)
+        @if (ViewBag.LandingPage == true && (ViewBag.Admin == null || ViewBag.Admin == false))
+        {
+            <partial name="_Footer" />
+        }
+    </div>
+    @if ((ViewBag.LandingPage == null || ViewBag.LandingPage == false) && (ViewBag.Admin == null || ViewBag.Admin == false))
+    {
+        <partial name="_Footer" />
+    }
+    @Html.ReturnToTop()
+
+    <!-- SCRIPTS -->
+    <script>
+        var InstagramUserId = '@(AppSettings.InstagramUserId)';
+        var InstagramAccessToken = '@(AppSettings.InstagramAccessToken)';
+        var cssUrl = '@(Url.Content("~/css/site.all.min.css"))';
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=@((AppSettings.GoogleMapsApiKey) + "&libraries=places")"></script>
+
+    <partial name="_JS" />
+    @if (AppSettings.AngularApp)
+    {
+        <partial name="_Angular5" />
+    }
+
+    @if (ViewBag.Admin == true)
+    {
+        <partial name="_AdminJS" />
+    }
+
+    @RenderSection("scripts", required: false)
+
+    <script>
+        $('#instafeedPhotosSidebar').each(function () {
+            var userFeed = new Instafeed({
+                get: 'user',
+                limit : 6,
+                userId: InstagramUserId,
+                accessToken: InstagramAccessToken,
+                template: '<div class="card" style="display:inline-block" ><a class="card-img-top" target="_blank" href="{{link}}" title="{{caption}}"><img src="{{image}}" /></a></div>',
+                resolution: 'low_resolution',
+                target: 'instafeedPhotosSidebar'
+            });
+            userFeed.run();
+            //https://api.instagram.com/oauth/authorize/?client_id=CLIENT-ID&redirect_uri=REDIRECT-URI&response_type=token
+            //model.images.standard_resolution.url
+        });
+
+        var url = "https://api.instagram.com/v1/users/" + InstagramUserId + "?access_token=" + InstagramAccessToken + "&callback=?";
+        $.getJSON(url, function (data) {
+            $(".instagram-profile-picture").append("<img class='rounded-circle' title='" + data.data.username + "' src='" + data.data.profile_picture.replace('/s150x150','/s150x150') + "' />");
+            $(".instagram-bio").append(data.data.bio.replace(/[|]/g, " | ").replace(/\n/g, "<br/>"));
+        });
+    </script>
+
+    @Html.PostScrollHeight()
+    @Html.DeferredIFrameLoad()
+
+    @if (!String.IsNullOrEmpty((AppSettings.AddThisId)) && (ViewBag.Admin == null || !ViewBag.Admin))
+    {
+        @Html.AddThisScript((AppSettings.AddThisId))
+    }
+
+    <partial name="_Alerts" />
+    <partial name="_Error" />
+</body>
+</html>

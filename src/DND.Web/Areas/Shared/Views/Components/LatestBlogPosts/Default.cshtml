@@ -1,0 +1,85 @@
+﻿@model IEnumerable<BlogPostDto>
+@inject AppSettings appSettings
+@inject IHostingEnvironment hostingEnvironment
+
+@{
+    int i = 1;
+}
+
+<div class="row">
+    <div class="offset-1 col-10">
+        <div class="card-deck">
+            @foreach (var post in Model)
+            {
+                <div class="card mb-3">
+                    @{
+                        bool isVideo = false;
+                        bool isImage = false;
+                        bool isText = false;
+                        var mainPhoto = FileHelper.GetDirectoryInfo(hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + post.Album).MainPhotoOrVideoOrText();
+                        if (mainPhoto != null)
+                        {
+                            isVideo = mainPhoto.IsVideo();
+                            isImage = mainPhoto.IsImage();
+                            isText = mainPhoto.IsText();
+                        }
+                    }
+
+                    @if (isVideo)
+                    {
+                        <video class="full-width-height" src="@mainPhoto.VirtualPathSlug(hostingEnvironment)" poster="@mainPhoto.VirtualPathSlug(hostingEnvironment, 640,400)" controls preload="none"></video>
+                    }
+                    else if (isImage)
+                    {
+                        <a title="@post.Title" href="@(Url.Action<BlogController>(c => c.Post(post.CreatedOn.Year, post.CreatedOn.Month, post.UrlSlug)))">
+                            <img class="card-img-top" src="@mainPhoto.VirtualPathSlug(hostingEnvironment, 640,400)" alt="@post.Title">
+                        </a>
+                    }
+                    else if (isText)
+                    {
+                        var url = mainPhoto.ReadFileLine(0);
+                        var poster = mainPhoto.ReadFileLine(1);
+                        if (url.ToLower().Contains("mp4"))
+                        {
+                            <video class="full-width-height" src="@url" @if (!string.IsNullOrEmpty(poster)) { <text> poster="@poster" preload="none" </text>  } else { <text> preload="metadata" </text> } controls></video>
+                        }
+                        else if (url.IsYouTube())
+                        {
+                            <div>
+                                <div class="youtube-container">
+                                    <iframe src="" data-src="@url.YouTubeEmbedUrl()" frameborder="0" allowfullscreen></iframe>
+                                </div>
+                                @*<YouTubeEmbed you-tube-id="@url"></YouTubeEmbed>*@
+                            </div>
+
+                        }
+                        else
+                        {
+                            <a title="@post.Title" href="@(Url.Action<BlogController>(c => c.Post(post.CreatedOn.Year, post.CreatedOn.Month, post.UrlSlug)))">
+                                <img class="card-img-top" src="@url" alt="@post.Title">
+                            </a>
+                        }
+                    }
+
+                    <div class="card-body">
+                        <a href="@(Url.Action<BlogController>(c => c.Post(post.CreatedOn.Year, post.CreatedOn.Month, post.UrlSlug)))" title="@post.Title">
+                            <h4 class="card-title">@post.Title</h4>
+                        </a>
+                        <p class="card-text">@post.ShortDescription.Truncate(150)</p>
+
+                    </div>
+
+                </div>
+                if (i % 2 == 0)
+                {
+                    <div class="w-100 hidden-xs-down hidden-lg-up"><!-- wrap every 2 on sm, md--></div>
+                }
+                if (i % 3 == 0)
+                {
+                    <div class="w-100 hidden-md-down"><!-- wrap every 3 on lg, xl--></div>
+                }
+                i++;
+            }
+        </div>
+    </div>
+</div>
