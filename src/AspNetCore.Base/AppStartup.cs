@@ -88,7 +88,8 @@ namespace AspNetCore.Base
             //http://blog.hostforlife.eu/variables-and-configuration-in-asp-net-core-apps/
             //http://www.hishambinateya.com/goodbye-platform-abstractions
             var workingDirectory = Directory.GetCurrentDirectory();
-
+            
+            //AppDomain.CurrentDomain.BaseDirectory
             //Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath)
             BinPath = AppContext.BaseDirectory;
             Logger.LogInformation($"Bin Folder: {BinPath}");
@@ -197,7 +198,7 @@ namespace AspNetCore.Base
             services.AddTransient(sp => sp.GetService<IOptions<LocalizationSettings>>().Value);
 
             services.Configure<ConnectionStrings>(Configuration.GetSection("ConnectionStrings"));
-            services.Configure<ConnectionStrings>(options =>
+            services.PostConfigure<ConnectionStrings>(options =>
             {
                 ManipulateConnectionStrings(options);
             });
@@ -210,7 +211,7 @@ namespace AspNetCore.Base
             services.AddTransient(sp => sp.GetService<IOptions<ApiClientSettings>>().Value);
 
             services.Configure<TokenSettings>(Configuration.GetSection("TokenSettings"));
-            services.Configure<TokenSettings>(options =>
+            services.PostConfigure<TokenSettings>(options =>
             {
                 ManipulateTokenSettings(options);
             });
@@ -238,14 +239,14 @@ namespace AspNetCore.Base
             services.AddTransient(sp => sp.GetService<IOptions<CacheSettings>>().Value);
 
             services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
-            services.Configure<EmailSettings>(options =>
+            services.PostConfigure<EmailSettings>(options =>
             {
                 ManipulateEmailSettings(options);
             });
             services.AddTransient(sp => sp.GetService<IOptions<EmailSettings>>().Value);
 
             services.Configure<EmailTemplates>(Configuration.GetSection("EmailTemplates"));
-            services.Configure<EmailTemplates>(options =>
+            services.PostConfigure<EmailTemplates>(options =>
             {
                 ManipluateEmailTemplateSettings(options);
             });

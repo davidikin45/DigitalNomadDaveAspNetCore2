@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Localization.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -24,37 +25,32 @@ namespace AspNetCore.Base.Localization
             //Support all formats for numbers, dates, etc.
             var formatCulturesList = new List<string>() { };
 
-            if (supportAllLanguagesFormatting)
+            if (supportAllLanguagesFormatting || supportAllLanguagesFormatting)
             {
-                //Languages = en
-                foreach (CultureInfo ci in CultureInfo.GetCultures(CultureTypes.NeutralCultures))
-                {
-                    if (!formatCulturesList.Contains(ci.TwoLetterISOLanguageName) && (allowDefaultCultureLanguage || ci.TwoLetterISOLanguageName != defaultLanguage))
-                    {
-                        formatCulturesList.Add(ci.TwoLetterISOLanguageName);
-                    }
+                var languages = CultureInfo.GetCultures(CultureTypes.NeutralCultures).Where(language => language.Name != "").ToList();
 
-                    if (supportAllCountryFormatting)
+                //Languages = en
+                foreach (CultureInfo language in languages)
+                {
+                    if(supportAllLanguagesFormatting)
                     {
-                        foreach (CultureInfo co in CultureInfo.GetCultures(CultureTypes.SpecificCultures).Where(co => co.TwoLetterISOLanguageName == ci.TwoLetterISOLanguageName))
+                        if (!formatCulturesList.Contains(language.Name) && (allowDefaultCultureLanguage || language.Name != defaultLanguage))
                         {
-                            if (!formatCulturesList.Contains(co.Name))
-                            {
-                                formatCulturesList.Add(co.Name);
-                            }
+                            formatCulturesList.Add(language.Name);
                         }
                     }
-                }
-            }
 
-            //Countries = en-US
-            if (supportAllCountryFormatting && !supportAllLanguagesFormatting)
-            {
-                foreach (CultureInfo ci in CultureInfo.GetCultures(CultureTypes.SpecificCultures))
-                {
-                    if (!formatCulturesList.Contains(ci.Name))
+                    //Countries = en-US
+                    if (supportAllCountryFormatting)
                     {
-                        formatCulturesList.Add(ci.Name);
+                        var countries = CultureInfo.GetCultures(CultureTypes.SpecificCultures).Where(country => country.Parent.Equals(language)).ToList();
+                        foreach (CultureInfo country in countries)
+                        {
+                            if (!formatCulturesList.Contains(country.Name))
+                            {
+                                formatCulturesList.Add(country.Name);
+                            }
+                        }
                     }
                 }
             }
@@ -63,28 +59,20 @@ namespace AspNetCore.Base.Localization
             {
                 foreach (var supportedUICulture in supportedUICultures)
                 {
-                    if (supportedUICulture.Length == 2)
+                    var countryOrLanguage = CultureInfo.GetCultureInfo(supportedUICulture);
+
+                    if (!formatCulturesList.Contains(countryOrLanguage.Name) && (allowDefaultCultureLanguage || countryOrLanguage.Name != defaultLanguage))
                     {
-                        var neutralCulture = CultureInfo.GetCultureInfo(supportedUICulture);
-
-                        if (!formatCulturesList.Contains(neutralCulture.TwoLetterISOLanguageName) && (allowDefaultCultureLanguage || neutralCulture.TwoLetterISOLanguageName != defaultLanguage))
-                        {
-                            formatCulturesList.Add(neutralCulture.TwoLetterISOLanguageName);
-                        }
-
-                        foreach (CultureInfo co in CultureInfo.GetCultures(CultureTypes.SpecificCultures).Where(co => co.TwoLetterISOLanguageName == neutralCulture.TwoLetterISOLanguageName))
-                        {
-                            if (!formatCulturesList.Contains(co.Name))
-                            {
-                                formatCulturesList.Add(co.Name);
-                            }
-                        }
+                        formatCulturesList.Add(countryOrLanguage.Name);
                     }
-                    else
+
+                    var countries = CultureInfo.GetCultures(CultureTypes.SpecificCultures).Where(x => x.Parent.Equals(countryOrLanguage)).ToList();
+
+                    foreach (CultureInfo country in countries)
                     {
-                        if (!formatCulturesList.Contains(supportedUICulture))
+                        if (!formatCulturesList.Contains(country.Name))
                         {
-                            formatCulturesList.Add(supportedUICulture);
+                            formatCulturesList.Add(country.Name);
                         }
                     }
                 }
@@ -101,15 +89,6 @@ namespace AspNetCore.Base.Localization
 
             var defaultUICulture = supportedUICultures[0];
 
-            var options = new RequestLocalizationOptions
-            {
-                DefaultRequestCulture = new RequestCulture(culture: defaultCulture, uiCulture: defaultUICulture),
-                // Formatting numbers, dates, etc.
-                SupportedCultures = supportedFormatCultures,
-                // UI strings that we have localized.
-                SupportedUICultures = supportedUICultureInfoList
-            };
-
             //Default culture providers
             //1. Query string
             //2. Cookie
@@ -124,19 +103,25 @@ namespace AspNetCore.Base.Localization
             //Route("{culture}/{ui-culture}/[controller]")]
             //[Route("{culture}/[controller]")]
 
-            var routeDataRequestProvider = new RouteDataRequestCultureProvider() { Options = options, RouteDataStringKey = "culture", UIRouteDataStringKey = "ui-culture" };
-
             //options.RequestCultureProviders.Insert(0, routeDataRequestProvider);
 
-            options.RequestCultureProviders = new List<IRequestCultureProvider>()
+            services.Configure<RequestLocalizationOptions>(options =>
             {
-                 routeDataRequestProvider,
-                 new QueryStringRequestCultureProvider() { QueryStringKey = "culture", UIQueryStringKey = "ui-culture" },
-                 new CookieRequestCultureProvider(),
-                 new AcceptLanguageHeaderRequestCultureProvider(),
-            };
+                options.DefaultRequestCulture = new RequestCulture(culture: defaultCulture, uiCulture: defaultUICulture);
+                // Formatting numbers, dates, etc.
+                options.SupportedCultures = supportedFormatCultures;
+                // UI strings that we have localized.
+                options.SupportedUICultures = supportedUICultureInfoList;
+                options.RequestCultureProviders = new List<IRequestCultureProvider>()
+                {
+                     new RouteDataRequestCultureProvider() { Options = options, RouteDataStringKey = "culture", UIRouteDataStringKey = "ui-culture" },
+                     new QueryStringRequestCultureProvider() { QueryStringKey = "culture", UIQueryStringKey = "ui-culture" },
+                     new CookieRequestCultureProvider(),
+                     new AcceptLanguageHeaderRequestCultureProvider(),
+                };
+            });
 
-            services.AddSingleton(options);
+            services.AddSingleton(sp => sp.GetService<IOptions<RequestLocalizationOptions>>().Value);
 
             return services;
         }
