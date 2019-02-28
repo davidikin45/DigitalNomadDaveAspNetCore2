@@ -3,10 +3,5 @@
     <HiddenComponentWarnings>
       <Value>AspNetTestHostCompatibility</Value>
     </HiddenComponentWarnings>
-    <IgnoredTests>
-      <NamedTestSelector>
-        <TestName>DND.UnitTests.Data.SqlServerDbTests.HangfireInitialization</TestName>
-      </NamedTestSelector>
-    </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

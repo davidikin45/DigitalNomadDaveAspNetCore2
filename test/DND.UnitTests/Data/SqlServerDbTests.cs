@@ -16,6 +16,16 @@ namespace DND.UnitTests.Data
             //db location = C:\Users\{user}
             var options = DbContextConnections.DbContextOptionsSqlLocalDB<AppContext>("SqlTest");
 
+            var connectionString = new SqlConnectionStringBuilder()
+            {
+                DataSource = @"(LocalDB)\MSSQLLocalDB",
+                InitialCatalog = "SqlTest",
+                IntegratedSecurity = true,
+                MultipleActiveResultSets = true
+            }.ConnectionString;
+
+            HangfireInitializationHelper.EnsureDbDestroyed(connectionString);
+
             using (var context = new AppContext(options))
             {
                 var dbInitializer = new AppContextInitializerDropMigrate();
@@ -42,7 +52,7 @@ namespace DND.UnitTests.Data
                 IntegratedSecurity = true,
                 MultipleActiveResultSets = true
             }.ConnectionString;
-            
+
             HangfireInitializationHelper.EnsureDbDestroyed(connectionString);
             Assert.False(DbInitializationHelper.Exists(connectionString));
 

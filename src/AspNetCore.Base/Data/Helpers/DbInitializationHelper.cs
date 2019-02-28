@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace AspNetCore.Base.Data.Helpers
 {
@@ -174,8 +175,15 @@ namespace AspNetCore.Base.Data.Helpers
                     ExecuteSqlCommand(masterConnectiongStringBuilder.ConnectionString, $@"IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{dbName}') 
                             BEGIN
                                     CREATE DATABASE [{dbName}];
-                                    ALTER DATABASE [{dbName}] SET READ_COMMITTED_SNAPSHOT ON;
+
+                                    IF SERVERPROPERTY('EngineEdition') <> 5
+                                    BEGIN
+                                        ALTER DATABASE [{dbName}] SET READ_COMMITTED_SNAPSHOT ON;
+                                    END;
                             END");
+
+                    var sqlConnection = new SqlConnection(connectionString);
+                    SqlConnection.ClearPool(sqlConnection);
 
                     return true;
                 }

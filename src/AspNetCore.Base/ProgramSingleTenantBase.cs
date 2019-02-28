@@ -36,6 +36,7 @@ namespace AspNetCore.Base
 
                 await host.InitAsync();
 
+                //AppStartup.Configure will be called here
                 host.Run();
 
                 return 0;
