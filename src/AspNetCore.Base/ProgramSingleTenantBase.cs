@@ -59,7 +59,7 @@ namespace AspNetCore.Base
                 // Need to be careful putting code after IWebHostBuilder.Build()
                 .CaptureStartupErrors(true)
                 //.UseSetting("detailedErrors", "true") // Better to put this in appsettings
-                .UseKestrel((context, options) =>
+                .ConfigureKestrel((context, options) =>
                 {
                     if(context.HostingEnvironment.IsDevelopment() || context.HostingEnvironment.IsIntegration())
                     {
