@@ -111,7 +111,6 @@
     <Folder Include="Areas\Shared\Views\Alerts\" />
     <Folder Include="Areas\Shared\Views\CookieConsent\" />
     <Folder Include="email_templates\" />
-    <Folder Include="logs\" />
     <Folder Include="certificates\" />
     <Folder Include="jobs\" />
     <Folder Include="Properties\PublishProfiles\" />

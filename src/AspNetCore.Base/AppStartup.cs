@@ -97,6 +97,10 @@ namespace AspNetCore.Base
             Logger.LogInformation($"Plugins Folder: {PluginsPath}");
             if (!Directory.Exists(PluginsPath)) Directory.CreateDirectory(PluginsPath);
 
+            LogsPath = Path.Combine(BinPath, LogsFolder);
+            Logger.LogInformation($"Logs Folder: {LogsPath}");
+            if (!Directory.Exists(LogsPath)) Directory.CreateDirectory(LogsPath);
+
             DataPath = Path.Combine(BinPath, DataFolder);
             Logger.LogInformation($"Data Folder: {DataPath}");
             if (!Directory.Exists(DataPath)) Directory.CreateDirectory(DataPath);
@@ -141,10 +145,12 @@ namespace AspNetCore.Base
 
         public string BinPath { get; }
         public string PluginsPath { get; }
+        public string LogsPath { get; }
         public string DataPath { get; }
         public string AssemblyName { get; }
         public string CommonAssemblyPrefix { get; } = "AspNetCore.Base";
         public string PluginsFolder { get; } = @"plugins\";
+        public string LogsFolder { get; } = @"logs\";
         public string DataFolder { get; } = @"data\";
         public string AppAssemblyPrefix { get; }
         public Func<Assembly, Boolean> AssemblyBoolFilter { get; }
