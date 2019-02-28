@@ -356,7 +356,7 @@ namespace AspNetCore.Base
             AddDatabases(services, tenantsConnectionString, identityConnectionString, hangfireConnectionString, defaultConnectionString);
             AddUnitOfWorks(services);
 
-            services.AddHangfire(hangfireConnectionString);
+            services.AddHangfire(hangfireConnectionString, false);
         }
         #endregion
 
@@ -1143,6 +1143,8 @@ namespace AspNetCore.Base
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        //In older tutorials, you may see similar code in the Configure method in Startup.cs. We recommend that you use the Configure method only to set up the request pipeline. Application startup code belongs in the Main method.
+        //https://docs.microsoft.com/en-us/aspnet/core/data/ef-mvc/intro?view=aspnetcore-2.2
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider, AppSettings appSettings, CacheSettings cacheSettings,
             LocalizationSettings localizationSettings, SwitchSettings switchSettings, ServerSettings serverSettings, TaskRunnerAfterApplicationConfiguration taskRunner, RequestLocalizationOptions localizationOptions,
             ISignalRHubMapper signalRHubMapper, ILoggerFactory loggerFactory)

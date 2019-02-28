@@ -8,7 +8,7 @@ namespace DND.UnitTests.Images
     public class ImageTests
     {
         [Fact]
-        public async Task AttributesSave()
+        public void AttributesSave()
         {
             var filePath = Path.GetFullPath(@"image.jpg");
             var imageInfo = new ImageInfo(filePath);

@@ -16,7 +16,7 @@ namespace AspNetCore.Base.Hangfire
 {
     public static class HangfireConfigurationExtensions
     {
-        public static IServiceCollection AddHangfire(this IServiceCollection services, string connectionString)
+        public static IServiceCollection AddHangfire(this IServiceCollection services, string connectionString, bool initializeDatabase)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
             {
@@ -24,11 +24,11 @@ namespace AspNetCore.Base.Hangfire
             }
             else if (ConnectionStringHelper.IsSQLite(connectionString))
             {
-                return services.AddHangfireSqlLite(connectionString);
+                return services.AddHangfireSqlLite(connectionString, initializeDatabase);
             }
             else
             {
-                return services.AddHangfireSqlServer(connectionString);
+                return services.AddHangfireSqlServer(connectionString, initializeDatabase);
             }
         }
 
@@ -48,7 +48,7 @@ namespace AspNetCore.Base.Hangfire
             });
         }
 
-        public static IServiceCollection AddHangfireSqlServer(this IServiceCollection services, string connectionString)
+        public static IServiceCollection AddHangfireSqlServer(this IServiceCollection services, string connectionString, bool initializeDatabase)
         {
             return services.AddHangfire(config =>
             {
@@ -56,16 +56,16 @@ namespace AspNetCore.Base.Hangfire
                 config.UseFilter(new HangfirePreserveOriginalQueueAttribute());
                 var options = new SqlServerStorageOptions
                 {
-                    PrepareSchemaIfNecessary = true,
+                    PrepareSchemaIfNecessary = initializeDatabase,
                     QueuePollInterval = TimeSpan.FromSeconds(15) // Default value
                 };
 
-                //Initializes Hangfire Schema
+                //Initializes Hangfire Schema if PrepareSchemaIfNecessary = true
                 config.UseSqlServerStorage(connectionString, options);
             });
         }
 
-        public static IServiceCollection AddHangfireSqlLite(this IServiceCollection services, string connectionString)
+        public static IServiceCollection AddHangfireSqlLite(this IServiceCollection services, string connectionString, bool initializeDatabase)
         {
             return services.AddHangfire(config =>
             {
@@ -74,11 +74,11 @@ namespace AspNetCore.Base.Hangfire
 
                 var options = new SQLiteStorageOptions
                 {
-                    PrepareSchemaIfNecessary = true,
+                    PrepareSchemaIfNecessary = initializeDatabase,
                     QueuePollInterval = TimeSpan.FromSeconds(15) // Default value
                 };
 
-                //Initializes Hangfire Schema
+                //Initializes Hangfire Schema if PrepareSchemaIfNecessary = true
                 config.UseSQLiteStorage(connectionString, options);
             });
         }
