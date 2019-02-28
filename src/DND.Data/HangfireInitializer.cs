@@ -23,7 +23,8 @@ namespace DND.Data
         {
             if (_hostingEnvironment.IsStaging() || _hostingEnvironment.IsProduction())
             {
-
+                var dbInitializer = new HangfireInitializerCreate();
+                await dbInitializer.InitializeAsync(_connectionStrings["HangfireConnection"]);
             }
             else
             {
