@@ -3,7 +3,7 @@
     "DND.IntegrationTests": {
       "commandName": "Project",
       "environmentVariables": {
-        "AASPNETCORE_TEST_CONTENTROOT_DND_WEB": ""
+        "AASPNETCORE_TEST_CONTENTROOT_DND_WEB": "C:\\Development\\DigitalNomadDaveAspNetCore2\\src\\DND.Web"
       }
     }
   }
