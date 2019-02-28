@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DND.IntegrationTests": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "AASPNETCORE_TEST_CONTENTROOT_DND_WEB": ""
+      }
+    }
+  }
+}
