@@ -1,6 +1,7 @@
 ﻿using AspnetCore.Base;
 using AspNetCore.Base.Azure;
 using AspNetCore.Base.DependencyInjection;
+using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Hosting;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -60,10 +61,13 @@ namespace AspNetCore.Base
                 //.UseSetting("detailedErrors", "true") // Better to put this in appsettings
                 .UseKestrel((context, options) =>
                 {
-                    options.ListenAnyIP(5000);
-                    options.ListenAnyIP(5001, listenOptions => {
-                        listenOptions.UseHttps(new X509Certificate2("certificates\\localhost.private.pfx", "password"));
-                    });
+                    if(context.HostingEnvironment.IsDevelopment() || context.HostingEnvironment.IsIntegration())
+                    {
+                        options.ListenAnyIP(5000);
+                        options.ListenAnyIP(5001, listenOptions => {
+                            listenOptions.UseHttps(new X509Certificate2("certificates\\localhost.private.pfx", "password"));
+                        });
+                    }
 
                     options.AddServerHeader = false;
                 }

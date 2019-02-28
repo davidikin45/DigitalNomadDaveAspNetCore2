@@ -346,7 +346,7 @@ namespace AspNetCore.Base
             Logger.LogInformation("Configuring Databases");
 
             var connectionStrings = ManipulateConnectionStrings(GetSettings<ConnectionStrings>("ConnectionStrings"));
-
+            
             var tenantsConnectionString = connectionStrings.ContainsKey("TenantConnection") ? connectionStrings["TenantConnection"] : null;
             var identityConnectionString = connectionStrings.ContainsKey("IdentityConnection") ? connectionStrings["IdentityConnection"] : null;
             var defaultConnectionString = connectionStrings.ContainsKey("DefaultConnection") ? connectionStrings["DefaultConnection"] : null;
