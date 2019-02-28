@@ -137,11 +137,11 @@ namespace DND.Common.Testing
          }.ConnectionString;
 
         private string MdfFilename => Path.Combine(
-            Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath),
+            AppContext.BaseDirectory,
             DBName + ".mdf");
 
         private string LogFilename => Path.Combine(
-           Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath),
+           AppContext.BaseDirectory,
            DBName + "_log.ldf");
 
         [OneTimeTearDown]

@@ -53,6 +53,7 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.DotNet.PlatformAbstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -84,17 +85,24 @@ namespace AspNetCore.Base
 
             HostingEnvironment = hostingEnvironment;
 
-            //AppDomain.CurrentDomain.BaseDirectory
-            BinPath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+            //http://blog.hostforlife.eu/variables-and-configuration-in-asp-net-core-apps/
+            //http://www.hishambinateya.com/goodbye-platform-abstractions
+            var workingDirectory = Directory.GetCurrentDirectory();
+
+            //Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath)
+            BinPath = AppContext.BaseDirectory;
             Logger.LogInformation($"Bin Folder: {BinPath}");
 
-            PluginsPath = Path.Combine(Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath), PluginsFolder);
+            PluginsPath = Path.Combine(BinPath, PluginsFolder);
             Logger.LogInformation($"Plugins Folder: {PluginsPath}");
             if (!Directory.Exists(PluginsPath)) Directory.CreateDirectory(PluginsPath);
 
-            DataPath = Path.Combine(Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath), DataFolder);
+            DataPath = Path.Combine(BinPath, DataFolder);
             Logger.LogInformation($"Data Folder: {DataPath}");
             if (!Directory.Exists(DataPath)) Directory.CreateDirectory(DataPath);
+
+            Logger.LogInformation($"Content Root Path (Working Directory): {hostingEnvironment.ContentRootPath}");
+            Logger.LogInformation($"Web Root Path: {hostingEnvironment.WebRootPath}");
 
             AssemblyName = this.GetType().Assembly.GetName().Name;
             AppAssemblyPrefix = configuration.GetValue<string>("AppSettings:AssemblyPrefix");

@@ -7,9 +7,14 @@ namespace AspNetCore.Base
 {
     public class Config
     {
-        private static readonly Dictionary<string, string> InMemoryDefaults = new Dictionary<string, string> { {
+        private static readonly Dictionary<string, string> InMemoryDefaults = new Dictionary<string, string> {
+            {
                 WebHostDefaults.EnvironmentKey, "Development"
-            } };
+            },
+            {
+                WebHostDefaults.WebRootKey, "wwwroot"
+            }
+        };
 
         public static IConfigurationRoot Build(string[] args, string contentRoot, string assemblyName)
         {
