@@ -1,5 +1,6 @@
 ﻿using AspnetCore.Base;
 using AspNetCore.Base.Azure;
+using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Hosting;
 using AspNetCore.Base.MultiTenancy;
 using AspNetCore.Base.MultiTenancy.DependencyInjection;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using System;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace AspNetCore.Base
@@ -61,9 +63,19 @@ namespace AspNetCore.Base
                 //.UseSetting("detailedErrors", "true") // Better to put this in appsettings
                 .UseKestrel((context, options) =>
                 {
+                    if (context.HostingEnvironment.IsDevelopment() || context.HostingEnvironment.IsIntegration())
+                    {
+                        options.ListenAnyIP(5000);
+                        options.ListenAnyIP(5001, listenOptions => {
+                            listenOptions.UseHttps(new X509Certificate2("certificates\\localhost.private.pfx", "password"));
+                        });
+                    }
+
                     options.AddServerHeader = false;
                 }
                 )
+                .UseIIS() // needs to be there
+                .UseIISIntegration() // needs to be there too 
                 .UseAutofacMultiTenant<TTenant>(typeof(TStartup).Assembly)
                 .UseAzureKeyVault()
                 .UseConfiguration(Configuration) ////IWebHostBuilder configuration is added to the app's configuration, but the converse isn't true—ConfigureAppConfiguration doesn't affect the IWebHostBuilder configuration
