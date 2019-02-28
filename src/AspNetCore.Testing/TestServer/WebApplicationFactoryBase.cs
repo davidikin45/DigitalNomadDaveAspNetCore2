@@ -96,16 +96,20 @@ namespace AspNetCore.Testing.TestServer
             if (contentRoot != null)
                 return contentRoot;
 
+            //Add reference to Microsoft.AspNetCore.Mvc.Testing
             contentRoot = GetContentRootFromAttribute();
-            if (contentRoot != null)
+            if (contentRoot != null && Directory.Exists(contentRoot))
                 return contentRoot;
 
             contentRoot = GetSolutionRelativeContentRoot(typeof(TEntryPoint).Assembly.GetName().Name);
-            if (contentRoot != null)
+            if (contentRoot != null && Directory.Exists(contentRoot))
                 return contentRoot;
 
             contentRoot = GetSolutionRelativeContentRoot($@"src\{typeof(TEntryPoint).Assembly.GetName().Name}");
-            return contentRoot;
+            if (contentRoot != null && Directory.Exists(contentRoot))
+                return contentRoot;
+
+            return null;
         }
 
         public string GetBinRelativeContentRoot(string binRelativePath)

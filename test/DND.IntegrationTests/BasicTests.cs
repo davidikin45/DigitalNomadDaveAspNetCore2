@@ -13,15 +13,15 @@ namespace DND.IntegrationTests
         }
 
         [Theory]
-        [InlineData("/")]
-        [InlineData("/blog")]
-        [InlineData("/gallery")]
-        [InlineData("/videos")]
-        [InlineData("/bucket-list")]
-        [InlineData("/travel-map")]
-        [InlineData("/about")]
-        [InlineData("/work-with-me")]
-        [InlineData("/contact")]
+        [InlineData("/en")]
+        [InlineData("/en/blog")]
+        [InlineData("/en/gallery")]
+        [InlineData("/en/videos")]
+        [InlineData("/en/bucket-list")]
+        [InlineData("/en/travel-map")]
+        [InlineData("/en/about")]
+        [InlineData("/en/work-with-me")]
+        [InlineData("/en/contact")]
         public async System.Threading.Tasks.Task Get_EndpointsReturnSuccessAndCorrectContentType(string url)
         {
             // Arrange
