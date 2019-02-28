@@ -74,8 +74,6 @@ namespace AspNetCore.Base
                     options.AddServerHeader = false;
                 }
                 )
-                .UseIIS() // needs to be there
-                .UseIISIntegration() // needs to be there too 
                 .UseAutofacMultiTenant<TTenant>(typeof(TStartup).Assembly)
                 .UseAzureKeyVault()
                 .UseConfiguration(Configuration) ////IWebHostBuilder configuration is added to the app's configuration, but the converse isn't true—ConfigureAppConfiguration doesn't affect the IWebHostBuilder configuration
