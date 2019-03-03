@@ -322,6 +322,6 @@ ASALocalRun/
 
 src/DND.Web/appsettings.Production.json
 src/DND.Web/appsettings.Staging.json
-src/DND.Web/wwwroot/uploads/gallery/australia
-src/DND.Web/wwwroot/uploads/gallery/australia-two
+src/DND.Web/wwwroot/files/gallery/australia
+src/DND.Web/wwwroot/files/gallery/australia-two
 .db
