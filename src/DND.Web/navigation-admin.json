@@ -140,5 +140,10 @@
     "Controller": "",
     "Action": "/admin/hangfire",
     "LinkText": "Hangfire Jobs"
+  },
+  {
+    "Controller": "",
+    "Action": "/api",
+    "LinkText": "Swagger Api"
   }
 ]
