@@ -1,5 +1,5 @@
 # Digital Nomad Dave ASP.NET Core v2
-[![Build status](https://davidikin.visualstudio.com/Digital%20Nomad%20Dave/_apis/build/status/Digital%20Nomad%20Dave-ASP.NET%20Core%20(.NET%20Framework)-CI)](https://davidikin.visualstudio.com/Digital%20Nomad%20Dave/_build/latest?definitionId=1)
+[![Build status](https://davidikin.visualstudio.com/Digital%20Nomad%20Dave/_apis/build/status/Digital%20Nomad%20Dave-ASP.NET%20Core-CI)](https://davidikin.visualstudio.com/Digital%20Nomad%20Dave/_build/latest?definitionId=5)
 
 A custom built Content Management System using Bootstrap 4, Angular, C# MVC Core, xUnit, SpecFlow, Selenium, Azure Devops - Previously VSTS, JwtTokens, OpenID Connect, Identity Server 4.
 
