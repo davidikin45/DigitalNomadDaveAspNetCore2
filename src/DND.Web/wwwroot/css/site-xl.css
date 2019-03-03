@@ -9,12 +9,23 @@
     -moz-column-count: 3;
     column-count: 3;
   }
+  .card-columns-xl-4 {
+    -webkit-column-count: 4;
+    -moz-column-count: 4;
+    column-count: 4;
+  }
+  .card-columns-xl-5 {
+    -webkit-column-count: 5;
+    -moz-column-count: 5;
+    column-count: 5;
+  }
   .carousel-item {
     height: 50vh;
     background-color: #777;
   }
   .container-blog {
     width: 100% !important;
+    max-width: 100% !important;
     padding-left: 60px;
   }
 }

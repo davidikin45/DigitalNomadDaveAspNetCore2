@@ -83,7 +83,7 @@ namespace DND.Web.Areas.Frontend.Controllers.Gallery
         [NoAjaxRequest]
         [ResponseCache(CacheProfileName = "Cache24HourParams")]
         [Route("{name}")]
-        public virtual async Task<ActionResult> Gallery(string name, int page = 1, int pageSize = 10, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = OrderByType.Descending)
+        public virtual async Task<ActionResult> Gallery(string name, int page = 1, int pageSize = 12, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = OrderByType.Descending)
         {
             try
             {
@@ -122,7 +122,7 @@ namespace DND.Web.Areas.Frontend.Controllers.Gallery
         [ActionName("Gallery")]
         [ResponseCache(CacheProfileName = "Cache24HourParams")]
         [Route("{name}")]
-        public virtual async Task<ActionResult> GalleryList(string name, int page = 1, int pageSize = 10, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = OrderByType.Descending)
+        public virtual async Task<ActionResult> GalleryList(string name, int page = 1, int pageSize = 12, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = OrderByType.Descending)
         {
             try
             {

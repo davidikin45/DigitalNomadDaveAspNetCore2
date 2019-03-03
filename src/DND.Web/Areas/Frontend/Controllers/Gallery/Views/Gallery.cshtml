@@ -7,6 +7,7 @@
     ViewBag.Description = ((DirectoryInfo)ViewBag.Album).Name.PascalCase().GetStringWithSpacesAndFirstLetterUpper() + " Album";
 
     ViewBag.Blog = true;
+    ViewBag.BlogFullWidth = true;
     //ViewBag.BlogFullWidth = true;
     var mainPhotoVideoText = ((DirectoryInfo)ViewBag.Album).MainPhotoOrVideoOrText();
     var mainImageShare = "";
@@ -43,7 +44,7 @@
     </div>
 </div>
 
-<div class="instafeed card-columns-md-2 gallery" id="gallery" data-infinite-scroll='{ "button" : ".view-more-button", "scrollThreshold" : false, "path": ".pagination__next", "append": ".media-item", "status":".page-load-status", "history" : false }'>
+<div class="instafeed card-columns-md-2 card-columns-xl-4 gallery" id="gallery" data-infinite-scroll='{ "button" : ".view-more-button", "scrollThreshold" : false, "path": ".pagination__next", "append": ".media-item", "status":".page-load-status", "history" : false }'>
     <partial name="_GalleryList" model="@Model" />
 </div>
 

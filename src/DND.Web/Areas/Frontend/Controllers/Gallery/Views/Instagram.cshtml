@@ -4,7 +4,7 @@
     ViewBag.PageTitle = "Instagram";
     ViewBag.Description = "Dave on Instagram";
     ViewBag.Blog = true;
-    //ViewBag.BlogFullWidth = true;
+    ViewBag.BlogFullWidth = true;
 }
 
 <div class="row">
@@ -16,7 +16,7 @@
 
 <div id="instafeedMainImageDiv" style="display:none"></div>
 
-<div id="instafeedPhotos" class="instafeed card-columns-md-2 share-images"></div>
+<div id="instafeedPhotos" class="instafeed card-columns-md-2 card-columns-xl-4 share-images"></div>
 
 @Html.FacebookCommentsThread(
         appSettings.SiteUrl,

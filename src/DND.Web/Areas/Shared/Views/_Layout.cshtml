@@ -194,7 +194,7 @@
                     {
                         <div class="container @if (ViewBag.BlogFullWidth != null && ViewBag.BlogFullWidth == true){<text>container-blog</text>}">
                             <div class="row">
-                                <div class="col-lg-8 blog-main">
+                                <div class="col-lg-@if (ViewBag.BlogFullWidth != null && ViewBag.BlogFullWidth == true) {<text>9</text>} else {<text>8</text> } blog-main">
                                     @if (ViewBag.c == null || ViewBag.CustomPageHeader == false)
                                     {
                                         <div class="page-header">
@@ -203,7 +203,7 @@
                                     }
                                     @RenderBody()
                                 </div>
-                                <div class="col-lg-3 offset-lg-1 blog-sidebar">
+                                <div class="col-lg-@if (ViewBag.BlogFullWidth != null && ViewBag.BlogFullWidth == true) {<text>2</text>} else {<text>3</text> } offset-lg-1 blog-sidebar">
                                     @await Component.InvokeAsync(nameof(SidebarViewComponent).Replace("ViewComponent", ""))
                                 </div>
                             </div>

@@ -6,6 +6,7 @@
     ViewBag.PageTitle = "Gallery";
     ViewBag.Description = "Photo & Video Gallery";
     ViewBag.Blog = true;
+    ViewBag.BlogFullWidth = true;
 }
 
 <form asp-controller="@Html.Controller()" asp-action="@Html.Action()" asp-antiforgery="false" method="get" class="form-inline">
@@ -17,7 +18,7 @@
     </div>
 </form>
 
-<div id="galleries" class="card-columns card-columns-sm-1 card-columns-md-2 card-columns-lg-2 card-columns-xl-2">
+<div id="galleries" class="card-columns card-columns-sm-1 card-columns-md-2 card-columns-lg-2 card-columns-xl-3">
 
     @if ((string.IsNullOrEmpty(Model.Search) || "instagram".Contains(Model.Search.ToLower())) && Model.Page == 1)
     {
