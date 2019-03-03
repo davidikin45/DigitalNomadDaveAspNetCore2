@@ -286,6 +286,34 @@ namespace AspNetCore.Base.Data.Helpers
         }
         #endregion
 
+        #region Get Entity Table Info
+        public static (string TableName, string tableSchema, List<(string ColumnName, string ColumnType)> columns) EntityTableInfo<T>(this DbContext context)
+        {
+            return EntityTableInfo(context, typeof(T));
+        }
+
+        public static (string TableName, string tableSchema, List<(string ColumnName, string ColumnType)> columns) EntityTableInfo(this DbContext context, Type type)
+        {
+            var entityType = context.Model.FindEntityType(type);
+
+            // Table info 
+            var tableName = entityType.Relational().TableName;
+            var tableSchema = entityType.Relational().Schema;
+
+            var columns = new List<(string ColumnName, string ColumnType)>();
+
+            // Column info 
+            foreach (var property in entityType.GetProperties())
+            {
+                var columnName = property.Relational().ColumnName;
+                var columnType = property.Relational().ColumnType;
+                columns.Add((columnName, columnType));
+            };
+
+            return (tableName, tableSchema, columns);
+        }
+        #endregion
+
         #region Get Entity Model Types
         public static IEnumerable<IEntityType> GetEntityTypes(this DbContext context)
         {
