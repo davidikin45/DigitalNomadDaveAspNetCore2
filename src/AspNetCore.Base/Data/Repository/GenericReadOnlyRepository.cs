@@ -166,17 +166,34 @@ namespace AspNetCore.Base.Data.Repository
 
             var ignore = new List<string>() { "" };
 
+           var entityType = context.Model.FindEntityType(typeof(T));
+
+            var properties = entityType.GetProperties().Where(p => p.ClrType == typeof(string) && !p.IsShadowProperty && !ignore.Contains(p.Name));
+
             foreach (var value in values.Split('&'))
             {
                 List<Expression> orExpressions = new List<Expression>();
 
-                foreach (PropertyInfo prop in typeof(T).GetProperties().Where(x => x.PropertyType == typeof(string) && !ignore.Contains(x.Name)))
+                foreach (PropertyInfo prop in properties.Select(p => p.PropertyInfo))
                 {
+
                     MemberExpression member_expression = Expression.PropertyOrField(parameter, prop.Name);
 
                     ConstantExpression value_expression = Expression.Constant(value, typeof(string));
 
                     MethodCallExpression contains_expression = Expression.Call(member_expression, contains_method, value_expression);
+
+                    //var likeMethod = typeof(DbFunctionsExtensions)
+                    //  .GetMethods()
+                    //  .Where(p => p.Name == "Like")
+                    //  .First();
+
+                    //string pattern = $"%{value}%";
+                    //ConstantExpression likeConstant = Expression.Constant(pattern, typeof(string));
+
+                    //ConstantExpression dbFunctions_expression = Expression.Constant(EF.Functions, typeof(DbFunctions));
+                    //ConstantExpression property_expression = Expression.Constant(prop.Name, typeof(string));
+                    //MethodCallExpression like_expression = Expression.Call(method: likeMethod, arguments: new[] { dbFunctions_expression, property_expression, likeConstant });
 
                     orExpressions.Add(contains_expression);
                 }
