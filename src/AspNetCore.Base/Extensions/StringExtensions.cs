@@ -75,7 +75,9 @@ namespace AspNetCore.Base.Extensions
 
         public static string GetStringWithSpacesAndFirstLetterUpper(this string input)
         {
-            var value = Regex.Replace(
+            if(!string.IsNullOrEmpty(input))
+            {
+                var value = Regex.Replace(
                input,
                "(?<!^)" +
                "(" +
@@ -86,12 +88,17 @@ namespace AspNetCore.Base.Extensions
                " $1",
                RegexOptions.IgnorePatternWhitespace);
 
-            value = value.Replace("-", " ").Replace("_", " ");
+                            value = value.Replace("-", " ").Replace("_", " ");
 
-            var chars = value.ToCharArray();
-            chars[0] = char.ToUpper(chars[0], CultureInfo.InvariantCulture);
+                            var chars = value.ToCharArray();
+                            chars[0] = char.ToUpper(chars[0], CultureInfo.InvariantCulture);
 
-            return new string(chars); ;
+                        return new string(chars); ;
+            }
+            else
+            {
+                return input;
+            }
         }
 
         public static string ReplaceFromDictionary(this string s, Dictionary<string, string> dict)
