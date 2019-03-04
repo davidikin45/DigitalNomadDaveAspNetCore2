@@ -117,6 +117,7 @@
     <Folder Include="styles\" />
     <Folder Include="signing_keys\" />
     <Folder Include="wwwroot\css\" />
+    <Folder Include="wwwroot\files\parellax\" />
     <Folder Include="wwwroot\lib\" />
     <Folder Include="wwwroot\fonts\" />
     <Folder Include="wwwroot\images\" />
