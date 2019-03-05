@@ -1,14 +1,9 @@
-﻿using AspNetCore.Base.Hangfire;
-using AspNetCore.Base.Helpers;
+﻿using AspNetCore.Base.Authentication;
 using AspNetCore.Base.Middleware.ImageProcessing;
 using AspNetCore.Base.Settings;
-using Hangfire;
-using Hangfire.MemoryStorage;
-using Hangfire.SQLite;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;

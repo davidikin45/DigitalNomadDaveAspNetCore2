@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Polly;
 using Polly.Caching;
 using Polly.Caching.Memory;
@@ -22,19 +23,19 @@ namespace AspNetCore.Base.ApiClient
                 cache = Policy.CacheAsync(memoryCacheProvider, TimeSpan.FromSeconds(cacheSeconds));
             }
 
-            HttpStatusCode[] httpStatusCodesWorthRetrying = {
-               HttpStatusCode.RequestTimeout, // 408
-               HttpStatusCode.TooManyRequests, // 429
-               //HttpStatusCode.InternalServerError, // 500
-               HttpStatusCode.BadGateway, // 502
-               HttpStatusCode.ServiceUnavailable, // 503
-               HttpStatusCode.GatewayTimeout // 504
+            int[] httpStatusCodesWorthRetrying = {
+               StatusCodes.Status408RequestTimeout,
+               StatusCodes.Status429TooManyRequests,
+               //StatusCodes.Status500InternalServerError,
+               StatusCodes.Status502BadGateway,
+               StatusCodes.Status503ServiceUnavailable,
+               StatusCodes.Status504GatewayTimeout
             };
 
             var waitAndRetryPolicy = Policy
              .Handle<HttpRequestException>() //HttpClient Timeout or CancellationToken
              .Or<TimeoutRejectedException>()
-             .OrResult<HttpResponseMessage>(r => httpStatusCodesWorthRetrying.Contains(r.StatusCode))
+             .OrResult<HttpResponseMessage>(r => httpStatusCodesWorthRetrying.Contains((int)r.StatusCode))
              .WaitAndRetryAsync(additionalRetries,
               retryAttempt => TimeSpan.FromSeconds(1));
 

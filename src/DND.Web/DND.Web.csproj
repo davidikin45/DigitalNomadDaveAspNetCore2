@@ -8,11 +8,11 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;4014</NoWarn>
-    <DocumentationFile>bin\Debug\netcoreapp2.2\DND.Web.xml</DocumentationFile>
+    <DocumentationFile>DND.Web.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp2.2\DND.Web.xml</DocumentationFile>
+    <DocumentationFile>DND.Web.xml</DocumentationFile>
     <NoWarn>1701;1702;4014</NoWarn>
   </PropertyGroup>
 
@@ -113,6 +113,8 @@
     <Folder Include="email_templates\" />
     <Folder Include="certificates\" />
     <Folder Include="jobs\" />
+    <Folder Include="data\" />
+    <Folder Include="logs\" />
     <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="styles\" />
     <Folder Include="signing_keys\" />

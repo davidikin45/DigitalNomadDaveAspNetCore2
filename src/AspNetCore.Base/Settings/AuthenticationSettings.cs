@@ -3,6 +3,7 @@
     public class AuthenticationSettings
     {
         public bool AllowAnonymousUsers { get; set; }
+        public Authentication Basic { get; set; }
         public Authentication Application { get; set; }
         public Authentication JwtToken { get; set; }
         public Authentication OpenIdConnect { get; set; }

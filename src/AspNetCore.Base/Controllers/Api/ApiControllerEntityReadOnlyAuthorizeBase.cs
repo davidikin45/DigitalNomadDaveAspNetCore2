@@ -1,4 +1,5 @@
 ﻿using AspNetCore.Base.ApplicationServices;
+using AspNetCore.Base.Authentication;
 using AspNetCore.Base.Authorization;
 using AspNetCore.Base.Controllers.ApiClient;
 using AspNetCore.Base.Data.Helpers;
@@ -10,6 +11,7 @@ using AspNetCore.Base.Mapping;
 using AspNetCore.Base.ModelBinders;
 using AspNetCore.Base.Reflection;
 using AspNetCore.Base.Settings;
+using AspNetCore.Base.ValueProviders.DelimitedQueryString;
 using AutoMapper;
 using IdentityModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -44,7 +46,7 @@ namespace AspNetCore.Base.Controllers.Api
     //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     //[Authorize]
     //[AllowAnonymous]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme + "," + BasicAuthenticationDefaults.AuthenticationScheme)]
     public abstract class ApiControllerEntityReadOnlyAuthorizeBase<TDto, IEntityService> : ApiControllerBase, IApiControllerEntityReadOnly<TDto>
         where TDto : class
         where IEntityService : IApplicationServiceEntityReadOnly<TDto>
@@ -89,7 +91,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (!TypeHelperService.TypeHasProperties<TDto>(resourceParameters.Fields))
             {
-                return ApiErrorMessage(Messages.FieldsInvalid);
+                return BadRequest(Messages.FieldsInvalid);
             }
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
@@ -122,7 +124,7 @@ namespace AspNetCore.Base.Controllers.Api
                 paginationMetadata.NextPageLink = CreateResourceUri(resourceParameters, ResourceUriType.NextPage);
             }
 
-            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata));
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata).Replace(Environment.NewLine, ""));
 
             var links = CreateLinksForCollections(resourceParameters,
               paginationMetadata.HasNext, paginationMetadata.HasPrevious);
@@ -200,7 +202,7 @@ namespace AspNetCore.Base.Controllers.Api
                 NextPageLink = ""
             };
 
-            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata));
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata).Replace(Environment.NewLine, ""));
 
             return Success(data.ToList());
         }
@@ -223,7 +225,7 @@ namespace AspNetCore.Base.Controllers.Api
         {
             if (!TypeHelperService.TypeHasProperties<TDto>(parameters.Fields))
             {
-                return ApiErrorMessage(Messages.FieldsInvalid);
+                return BadRequest(Messages.FieldsInvalid);
             }
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
@@ -233,7 +235,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (response == null)
             {
-                return ApiNotFoundErrorMessage(Messages.NotFound);
+                return NotFound();
             }
 
             var links = CreateLinks(id, parameters.Fields);
@@ -256,13 +258,13 @@ namespace AspNetCore.Base.Controllers.Api
         [ResourceAuthorize(ResourceCollectionsCore.CRUD.Operations.Read, ResourceCollectionsCore.CRUD.Operations.ReadOwner)]
         [FormatFilter]
         [Route("({ids})"), Route("({ids}).{format}")]
-        //[Route("get/({ids})"), Route("get/({ids}).{format}")]
         [HttpGet]
-        public virtual async Task<ActionResult<List<TDto>>> BulkGetByIds([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<string> ids)
+        [DelimitedQueryString(',', '|')]
+        public virtual async Task<ActionResult<List<TDto>>> BulkGetByIds(IEnumerable<string> ids)
         {
             if (ids == null)
             {
-                return ApiErrorMessage(Messages.RequestInvalid);
+                return BadRequest();
             }
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
@@ -273,7 +275,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (ids.Count() != list.Count())
             {
-                return ApiNotFoundErrorMessage(Messages.NotFound);
+                return NotFound();
             }
 
             return Success(list);
@@ -287,7 +289,7 @@ namespace AspNetCore.Base.Controllers.Api
         {
             if (!TypeHelperService.TypeHasProperties<TDto>(parameters.Fields))
             {
-                return ApiErrorMessage(Messages.FieldsInvalid);
+                return BadRequest(Messages.FieldsInvalid);
             }
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
@@ -297,7 +299,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (response == null)
             {
-                return ApiNotFoundErrorMessage(Messages.NotFound);
+                return NotFound();
             }
 
             var links = CreateLinks(id, parameters.Fields, true);
@@ -333,7 +335,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (!RelationshipHelper.IsValidCollectionExpression(collection, typeof(TDto)))
             {
-                return ApiErrorMessage(Messages.CollectionInvalid);
+                return BadRequest(Messages.CollectionInvalid);
             }
 
             if (RelationshipHelper.IsCollectionExpressionCollectionItem(collection))
@@ -344,7 +346,7 @@ namespace AspNetCore.Base.Controllers.Api
             var collectionItemType = RelationshipHelper.GetCollectionExpressionType(collection, typeof(TDto));
             if (!TypeHelperService.TypeHasProperties(collectionItemType, resourceParameters.Fields))
             {
-                return ApiErrorMessage(Messages.FieldsInvalid);
+                return BadRequest(Messages.FieldsInvalid);
             }
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
@@ -380,7 +382,7 @@ namespace AspNetCore.Base.Controllers.Api
                 paginationMetadata.NextPageLink = CreateCollectionPropertyResourceUri(collection, resourceParameters, ResourceUriType.NextPage);
             }
 
-            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata));
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata).Replace(Environment.NewLine, ""));
 
             var links = CreateLinksForCollectionProperty(collection, resourceParameters, paginationMetadata.HasNext, paginationMetadata.HasPrevious);
 
@@ -410,18 +412,18 @@ namespace AspNetCore.Base.Controllers.Api
         {
             if (!RelationshipHelper.IsValidCollectionExpression(collection, typeof(TDto)))
             {
-                return ApiErrorMessage(Messages.CollectionInvalid);
+                return BadRequest(Messages.CollectionInvalid);
             }
 
             if (!RelationshipHelper.IsCollectionExpressionCollectionItem(collection))
             {
-                return ApiErrorMessage(Messages.CollectionInvalid);
+                return BadRequest(Messages.CollectionInvalid);
             }
 
             var collectionItemType = RelationshipHelper.GetCollectionExpressionType(collection, typeof(TDto));
             if (!TypeHelperService.TypeHasProperties(collectionItemType, fields))
             {
-                return ApiErrorMessage(Messages.FieldsInvalid);
+                return BadRequest(Messages.FieldsInvalid);
             }
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
@@ -432,7 +434,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (collectionItem == null)
             {
-                return ApiNotFoundErrorMessage(Messages.NotFound);
+                return NotFound();
             }
 
             var links = CreateLinksForCollectionItem(id, collection, fields);
@@ -443,19 +445,6 @@ namespace AspNetCore.Base.Controllers.Api
             linkedResourceToReturn.Add("links", links);
 
             return Ok(linkedResourceToReturn);
-        }
-        #endregion
-
-        #region HttpOptions
-        /// <summary>
-        /// Gets the options.
-        /// </summary>
-        /// <returns></returns>
-        [HttpOptions]
-        public IActionResult GetOptions()
-        {
-            Response.Headers.Add("Allow", "GET, OPTIONS, POST, PUT, PATCH");
-            return Ok();
         }
         #endregion
 

@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.CMS
 {
     [ResourceCollection(ResourceCollections.CMS.MailingList.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/cms/mailing-list")]
+    [Route("api/v{version:apiVersion}/cms/mailing-list")]
     public class MailingListController : ApiControllerEntityAuthorizeBase<MailingListDto, MailingListDto, MailingListDto, MailingListDeleteDto, IMailingListApplicationService>
     {
         public MailingListController(IMailingListApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

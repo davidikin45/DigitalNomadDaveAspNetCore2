@@ -47,13 +47,13 @@ namespace AspNetCore.Base.Controllers.ApiClient
         #endregion
 
         #region Bulk Create
-        public async Task<List<WebApiMessage>> BulkCreateAsync(TCreateDto[] dtos)
+        public async Task<List<ValidationProblemDetails>> BulkCreateAsync(TCreateDto[] dtos)
         {
             var response = await client.Post($"{ResourceCollection}/bulk", dtos, settings);
 
             await response.EnsureSuccessStatusCodeAsync();
 
-            return await response.ContentAsTypeAsync<List<WebApiMessage>>();
+            return await response.ContentAsTypeAsync<List<ValidationProblemDetails>>();
         }
         #endregion
 
@@ -92,13 +92,13 @@ namespace AspNetCore.Base.Controllers.ApiClient
         #endregion
 
         #region Bulk Update
-        public async Task<List<WebApiMessage>> BulkUpdateAsync(BulkDto<TUpdateDto>[] dtos)
+        public async Task<List<ValidationProblemDetails>> BulkUpdateAsync(BulkDto<TUpdateDto>[] dtos)
         {
             var response = await client.Put($"{ResourceCollection}/bulk", dtos, settings);
 
             await response.EnsureSuccessStatusCodeAsync();
 
-            return await response.ContentAsTypeAsync<List<WebApiMessage>>();
+            return await response.ContentAsTypeAsync<List<ValidationProblemDetails>>();
         }
         #endregion
 
@@ -112,13 +112,13 @@ namespace AspNetCore.Base.Controllers.ApiClient
         #endregion
 
         #region Bulk Partial Update
-        public async Task<List<WebApiMessage>> BulkUpdatePartialAsync(BulkDto<JsonPatchDocument>[] dtos)
+        public async Task<List<ValidationProblemDetails>> BulkUpdatePartialAsync(BulkDto<JsonPatchDocument>[] dtos)
         {
             var response = await client.Patch($"{ResourceCollection}/bulk", dtos, settings);
 
             await response.EnsureSuccessStatusCodeAsync();
 
-            return await response.ContentAsTypeAsync<List<WebApiMessage>>();
+            return await response.ContentAsTypeAsync<List<ValidationProblemDetails>>();
         }
         #endregion
 
@@ -158,13 +158,13 @@ namespace AspNetCore.Base.Controllers.ApiClient
         #endregion
 
         #region Bulk Delete
-        public async Task<List<WebApiMessage>> BulkDeleteAsync([FromBody] TDeleteDto[] dtos)
+        public async Task<List<ValidationProblemDetails>> BulkDeleteAsync([FromBody] TDeleteDto[] dtos)
         {
             var response = await client.Delete($"{ResourceCollection}/bulk", dtos, settings);
 
             await response.EnsureSuccessStatusCodeAsync();
 
-            return await response.ContentAsTypeAsync<List<WebApiMessage>>();
+            return await response.ContentAsTypeAsync<List<ValidationProblemDetails>>();
         }
         #endregion
 

@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.CMS
 {
     [ResourceCollection(ResourceCollections.CMS.Faqs.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/cms/faqs")]
+    [Route("api/v{version:apiVersion}/cms/faqs")]
     public class FaqsController : ApiControllerEntityAuthorizeBase<FaqDto, FaqDto, FaqDto, FaqDeleteDto, IFaqApplicationService>
     {
         public FaqsController(IFaqApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

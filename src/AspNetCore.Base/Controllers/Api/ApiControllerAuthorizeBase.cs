@@ -1,4 +1,5 @@
-﻿using AspNetCore.Base.Email;
+﻿using AspNetCore.Base.Authentication;
+using AspNetCore.Base.Email;
 using AspNetCore.Base.Settings;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,7 +20,7 @@ namespace AspNetCore.Base.Controllers.Api
     //If the name of the controller action starts the words "Get", "Post", "Put", "Delete", "Patch", "Options", or "Head", use the corresponding HTTP method.
     //Otherwise, the action supports the POST method.
     //[Authorize(Roles = "admin")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin")] // 40
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme+ "," + BasicAuthenticationDefaults.AuthenticationScheme, Roles = "admin")] // 40
     public abstract class ApiControllerAuthorizeBase : ApiControllerBase
     {
         public ApiControllerAuthorizeBase(IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, AppSettings appSettings)

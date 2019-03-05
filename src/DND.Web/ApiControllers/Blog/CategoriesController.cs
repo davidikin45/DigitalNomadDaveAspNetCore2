@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.Blog
 {
     [ResourceCollection(ResourceCollections.Blog.Categories.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/blog/categories")]
+    [Route("api/v{version:apiVersion}/blog/categories")]
     public class CategoriesController : ApiControllerEntityAuthorizeBase<CategoryDto, CategoryDto, CategoryDto, CategoryDeleteDto, ICategoryApplicationService>
     {
         public CategoriesController(ICategoryApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

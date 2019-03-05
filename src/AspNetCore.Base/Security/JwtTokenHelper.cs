@@ -10,8 +10,7 @@ namespace AspNetCore.Base.Security
     //https://www.carlrippon.com/asp-net-core-web-api-multi-tenant-jwts/
     public static class JwtTokenHelper
     {
-        //Assymetric
-        public static JwtToken CreateJwtTokenSigningWithRsaSecurityKey(string userId, string userName, IEnumerable<string> roles, int? minuteExpiry, RsaSecurityKey key, string issuer, string audience, params string[] scopes)
+        public static List<Claim> GetClaims(string userId, string userName, IEnumerable<string> roles, params string[] scopes)
         {
             var claims = new List<Claim>()
                         {
@@ -33,6 +32,14 @@ namespace AspNetCore.Base.Security
             {
                 claims.Add(new Claim("role", role));
             }
+
+            return claims;
+        }
+
+        //Assymetric
+        public static JwtToken CreateJwtTokenSigningWithRsaSecurityKey(string userId, string userName, IEnumerable<string> roles, int? minuteExpiry, RsaSecurityKey key, string issuer, string audience, params string[] scopes)
+        {
+            var claims = GetClaims(userId, userName, roles, scopes);
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
 
@@ -42,26 +49,7 @@ namespace AspNetCore.Base.Security
         //Assymetric
         public static JwtToken CreateJwtTokenSigningWithCertificateSecurityKey(string userId, string userName, IEnumerable<string> roles, int? minuteExpiry, X509SecurityKey key, string issuer, string audience, params string[] scopes)
         {
-            var claims = new List<Claim>()
-                        {
-                            new Claim(ClaimTypes.NameIdentifier, userId),
-                            new Claim(ClaimTypes.Name, userName),
-                            new Claim(JwtRegisteredClaimNames.Sub, userId),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                            new Claim(JwtRegisteredClaimNames.UniqueName, userName)
-                        };
-
-            // add scopes
-            foreach (var scope in scopes)
-            {
-                claims.Add(new Claim("scope", scope));
-            }
-
-            //Add roles
-            foreach (string role in roles)
-            {
-                claims.Add(new Claim("role", role));
-            }
+            var claims = GetClaims(userId, userName, roles, scopes);
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
 
@@ -71,26 +59,7 @@ namespace AspNetCore.Base.Security
         //Symmetric
         public static JwtToken CreateJwtTokenSigningWithKey(string userId, string userName, IEnumerable<string> roles, int? minuteExpiry, string hmacKey, string issuer, string audience, params string[] scopes)
         {
-            var claims = new List<Claim>()
-                        {
-                            new Claim(ClaimTypes.NameIdentifier, userId),
-                            new Claim(ClaimTypes.Name, userName),
-                            new Claim(JwtRegisteredClaimNames.Sub, userId),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                            new Claim(JwtRegisteredClaimNames.UniqueName, userName)
-                        };
-
-            // add scopes
-            foreach (var scope in scopes)
-            {
-                claims.Add(new Claim("scope", scope));
-            }
-
-            //Add roles
-            foreach (string role in roles)
-            {
-                claims.Add(new Claim("role", role));
-            }
+            var claims = GetClaims(userId, userName, roles, scopes);
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(hmacKey));
 

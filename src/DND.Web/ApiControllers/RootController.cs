@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace DND.Web.ApiControllers
 {
     [ApiVersion("1.0")]
-    [Route("api")]
+    [Route("api/v{version:apiVersion}")]
     public class RootController : ApiControllerBase
     {
         public RootController(IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, AppSettings appSettings)

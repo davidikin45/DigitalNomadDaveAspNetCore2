@@ -62,7 +62,7 @@ namespace GrabMobile.ApiClient.HttpClientREST
             if (response.Content != null)
                 response.Content.Dispose();
 
-            throw new SimpleHttpResponseException(response.StatusCode, response.ReasonPhrase, content);
+            throw new SimpleHttpResponseException((int)response.StatusCode, response.ReasonPhrase, content);
         }
 
         //https://stackoverflow.com/questions/21097730/usage-of-ensuresuccessstatuscode-and-handling-of-httprequestexception-it-throws
@@ -78,7 +78,7 @@ namespace GrabMobile.ApiClient.HttpClientREST
             if (response.Content != null)
                 response.Content.Dispose();
 
-            throw new SimpleHttpResponseException(response.StatusCode, response.ReasonPhrase, content);
+            throw new SimpleHttpResponseException((int)response.StatusCode, response.ReasonPhrase, content);
         }
 
         public static PagingInfoDto FindAndParsePagingInfo(this HttpResponseHeaders responseHeaders)

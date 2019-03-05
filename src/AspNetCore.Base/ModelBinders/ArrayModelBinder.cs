@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace AspNetCore.Base.ModelBinders
 {
+    //ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<string> ids
     public class ArrayModelBinder : IModelBinder
     {
         public Task BindModelAsync(ModelBindingContext bindingContext)

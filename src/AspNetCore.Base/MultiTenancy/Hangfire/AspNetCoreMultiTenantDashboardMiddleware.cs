@@ -61,7 +61,7 @@ namespace AspNetCore.Base.MultiTenancy.Hangfire
                 await middleware.Invoke(context);
             }
 
-            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
         }
     }
 }

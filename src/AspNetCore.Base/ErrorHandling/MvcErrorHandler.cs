@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Security.Claims;
 
-namespace AspNetCore.Base.Middleware
+namespace AspNetCore.Base.ErrorHandling
 {
     public static class MvcErrorHandler
     {

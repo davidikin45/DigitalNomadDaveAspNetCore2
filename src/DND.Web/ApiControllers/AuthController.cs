@@ -12,7 +12,7 @@ namespace DND.Web.ApiControllers
 {
     [AllowAnonymous]
     [ApiVersion("1.0")]
-    [Route("api/auth")]
+    [Route("api/v{version:apiVersion}/auth")]
     public class AuthController : ApiControllerAuthenticationBase<User>
     {
         public AuthController(

@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.Blog
 {
     [ResourceCollection(ResourceCollections.Blog.BlogPosts.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/blog/blog-posts")]
+    [Route("api/v{version:apiVersion}/blog/blog-posts")]
     public class BlogPostsController : ApiControllerEntityAuthorizeBase<BlogPostDto, BlogPostDto, BlogPostDto, BlogPostDeleteDto, IBlogPostApplicationService>
     {
         public BlogPostsController(IBlogPostApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

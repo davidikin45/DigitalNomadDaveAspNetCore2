@@ -1,5 +1,6 @@
 ﻿using AspNetCore.Base.Alerts;
 using AspNetCore.Base.ApplicationServices;
+using AspNetCore.Base.Authentication;
 using AspNetCore.Base.Authorization;
 using AspNetCore.Base.Controllers.ApiClient;
 using AspNetCore.Base.Data.Helpers;
@@ -11,6 +12,7 @@ using AspNetCore.Base.Helpers;
 using AspNetCore.Base.ModelBinders;
 using AspNetCore.Base.Reflection;
 using AspNetCore.Base.Settings;
+using AspNetCore.Base.ValueProviders.DelimitedQueryString;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -34,7 +36,7 @@ namespace AspNetCore.Base.Controllers.Api
     //If there is an attribute applied(via[HttpGet], [HttpPost], [HttpPut], [AcceptVerbs], etc), the action will accept the specified HTTP method(s).
     //If the name of the controller action starts the words "Get", "Post", "Put", "Delete", "Patch", "Options", or "Head", use the corresponding HTTP method.
     //Otherwise, the action supports the POST method.
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme + "," + BasicAuthenticationDefaults.AuthenticationScheme)]
     public abstract class ApiControllerEntityAuthorizeBase<TCreateDto, TReadDto, TUpdateDto, TDeleteDto, IEntityService> : ApiControllerEntityReadOnlyAuthorizeBase<TReadDto, IEntityService>, IApiControllerEntity<TCreateDto, TReadDto, TUpdateDto, TDeleteDto>
          where TCreateDto : class
          where TReadDto : class
@@ -83,7 +85,7 @@ namespace AspNetCore.Base.Controllers.Api
         {
             if (dto == null)
             {
-                return ApiErrorMessage(Messages.RequestInvalid);
+                return BadRequest();
             }
 
             if (!ModelState.IsValid)
@@ -122,7 +124,7 @@ namespace AspNetCore.Base.Controllers.Api
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = ApiScopes.Create)]
         [Route("bulk")]
         [HttpPost]
-        public virtual async Task<ActionResult<List<WebApiMessage>>> BulkCreate([FromBody] TCreateDto[] dtos)
+        public virtual async Task<ActionResult<List<ValidationProblemDetails>>> BulkCreate([FromBody] TCreateDto[] dtos)
         {
             var cts = TaskHelper.CreateNewCancellationTokenSource();
 
@@ -154,7 +156,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (response == null)
             {
-                return ApiNotFoundErrorMessage(Messages.NotFound);
+                return NotFound();
             }
 
             var links = CreateLinks(id, "");
@@ -175,11 +177,12 @@ namespace AspNetCore.Base.Controllers.Api
         [Route("edit/({ids})"), Route("edit/({ids}).{format}")]
         [Route("bulk/edit/({ids})"), Route("bulk/edit/({ids}).{format}")]
         [HttpGet]
-        public virtual async Task<ActionResult<List<TUpdateDto>>> BulkGetByIdsForEditAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<string> ids)
+        [DelimitedQueryString(',', '|')]
+        public virtual async Task<ActionResult<List<TUpdateDto>>> BulkGetByIdsForEditAsync(IEnumerable<string> ids)
         {
             if (ids == null)
             {
-                return ApiErrorMessage(Messages.RequestInvalid);
+                return BadRequest();
             }
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
@@ -190,7 +193,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (ids.Count() != list.Count())
             {
-                return ApiNotFoundErrorMessage(Messages.NotFound);
+                return NotFound();
             }
 
             return Success(list);
@@ -215,7 +218,7 @@ namespace AspNetCore.Base.Controllers.Api
             {
                 if (dto == null || id.ToString() != dto.GetPropValue("Id").ToString())
                 {
-                    return ApiErrorMessage(Messages.RequestInvalid);
+                    return BadRequest();
                 }
             }
 
@@ -254,7 +257,7 @@ namespace AspNetCore.Base.Controllers.Api
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = ApiScopes.Update)]
         [Route("bulk")]
         [HttpPut]
-        public virtual async Task<ActionResult<List<WebApiMessage>>> BulkUpdate([FromBody] BulkDto<TUpdateDto>[] dtos)
+        public virtual async Task<ActionResult<List<ValidationProblemDetails>>> BulkUpdate([FromBody] BulkDto<TUpdateDto>[] dtos)
         {
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
 
@@ -279,7 +282,7 @@ namespace AspNetCore.Base.Controllers.Api
         {
             if (dtoPatch == null)
             {
-                return ApiErrorMessage(Messages.RequestInvalid);
+                return BadRequest();
             }
 
             var cts = TaskHelper.CreateNewCancellationTokenSource();
@@ -304,7 +307,7 @@ namespace AspNetCore.Base.Controllers.Api
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = ApiScopes.Update)]
         [Route("bulk")]
         [HttpPatch]
-        public virtual async Task<ActionResult<List<WebApiMessage>>> BulkUpdatePartial([FromBody] BulkDto<JsonPatchDocument>[] dtos)
+        public virtual async Task<ActionResult<List<ValidationProblemDetails>>> BulkUpdatePartial([FromBody] BulkDto<JsonPatchDocument>[] dtos)
         {
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
 
@@ -329,7 +332,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (response == null)
             {
-                return ApiNotFoundErrorMessage(Messages.NotFound);
+                return NotFound();
             }
 
             var links = CreateLinks(id, "");
@@ -350,11 +353,12 @@ namespace AspNetCore.Base.Controllers.Api
         [Route("delete/({ids})"), Route("delete/({ids}).{format}")]
         [Route("bulk/delete/({ids})"), Route("bulk/delete/({ids}).{format}")]
         [HttpGet]
-        public virtual async Task<ActionResult<List<TDeleteDto>>> BulkGetByIdsForDeleteAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<string> ids)
+        [DelimitedQueryString(',', '|')]
+        public virtual async Task<ActionResult<List<TDeleteDto>>> BulkGetByIdsForDeleteAsync(IEnumerable<string> ids)
         {
             if (ids == null)
             {
-                return ApiErrorMessage(Messages.RequestInvalid);
+                return BadRequest();
             }
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
@@ -365,7 +369,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             if (ids.Count() != list.Count())
             {
-                return ApiNotFoundErrorMessage(Messages.NotFound);
+                return NotFound();
             }
 
             return Success(list);
@@ -383,21 +387,20 @@ namespace AspNetCore.Base.Controllers.Api
         [Route("{id}")]
         [HttpDelete]
         //[HttpPost]
-        [ProducesResponseType(typeof(WebApiMessage), 200)]
         public virtual async Task<IActionResult> DeleteDto(string id, [FromBody] TDeleteDto dto)
         {
             var cts = TaskHelper.CreateNewCancellationTokenSource();
 
             if (dto == null)
             {
-                return ApiErrorMessage(Messages.RequestInvalid);
+                return BadRequest();
             }
 
             if(dto.HasProperty("Id"))
             {
                 if (id.ToString() != dto.GetPropValue("Id").ToString())
                 {
-                    return ApiErrorMessage(Messages.RequestInvalid);
+                    return BadRequest();
                 }
             }
 
@@ -416,7 +419,7 @@ namespace AspNetCore.Base.Controllers.Api
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = ApiScopes.Delete)]
         [Route("bulk")]
         [HttpDelete]
-        public virtual async Task<ActionResult<List<WebApiMessage>>> BulkDelete([FromBody] TDeleteDto[] dtos)
+        public virtual async Task<ActionResult<List<ValidationProblemDetails>>> BulkDelete([FromBody] TDeleteDto[] dtos)
         {
             var cts = TaskHelper.CreateNewCancellationTokenSource();
 
@@ -431,12 +434,11 @@ namespace AspNetCore.Base.Controllers.Api
         [Route("new/{*collection}")]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = ApiScopes.Create)]
         [HttpGet]
-        [ProducesResponseType(typeof(WebApiMessage), 200)]
         public virtual IActionResult NewCollectionItem(string collection)
         {
             if (!RelationshipHelper.IsValidCollectionItemCreateExpression(collection, typeof(TUpdateDto)))
             {
-                return ApiErrorMessage(Messages.CollectionInvalid);
+                return BadRequest(Messages.CollectionInvalid);
             }
 
             var response = Service.GetCreateDefaultCollectionItemDto(collection);

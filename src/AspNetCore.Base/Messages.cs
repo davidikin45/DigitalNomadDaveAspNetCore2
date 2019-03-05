@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AspNetCore.Base
+﻿namespace AspNetCore.Base
 {
     public static class Messages
     {
@@ -20,8 +16,6 @@ namespace AspNetCore.Base
         public const string DeleteSuccessful = "Delete successful.";
 
         public const string ActionSuccessful = "Action triggered successfully.";
-
-        public const string NotFound = "Object not found.";
 
         public const string CollectionInvalid = "Collection invalid.";
         public const string FieldsInvalid = "One or more of the fields are invalid.";

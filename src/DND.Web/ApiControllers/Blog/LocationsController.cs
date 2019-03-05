@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.Blog
 {
     [ResourceCollection(ResourceCollections.Blog.Locations.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/blog/locations")]
+    [Route("api/v{version:apiVersion}/blog/locations")]
     public class LocationsController : ApiControllerEntityAuthorizeBase<LocationDto, LocationDto, LocationDto, LocationDeleteDto, ILocationApplicationService>
     {
         public LocationsController(ILocationApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 
 namespace AspNetCore.Base.ApiClient
 {
@@ -33,12 +34,12 @@ namespace AspNetCore.Base.ApiClient
 
         public static ApiResult Ok()
         {
-            return new ApiResult(true, (int)System.Net.HttpStatusCode.OK, null);
+            return new ApiResult(true, StatusCodes.Status200OK, null);
         }
 
         public static ApiResult<T> Ok<T>(T value)
         {
-            return new ApiResult<T>(value, true, (int)System.Net.HttpStatusCode.OK, null);
+            return new ApiResult<T>(value, true, StatusCodes.Status200OK, null);
         }
 
         public static ApiResult Combine(params ApiResult[] results)

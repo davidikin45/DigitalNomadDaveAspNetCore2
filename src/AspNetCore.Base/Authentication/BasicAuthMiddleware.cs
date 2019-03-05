@@ -4,14 +4,14 @@ using System;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-namespace AspNetCore.Base.Middleware
+namespace AspNetCore.Base.Authentication
 {
     public static class BasicAuthMiddlewareExtensions
     {
         public static IApplicationBuilder UseBasicAuth(
            this IApplicationBuilder builder, string username, string password)
         {
-            return builder.UseMiddleware<BasicAuthMiddleware>(username, password);
+            return builder.UseMiddleware<BasicAuthMiddleware>("", username, password);
         }
     }
 
@@ -19,11 +19,17 @@ namespace AspNetCore.Base.Middleware
     {
         private readonly RequestDelegate next;
         private readonly string realm;
-        public BasicAuthMiddleware(RequestDelegate next, string realm)
+        private readonly string username;
+        private readonly string password;
+
+        public BasicAuthMiddleware(RequestDelegate next, string realm, string username, string password)
         {
             this.next = next;
             this.realm = realm;
+            this.username = username;
+            this.password = password;
         }
+
         public async Task Invoke(HttpContext context)
         {
             string authHeader = context.Request.Headers["Authorization"];
@@ -51,14 +57,14 @@ namespace AspNetCore.Base.Middleware
                 context.Response.Headers["WWW-Authenticate"] += $" realm=\"{realm}\"";
             }
             // Return unauthorized
-            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         }
         // Make your own implementation of this
         public bool IsAuthorized(string username, string password)
         {
             // Check that username and password are correct
-            return username.Equals("User1", StringComparison.InvariantCultureIgnoreCase)
-                   && password.Equals("SecretPassword!");
+            return username.Equals(this.username, StringComparison.InvariantCultureIgnoreCase)
+                   && password.Equals(this.password);
         }
     }
 }

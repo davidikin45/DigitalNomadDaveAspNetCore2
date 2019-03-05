@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 
-namespace AspNetCore.Base.Middleware
+namespace AspNetCore.Base.ErrorHandling
 {
     public static class ApiGlobalExceptionHandlerExtension
     {
@@ -26,18 +26,18 @@ namespace AspNetCore.Base.Middleware
                     if (exceptionHandlerFeature != null)
                     {
                         var logger = loggerFactory.CreateLogger("Global exception logger");
-                        var response = ApiErrorHandler.HandleApiExceptionGlobal(exceptionHandlerFeature.Error, showExceptionMessage);
+                        var response = ApiErrorHandler.HandleApiExceptionGlobal(context, exceptionHandlerFeature.Error, showExceptionMessage);
                         context.Response.StatusCode = response.statusCode;
-                        context.Response.ContentType = "application/json";
-                        await context.Response.WriteAsync(response.message.ToString());
+                        context.Response.ContentType = "application/problem+json";
+                        await context.Response.WriteAsync(response.message);
                     }
                     else
                     {
-                        //Whenever exceptions are thrown from api services.
-                        context.Response.StatusCode = 500;
-                        await context.Response.WriteAsync(Messages.UnknownError);
+                        var response = ApiErrorHandler.HandleApiExceptionGlobal(context, null, showExceptionMessage);
+                        context.Response.StatusCode = response.statusCode;
+                        context.Response.ContentType = "application/problem+json";
+                        await context.Response.WriteAsync(response.message);
                     }
-
                 });
             };
         }

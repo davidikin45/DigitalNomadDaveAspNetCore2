@@ -1,5 +1,4 @@
-﻿using AspnetCore.Base.Validation.Errors;
-using AspNetCore.Base.ActionResults;
+﻿using AspNetCore.Base.ActionResults;
 using AspNetCore.Base.Alerts;
 using AspNetCore.Base.Email;
 using AspNetCore.Base.Extensions;
@@ -7,13 +6,13 @@ using AspNetCore.Base.MultiTenancy;
 using AspNetCore.Base.Settings;
 using AspNetCore.Base.Validation;
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
 
@@ -29,6 +28,10 @@ namespace AspNetCore.Base.Controllers.Api
     //Otherwise, the action supports the POST method.
     [Consumes("application/json", "application/xml")]
     [Produces("application/json", "application/xml")]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status406NotAcceptable)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ApiController]
     public abstract class ApiControllerBase : ControllerBase
     {
@@ -99,17 +102,17 @@ namespace AspNetCore.Base.Controllers.Api
 
         protected IActionResult BulkTriggerActionResponse(IEnumerable<Result> results)
         {
-            var webApiMessages = new List<WebApiMessage>();
+            var webApiMessages = new List<ValidationProblemDetails>();
 
             foreach (var result in results)
             {
                 if (result.IsSuccess)
                 {
-                    webApiMessages.Add(WebApiMessage.CreateWebApiMessage(Messages.ActionSuccessful, new List<string>()));
+                    webApiMessages.Add(new ValidationProblemDetails());
                 }
                 else
                 {
-                    webApiMessages.Add((WebApiMessage)((ObjectResult)ValidationErrors(result)).Value);
+                    webApiMessages.Add((ValidationProblemDetails)((ObjectResult)ValidationErrors(result)).Value);
                 }
             }
 
@@ -117,19 +120,19 @@ namespace AspNetCore.Base.Controllers.Api
             return Success(webApiMessages);
         }
 
-        protected List<WebApiMessage> BulkCreateResponse(IEnumerable<Result> results)
+        protected List<ValidationProblemDetails> BulkCreateResponse(IEnumerable<Result> results)
         {
-            var webApiMessages = new List<WebApiMessage>();
+            var webApiMessages = new List<ValidationProblemDetails>();
 
             foreach (var result in results)
             {
                 if (result.IsSuccess)
                 {
-                    webApiMessages.Add(WebApiMessage.CreateWebApiMessage(Messages.AddSuccessful, new List<string>()));
+                    webApiMessages.Add(new ValidationProblemDetails());
                 }
                 else
                 {
-                    webApiMessages.Add((WebApiMessage)((ObjectResult)ValidationErrors(result)).Value);
+                    webApiMessages.Add((ValidationProblemDetails)((ObjectResult)ValidationErrors(result)).Value);
                 }
             }
 
@@ -137,19 +140,19 @@ namespace AspNetCore.Base.Controllers.Api
             return webApiMessages;
         }
 
-        protected List<WebApiMessage> BulkUpdateResponse(IEnumerable<Result> results)
+        protected List<ValidationProblemDetails> BulkUpdateResponse(IEnumerable<Result> results)
         {
-            var webApiMessages = new List<WebApiMessage>();
+            var webApiMessages = new List<ValidationProblemDetails>();
 
             foreach (var result in results)
             {
                 if(result.IsSuccess)
                 {
-                    webApiMessages.Add(WebApiMessage.CreateWebApiMessage(Messages.UpdateSuccessful, new List<string>()));
+                    webApiMessages.Add(new ValidationProblemDetails());
                 }
                 else
                 {
-                    webApiMessages.Add((WebApiMessage)((ObjectResult)ValidationErrors(result)).Value);
+                    webApiMessages.Add((ValidationProblemDetails)((ObjectResult)ValidationErrors(result)).Value);
                 }
             }
 
@@ -157,19 +160,19 @@ namespace AspNetCore.Base.Controllers.Api
             return webApiMessages;
         }
 
-        protected List<WebApiMessage> BulkDeleteResponse(IEnumerable<Result> results)
+        protected List<ValidationProblemDetails> BulkDeleteResponse(IEnumerable<Result> results)
         {
-            var webApiMessages = new List<WebApiMessage>();
+            var webApiMessages = new List<ValidationProblemDetails>();
 
             foreach (var result in results)
             {
                 if (result.IsSuccess)
                 {
-                    webApiMessages.Add(WebApiMessage.CreateWebApiMessage(Messages.DeleteSuccessful, new List<string>()));
+                    webApiMessages.Add(new ValidationProblemDetails());
                 }
                 else
                 {
-                    webApiMessages.Add((WebApiMessage)((ObjectResult)ValidationErrors(result)).Value);
+                    webApiMessages.Add((ValidationProblemDetails)((ObjectResult)ValidationErrors(result)).Value);
                 }
             }
 
@@ -186,7 +189,7 @@ namespace AspNetCore.Base.Controllers.Api
                     newModelState.AddValidationErrors(failure.ObjectValidationErrors);
                     break;
                 case ErrorType.ObjectDoesNotExist:
-                    return ApiNotFoundErrorMessage(Messages.NotFound);
+                    return NotFound();
                 case ErrorType.ConcurrencyConflict:
                     newModelState.AddValidationErrors(failure.ObjectValidationErrors);
                     break;
@@ -201,17 +204,27 @@ namespace AspNetCore.Base.Controllers.Api
 
         protected ActionResult ValidationErrors()
         {
-            return ValidationErrors(Messages.RequestInvalid, ModelState);
+            return ValidationErrors(ModelState);
         }
 
-        protected ActionResult ValidationErrors(ModelStateDictionary modelState)
+        protected virtual ActionResult ValidationErrors(ModelStateDictionary modelState)
         {
-            return ValidationErrors(Messages.RequestInvalid, modelState);
-        }
+            var problemDetails = new ValidationProblemDetails(ModelState)
+            {
+                Instance = HttpContext.Request.Path,
+                Detail = "Please refer to the errors property for additional details.",
+                Status = StatusCodes.Status422UnprocessableEntity
+            };
 
-        protected virtual ActionResult ValidationErrors(string message, ModelStateDictionary modelState)
-        {
-            return new UnprocessableEntityAngularObjectResult(message, modelState);
+            var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+            problemDetails.Extensions["traceId"] = traceId;
+            problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
+
+            var result = new UnprocessableEntityObjectResult(problemDetails);
+            result.ContentTypes.Add("application/problem+json");
+            result.ContentTypes.Add("application/problem+xml");
+            
+            return result;
         }
 
         protected virtual ActionResult Success<T>(T model)
@@ -224,52 +237,25 @@ namespace AspNetCore.Base.Controllers.Api
             return this.HttpContext.RequestAborted;
         }
 
-        protected ActionResult ApiBadRequest()
+        protected virtual ActionResult BadRequest(string errorMessage, int errorStatusCode = 400)
         {
-            return ApiErrorMessage(Messages.RequestInvalid);
-        }
+            var problemDetails = new ProblemDetails
+            {
+                Type= "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Instance = HttpContext.Request.Path,
+                Title = "Bad Request.",
+                Detail = errorMessage,
+                Status = errorStatusCode
+            };
 
-        protected ActionResult ApiErrorMessage(string message)
-        {
-            return ApiErrorMessage(Messages.RequestInvalid, message);
-        }
+            var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+            problemDetails.Extensions["traceId"] = traceId;
+            problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
 
-        protected ActionResult ApiNotFound()
-        {
-            return ApiNotFoundErrorMessage(Messages.NotFound);
-        }
-
-        protected ActionResult ApiNotFoundErrorMessage(string message)
-        {
-            return ApiErrorMessage(Messages.NotFound, message, 404);
-        }
-
-        protected virtual ActionResult ApiErrorMessage(string message, string errorMessage, int errorStatusCode = 400)
-        {
-            var errorList = new List<string>();
-            errorList.Add(errorMessage);
-
-            var response = WebApiMessage.CreateWebApiMessage(message, errorList);
-
-            var result = new ObjectResult(response);
+            var result = new ObjectResult(problemDetails);
             result.StatusCode = errorStatusCode;
-
-            return result;
-        }
-
-        protected virtual IActionResult ApiCreatedSuccessMessage(string message, Object id)
-        {
-            return ApiSuccessMessage(message, id, HttpStatusCode.Created);
-        }
-
-        protected virtual IActionResult ApiSuccessMessage(string message, Object id, HttpStatusCode statusCode = HttpStatusCode.OK)
-        {
-            var errorList = new List<string>();
-
-            var response = WebApiMessage.CreateWebApiMessage(message, errorList, id);
-
-            var result = new ObjectResult(response);
-            result.StatusCode = (int)statusCode;
+            result.ContentTypes.Add("application/problem+json");
+            result.ContentTypes.Add("application/problem+xml");
 
             return result;
         }
@@ -281,9 +267,8 @@ namespace AspNetCore.Base.Controllers.Api
 
         protected virtual IActionResult Forbidden()
         {
-            return ApiErrorMessage(Messages.Forbidden, Messages.Forbidden, 403);
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
         }
-
     }
 }
 

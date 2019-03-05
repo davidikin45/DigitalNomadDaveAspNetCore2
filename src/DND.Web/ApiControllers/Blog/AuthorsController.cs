@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.Blog
 {
     [ResourceCollection(ResourceCollections.Blog.Authors.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/blog/authors")]
+    [Route("api/v{version:apiVersion}/blog/authors")]
     public class AuthorsController : ApiControllerEntityAuthorizeBase<AuthorDto, AuthorDto, AuthorDto, AuthorDeleteDto, IAuthorApplicationService>
     {
         public AuthorsController(IAuthorApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

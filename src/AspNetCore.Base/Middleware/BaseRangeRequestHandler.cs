@@ -160,7 +160,7 @@ namespace AspNetCore.Base.Middleware
 
         public virtual void HandleException(HttpContext context, Exception ex)
         {
-            context.Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
         }
 
         public virtual bool TrySkipIisCustomErrors { get { return true; } }
@@ -230,7 +230,7 @@ namespace AspNetCore.Base.Middleware
             HttpRequest request = context.Request;
             HttpResponse response = context.Response;
 
-            response.StatusCode = (int)HttpStatusCode.OK;  // OK
+            response.StatusCode = StatusCodes.Status200OK;  // OK
             WriteCommonResponseHeaders(response, GetResponseFileLength(), InternalRequestedFileMimeType, context);
 
             AddHeader(response, HTTP_HEADER_CONTENT_DISPOSITION, string.Format(((!DownloadFile(context)) ? "inline" : "attachment") + "; filename={0}", GetResponseFileName(context)));
@@ -245,7 +245,7 @@ namespace AspNetCore.Base.Middleware
             HttpRequest request = context.Request;
             HttpResponse response = context.Response;
 
-            response.StatusCode = (int)HttpStatusCode.PartialContent;   // Partial response
+            response.StatusCode = StatusCodes.Status206PartialContent;  // Partial response
 
             // Specify the byte range being returned for non-multipart requests
             if (IsMultipartRequest == false)
@@ -484,7 +484,7 @@ namespace AspNetCore.Base.Middleware
         {
             if (!IsAuthorized(context))
             {
-                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return false;
             }
             return true;
@@ -499,7 +499,7 @@ namespace AspNetCore.Base.Middleware
         {
             if (!RequestResourceExists(context))
             {
-                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
                 return false;
             }
             return true;
@@ -513,7 +513,7 @@ namespace AspNetCore.Base.Middleware
             if (!request.Method.Equals(HTTP_METHOD_GET) &&
                 !request.Method.Equals(HTTP_METHOD_HEAD))
             {
-                response.StatusCode = (int)HttpStatusCode.NotImplemented;  // Not Implemented
+                response.StatusCode = StatusCodes.Status501NotImplemented;  // Not Implemented
                 return false;
             }
 
@@ -526,13 +526,13 @@ namespace AspNetCore.Base.Middleware
 
             if (!RequestResourceExists(context))
             {
-                response.StatusCode = (int)HttpStatusCode.NotFound;   // Not Found
+                response.StatusCode = StatusCodes.Status404NotFound;   // Not Found
                 return false;
             }
 
             if (GetResponseFileLength() > int.MaxValue)
             {
-                response.StatusCode = (int)HttpStatusCode.RequestEntityTooLarge; // Request Entity Too Large
+                response.StatusCode = StatusCodes.Status413RequestEntityTooLarge; // Request Entity Too Large
                 return false;
             }
 
@@ -546,20 +546,20 @@ namespace AspNetCore.Base.Middleware
                 if (StartRangeBytes[i] > GetResponseFileLength() - 1 ||
                     EndRangeBytes[i] > GetResponseFileLength() - 1)
                 {
-                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest; // Bad Request
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest; // Bad Request
                     return false;
                 }
 
                 if (StartRangeBytes[i] < 0 || EndRangeBytes[i] < 0)
                 {
-                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest; // Bad Request
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest; // Bad Request
                     return false;
                 }
 
                 if (EndRangeBytes[i] >= StartRangeBytes[i])
                     continue;
 
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;  // Bad Request
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;  // Bad Request
                 return false;
             }
             return true;
@@ -597,7 +597,7 @@ namespace AspNetCore.Base.Middleware
                 {
                     // File was created before specified date
                     SetCache(context, CacheDays());
-                    response.StatusCode = (int)HttpStatusCode.NotModified;  // Not Modified
+                    response.StatusCode = StatusCodes.Status304NotModified;  // Not Modified
                     return false;
                 }
             }
@@ -637,7 +637,7 @@ namespace AspNetCore.Base.Middleware
                 if (requestedFileModifiedDate > ifUnmodifiedSinceDate)
                 {
                     // Could not convert value into date or file was created after specified date
-                    response.StatusCode = (int)HttpStatusCode.PreconditionFailed;  // Precondition failed
+                    response.StatusCode = StatusCodes.Status412PreconditionFailed;  // Precondition failed
                     return false;
                 }
             }
@@ -662,7 +662,7 @@ namespace AspNetCore.Base.Middleware
                 return true; // Match found
 
             // If we reach here, no match found
-            response.StatusCode = (int)HttpStatusCode.PreconditionFailed;  // Precondition failed
+            response.StatusCode = StatusCodes.Status412PreconditionFailed;  // Precondition failed
             return false;
         }
 
@@ -679,7 +679,7 @@ namespace AspNetCore.Base.Middleware
             if (ifNoneMatchHeader == "*")
             {
                 // Logically invalid request
-                response.StatusCode = (int)HttpStatusCode.PreconditionFailed;  // Precondition failed
+                response.StatusCode = StatusCodes.Status412PreconditionFailed;  // Precondition failed
                 return false;
             }
 
@@ -690,7 +690,7 @@ namespace AspNetCore.Base.Middleware
             {
                 AddHeader(response, HTTP_HEADER_ENTITY_TAG, string.Concat("\"", entityId, "\""));
                 SetCache(context, CacheDays());
-                response.StatusCode = (int)HttpStatusCode.NotModified;  // Not modified
+                response.StatusCode = StatusCodes.Status304NotModified;  // Not modified
                 return false;        // Match found
             }
 

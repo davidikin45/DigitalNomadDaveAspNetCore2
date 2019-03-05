@@ -5,10 +5,10 @@ namespace AspNetCore.Base.HttpClientREST
 {
     public class SimpleHttpResponseException : Exception
     {
-        public HttpStatusCode StatusCode { get; private set; }
+        public int StatusCode { get; private set; }
         public string ReasonPhrase { get; private set; }
 
-        public SimpleHttpResponseException(HttpStatusCode statusCode, string reasonPhrase, string content) : base(content)
+        public SimpleHttpResponseException(int statusCode, string reasonPhrase, string content) : base(content)
         {
             StatusCode = statusCode;
             ReasonPhrase = reasonPhrase;

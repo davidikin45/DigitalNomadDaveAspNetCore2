@@ -8,11 +8,13 @@ using DND.Data.Identity;
 using DND.Domain.Identity;
 using Hangfire;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
+//[assembly: ApiConventionType(typeof(DefaultApiConventions))]
 namespace DND.Web
 {
     public class Startup : AppStartupMvcIdentity<IdentityContext, User>

@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.CMS
 {
     [ResourceCollection(ResourceCollections.CMS.ContentHtmls.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/cms/content-htmls")]
+    [Route("api/v{version:apiVersion}/cms/content-htmls")]
     public class ContentHtmlsController : ApiControllerEntityAuthorizeBase<ContentHtmlDto, ContentHtmlDto, ContentHtmlDto, ContentHtmlDeleteDto, IContentHtmlApplicationService>
     {
         public ContentHtmlsController(IContentHtmlApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

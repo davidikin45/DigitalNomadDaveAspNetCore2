@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.CMS
 {
     [ResourceCollection(ResourceCollections.CMS.ContentTexts.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/cms/content-texts")]
+    [Route("api/v{version:apiVersion}/cms/content-texts")]
     public class ContentTextsController : ApiControllerEntityAuthorizeBase<ContentTextDto, ContentTextDto, ContentTextDto, ContentTextDeleteDto, IContentTextApplicationService>
     {
         public ContentTextsController(IContentTextApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

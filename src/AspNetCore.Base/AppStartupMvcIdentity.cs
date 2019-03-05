@@ -1,4 +1,5 @@
-﻿using AspNetCore.Base.Extensions;
+﻿using AspNetCore.Base.Authentication;
+using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Settings;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -12,7 +13,7 @@ namespace AspNetCore.Base
 {
     public abstract class AppStartupMvcIdentity<TIdentiyDbContext, TUser> : AppStartup
         where TIdentiyDbContext : DbContext
-        where TUser : class
+        where TUser : IdentityUser
     {
         public AppStartupMvcIdentity(ILoggerFactory loggerFactory, IConfiguration configuration, IHostingEnvironment hostingEnvironment)
             :base(loggerFactory, configuration, hostingEnvironment)
@@ -33,7 +34,7 @@ namespace AspNetCore.Base
             var userSettings = GetSettings<UserSettings>("UserSettings");
             var authenticationSettings = GetSettings<AuthenticationSettings>("AuthenticationSettings");
 
-            if (authenticationSettings.Application.Enable || authenticationSettings.JwtToken.Enable)
+            if (authenticationSettings.Basic.Enable || authenticationSettings.Application.Enable || authenticationSettings.JwtToken.Enable)
             {
                 //https://github.com/aspnet/Identity/blob/8ef14785a4a1e416189ca1137eb13f43c2f4349d/src/Identity/IdentityServiceCollectionExtensions.cs
                 //User AddIdentityCore if using identity with Api only.
@@ -45,6 +46,11 @@ namespace AspNetCore.Base
                 //    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
                 //    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
                 //})
+
+                if (authenticationSettings.Basic.Enable)
+                {
+                    services.AddBasicAuth<TUser>();
+                }
 
                 //Should use services.AddIdentity OR services.AddAuthentication
                 services.AddIdentity<TIdentiyDbContext, TUser, IdentityRole>(

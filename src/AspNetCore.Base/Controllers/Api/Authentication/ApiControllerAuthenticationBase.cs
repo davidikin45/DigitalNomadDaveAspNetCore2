@@ -1,4 +1,5 @@
-﻿using AspNetCore.Base.Authorization;
+﻿using AspNetCore.Base.Authentication;
+using AspNetCore.Base.Authorization;
 using AspNetCore.Base.Email;
 using AspNetCore.Base.Security;
 using AspNetCore.Base.Settings;
@@ -62,20 +63,6 @@ namespace AspNetCore.Base.Controllers.Api.Authentication
             _tokenExpiryMinutes = tokenSettings.ExpiryMinutes;
         }
 
-
-        #region HttpOptions
-        /// <summary>
-        /// Gets the options.
-        /// </summary>
-        /// <returns></returns>
-        [HttpOptions]
-        public IActionResult GetOptions()
-        {
-            Response.Headers.Add("Allow", "GET, POST, OPTIONS");
-            return Ok();
-        }
-        #endregion
-
         #region Authenticate
         [ResourceAuthorize(ResourceCollectionsCore.Auth.Operations.Authenticate)]
         [HttpPost("authenticate")]
@@ -104,34 +91,9 @@ namespace AspNetCore.Base.Controllers.Api.Authentication
         #region Generate JWT Token
         protected async Task<IActionResult> GenerateJWTToken(TUser user)
         {
-            //Add roles
-            var roles = await _userManager.GetRolesAsync(user);
-            var scopes = (await _userManager.GetClaimsAsync(user)).Where(c => c.Type == "scope").Select(c => c.Value).ToHashSet();
-
-            var ownerRole = await _roleManager.FindByNameAsync("authenticated");
-            if (ownerRole != null)
-            {
-                var roleScopes = (await _roleManager.GetClaimsAsync(ownerRole)).Where(c => c.Type == "scope").Select(c => c.Value).ToList();
-                foreach (var scope in roleScopes)
-                {
-                    scopes.Add(scope);
-                }
-            }
-
-            //Add role scopes.
-            foreach (var roleName in roles)
-            {
-                var role = await _roleManager.FindByNameAsync(roleName);
-                if (role != null)
-                {
-                    var roleScopes = (await _roleManager.GetClaimsAsync(role)).Where(c => c.Type == "scope").Select(c => c.Value).ToList();
-                    foreach (var scope in roleScopes)
-                    {
-                        scopes.Add(scope);
-                    }
-
-                }
-            }
+            var rolesAndScopes = await AuthenticationHelper.GetRolesAndScopesAsync(user, _userManager, _roleManager);
+            var roles = rolesAndScopes.Roles;
+            var scopes = rolesAndScopes.Scopes;
 
             if (!string.IsNullOrWhiteSpace(_privateSigningKeyPath))
             {

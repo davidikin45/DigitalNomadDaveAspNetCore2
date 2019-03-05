@@ -1,10 +1,11 @@
-﻿using AspNetCore.Base.ActionResults;
-using AspNetCore.Base.ApiClient;
+﻿using AspNetCore.Base.ApiClient;
+using AspNetCore.Base.Authentication;
 using AspNetCore.Base.Authorization;
 using AspNetCore.Base.Cqrs;
 using AspNetCore.Base.DependencyInjection.Modules;
 using AspNetCore.Base.ElasticSearch;
 using AspNetCore.Base.Email;
+using AspNetCore.Base.ErrorHandling;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Filters;
 using AspNetCore.Base.Hangfire;
@@ -43,6 +44,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -64,6 +66,7 @@ using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.IO.Compression;
@@ -86,8 +89,9 @@ namespace AspNetCore.Base
 
             //http://blog.hostforlife.eu/variables-and-configuration-in-asp-net-core-apps/
             //http://www.hishambinateya.com/goodbye-platform-abstractions
-            var workingDirectory = Directory.GetCurrentDirectory();
-            
+            //var workingDirectory = Directory.GetCurrentDirectory();
+            var workingDirectory = hostingEnvironment.ContentRootPath;
+
             //AppDomain.CurrentDomain.BaseDirectory
             //Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath)
             BinPath = AppContext.BaseDirectory;
@@ -97,13 +101,19 @@ namespace AspNetCore.Base
             Logger.LogInformation($"Plugins Folder: {PluginsPath}");
             if (!Directory.Exists(PluginsPath)) Directory.CreateDirectory(PluginsPath);
 
-            LogsPath = Path.Combine(BinPath, LogsFolder);
+            //Logs should always be relative to the Working Directory. Thats how serilog works.
+            LogsPath = Path.Combine(hostingEnvironment.ContentRootPath, LogsFolder);
             Logger.LogInformation($"Logs Folder: {LogsPath}");
             if (!Directory.Exists(LogsPath)) Directory.CreateDirectory(LogsPath);
 
-            DataPath = Path.Combine(BinPath, DataFolder);
+            //Data should generally be relative to the Working Directory.
+            DataPath = Path.Combine(hostingEnvironment.ContentRootPath, DataFolder);
             Logger.LogInformation($"Data Folder: {DataPath}");
             if (!Directory.Exists(DataPath)) Directory.CreateDirectory(DataPath);
+
+            BinDataPath = Path.Combine(BinPath, DataFolder);
+            Logger.LogInformation($"Bin Data Folder: {BinDataPath}");
+            if (!Directory.Exists(BinDataPath)) Directory.CreateDirectory(BinDataPath);
 
             Logger.LogInformation($"Content Root Path (Working Directory): {hostingEnvironment.ContentRootPath}");
             Logger.LogInformation($"Web Root Path: {hostingEnvironment.WebRootPath}");
@@ -147,6 +157,7 @@ namespace AspNetCore.Base
         public string PluginsPath { get; }
         public string LogsPath { get; }
         public string DataPath { get; }
+        public string BinDataPath { get; }
         public string AssemblyName { get; }
         public string CommonAssemblyPrefix { get; } = "AspNetCore.Base";
         public string PluginsFolder { get; } = @"plugins\";
@@ -272,6 +283,8 @@ namespace AspNetCore.Base
             services.AddTransient(sp => sp.GetService<IOptions<AssemblyProviderOptions>>().Value);
         }
 
+        //By default SQL and SQLite databases are created within the Working Directory = Directory.GetCurrentDirectory()
+        //%BINDATA% creates the SQL and SQLite databases within the Bin Directory = AppContext.BaseDirectory
         private ConnectionStrings ManipulateConnectionStrings(ConnectionStrings options)
         {
             var keys = options.Keys.ToList();
@@ -281,6 +294,11 @@ namespace AspNetCore.Base
                 if (options[key].Contains("%DATA%"))
                 {
                     options[key] = options[key].Replace("%DATA%", DataPath);
+                }
+
+                if (options[key].Contains("%BINDATA%"))
+                {
+                    options[key] = options[key].Replace("%BINDATA%", BinDataPath);
                 }
 
                 if (options[key].Contains("%BIN%"))
@@ -697,6 +715,8 @@ namespace AspNetCore.Base
 
             //https://www.strathweb.com/2018/04/generic-and-dynamically-generated-controllers-in-asp-net-core-mvc/
 
+            services.AddCustomProblemDetailsClientErrorFactory();
+
             // Add framework services.
             var mvc = services.AddMvc(options =>
             {
@@ -999,17 +1019,97 @@ namespace AspNetCore.Base
             //https://blogs.msdn.microsoft.com/webdev/2018/02/27/asp-net-core-2-1-web-apis/
             services.Configure<ApiBehaviorOptions>(options =>
             {
-                options.InvalidModelStateResponseFactory = context =>
+                options.SuppressMapClientErrors = false;
+
+                //400
+                //401
+                //403
+                //404
+                //406
+                //409
+                //415
+                //422
+                options.ClientErrorMapping[StatusCodes.Status500InternalServerError] = new ClientErrorData
                 {
-                    return new UnprocessableEntityAngularObjectResult(Messages.RequestInvalid, context.ModelState);
+                    Link = "about:blank",
+                    Title = Messages.UnknownError,
                 };
+
+                options.ClientErrorMapping[StatusCodes.Status504GatewayTimeout] = new ClientErrorData
+                {
+                    Link = "about:blank",
+                    Title = Messages.RequestTimedOut,
+                };
+
+                //ApiBehaviorOptionsSetup
+                options.InvalidModelStateResponseFactory = actionContext =>
+                {
+                    var actionExecutingContext =
+                        actionContext as Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext;
+
+                    // if there are modelstate errors & all keys were correctly
+                    // found/parsed we're dealing with validation errors
+                    if (actionContext.ModelState.ErrorCount > 0
+                        && actionExecutingContext?.ActionArguments.Count == actionContext.ActionDescriptor.Parameters.Count)
+                    {
+                        var problemDetails = new ValidationProblemDetails(actionContext.ModelState)
+                        {
+                            Instance = actionContext.HttpContext.Request.Path,
+                            Detail = "Please refer to the errors property for additional details.",
+                            Status = StatusCodes.Status422UnprocessableEntity
+                        };
+
+                        var traceId = Activity.Current?.Id ?? actionContext.HttpContext.TraceIdentifier;
+                        problemDetails.Extensions["traceId"] = traceId;
+                        problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
+
+                        var result = new UnprocessableEntityObjectResult(problemDetails);
+                        result.ContentTypes.Add("application/problem+json");
+                        result.ContentTypes.Add("application/problem+xml");
+
+                        return result;
+                    }
+                    else
+                    {
+                        // if one of the keys wasn't correctly found / couldn't be parsed
+                        // we're dealing with null/unparsable input
+                        var problemDetails = new ValidationProblemDetails(actionContext.ModelState)
+                        {
+                            Instance = actionContext.HttpContext.Request.Path,
+                            Detail = "Please refer to the errors property for additional details.",
+                            Status = StatusCodes.Status400BadRequest,
+                        };
+
+                        var traceId = Activity.Current?.Id ?? actionContext.HttpContext.TraceIdentifier;
+                        problemDetails.Extensions["traceId"] = traceId;
+                        problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
+
+                        var result = new BadRequestObjectResult(problemDetails);
+                        result.ContentTypes.Add("application/problem+json");
+                        result.ContentTypes.Add("application/problem+xml");
+
+                        return result;
+                    }
+                };
+            });
+
+            services.AddVersionedApiExplorer(setupAction => {
+                setupAction.GroupNameFormat = "'v'VV";
+                //Tells swagger to replace the version in the controller route
+                setupAction.SubstituteApiVersionInUrl = true;
             });
 
             services.AddApiVersioning(option =>
             {
+                //http://sundeepkamath.in/posts/rest-api-versioning-in-aspnet-core-part-1/
+                //Query string parameter
+                //URL path segment
+                //HTTP header
+                //Media type parameter
+
                 option.ReportApiVersions = true;
                 //Header then QueryString is consistent with how Accept header/FormatFilter works.
-                option.ApiVersionReader = ApiVersionReader.Combine(new HeaderApiVersionReader("Version"), new QueryStringApiVersionReader("ver", "version"));
+                option.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(), new MediaTypeApiVersionReader("v"), new HeaderApiVersionReader("api-version"), new QueryStringApiVersionReader("api-version","v","ver", "version"));
                 //option.ApiVersionReader = new UrlSegmentApiVersionReader() /v{version:apiVersion}
                 option.DefaultApiVersion = new ApiVersion(1, 0);
                 option.AssumeDefaultVersionWhenUnspecified = true;
@@ -1045,7 +1145,7 @@ namespace AspNetCore.Base
 
             string xmlDocumentationFileName = AssemblyName + ".xml";
             var xmlDocumentationPath = Path.Combine(BinPath, xmlDocumentationFileName);
-            services.AddSwagger(appSettings.AssemblyPrefix + " API", "", "", "", "v1", xmlDocumentationPath);
+            services.AddSwagger(appSettings.AssemblyPrefix + " API", "", "", "http://www.google.com", xmlDocumentationPath);
         }
         #endregion
 
@@ -1153,7 +1253,7 @@ namespace AspNetCore.Base
         //https://docs.microsoft.com/en-us/aspnet/core/data/ef-mvc/intro?view=aspnetcore-2.2
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider, AppSettings appSettings, CacheSettings cacheSettings,
             LocalizationSettings localizationSettings, SwitchSettings switchSettings, ServerSettings serverSettings, TaskRunnerAfterApplicationConfiguration taskRunner, RequestLocalizationOptions localizationOptions,
-            ISignalRHubMapper signalRHubMapper, ILoggerFactory loggerFactory)
+            ISignalRHubMapper signalRHubMapper, ILoggerFactory loggerFactory, IApiVersionDescriptionProvider apiVersionDescriptionProvider)
         {
             Logger.LogInformation("Configuring Request Pipeline");
 
@@ -1253,14 +1353,19 @@ namespace AspNetCore.Base
             if (switchSettings.EnableSwagger)
             {
                 var swaggerPrefix = "api";
-                var swaggerEndpoint = "/swagger/v1/swagger.json";
+
+                var swaggerEndpoints = new Dictionary<string, string>();
+                foreach (var apiDescription in apiVersionDescriptionProvider.ApiVersionDescriptions)
+                {
+                    var swaggerEndpoint = $"/swagger/{apiDescription.GroupName}/swagger.json";
+                    swaggerEndpoints.Add(apiDescription.GroupName, swaggerEndpoint);
+                }
 
                 if (!string.IsNullOrWhiteSpace(appSettings.SwaggerUIUsername) && !string.IsNullOrWhiteSpace(appSettings.SwaggerUIPassword))
                 {
-                    var swaggerSecured = new[]{
-                        swaggerEndpoint,
+                    var swaggerSecured = swaggerEndpoints.Values.ToList().Concat(new[]{
                         $"/{swaggerPrefix}",
-                        $"/{swaggerPrefix}/index.html" };
+                        $"/{swaggerPrefix}/index.html" });
 
                     app.UseWhen(context => swaggerSecured.Contains(context.Request.Path.ToString()),
                      appBranch =>
@@ -1275,10 +1380,19 @@ namespace AspNetCore.Base
                 // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
                 app.UseSwaggerUI(c =>
                 {
+                    //c.InjectStylesheet("/Assets/custum-ui.css");
+                    //c.IndexStream = () => GetType().Assembly.GetManifestResourceStream(".html");
 
-                    c.SwaggerEndpoint(swaggerEndpoint, appSettings.AssemblyPrefix + " API V1");
+                    foreach (var swaggerEndpoint in swaggerEndpoints)
+                    {
+                        c.SwaggerEndpoint(swaggerEndpoint.Value, appSettings.AssemblyPrefix + " API " + swaggerEndpoint.Key.ToUpperInvariant());
+                    }
+
                     c.RoutePrefix = swaggerPrefix;
                     c.DocExpansion(DocExpansion.None);
+                    c.DefaultModelRendering(ModelRendering.Example);
+                    c.EnableDeepLinking();
+                    c.DisplayOperationId();
                 });
             }
 

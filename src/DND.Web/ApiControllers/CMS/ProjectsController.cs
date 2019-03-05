@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.CMS
 {
     [ResourceCollection(ResourceCollections.CMS.Projects.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/cms/projects")]
+    [Route("api/v{version:apiVersion}/cms/projects")]
     public class ProjectsController : ApiControllerEntityAuthorizeBase<ProjectDto, ProjectDto, ProjectDto, ProjectDeleteDto, IProjectApplicationService>
     {
         public ProjectsController(IProjectApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

@@ -14,7 +14,7 @@ namespace DND.Web.ApiControllers.CMS
 {
     [ResourceCollection(ResourceCollections.CMS.CarouselItems.CollectionId)]
     [ApiVersion("1.0")]
-    [Route("api/cms/carousel-items")]
+    [Route("api/v{version:apiVersion}/cms/carousel-items")]
     public class CarouselItemsController : ApiControllerEntityAuthorizeBase<CarouselItemDto, CarouselItemDto, CarouselItemDto, CarouselItemDeleteDto, ICarouselItemApplicationService>
     {
         public CarouselItemsController(ICarouselItemApplicationService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)

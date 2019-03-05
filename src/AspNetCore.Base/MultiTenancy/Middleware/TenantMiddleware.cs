@@ -48,7 +48,7 @@ namespace AspNetCore.Base.MultiTenancy.Middleware
                 }
                 else
                 {
-                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
                     return Task.CompletedTask;
                 }
                 context.Items["_tenantMiddleware"] = tenant;

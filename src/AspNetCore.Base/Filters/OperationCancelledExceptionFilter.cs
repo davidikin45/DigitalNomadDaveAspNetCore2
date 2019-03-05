@@ -15,7 +15,7 @@ namespace AspNetCore.Base.Filters
         }
         public override void OnException(ExceptionContext context)
         {
-            if (!context.HttpContext.Request.Path.ToString().StartsWith("/api"))
+            if (!context.HttpContext.Request.Path.ToString().Contains("/api"))
             {
                 HandleException(context);
             }
