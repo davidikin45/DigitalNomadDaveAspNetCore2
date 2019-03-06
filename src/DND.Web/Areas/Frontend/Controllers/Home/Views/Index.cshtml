@@ -49,7 +49,16 @@
     nextLocationLatitude = nextLocation != null ? nextLocation.Latitude.ToString() : "";
     nextLocationLongitude = nextLocation != null ? nextLocation.Longitude.ToString() : "";
 }
-
+<div class="section-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="instagram-profile-picture text-center margin-bottom-10 instafeed"></div>
+                <div class="instagram-bio" style="display: inline-block; text-align: left;"></div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container-fluid section-grey">
     <div class="row margin-bottom-15">
         <div class="col-12 text-center"><h2>@(Html.ActionLink<BlogController>(c => c.Posts(1), "Latest Blog Posts"))</h2></div>

@@ -659,6 +659,7 @@ img.shadow {
   background-repeat: no-repeat;
   background-size: cover;
   position: relative;
+  transform: translateZ(-1px) scale(0.95);
 }
 .parallax-caption {
   color: white;
