@@ -537,6 +537,10 @@ h6 {
   width: 25vw;
   background-position: center center;
 }
+.section-extra-padding {
+  padding-top: 50px !important;
+  padding-bottom: 50px !important;
+}
 .section-grey {
   padding-top: 30px;
   padding-bottom: 20px;
