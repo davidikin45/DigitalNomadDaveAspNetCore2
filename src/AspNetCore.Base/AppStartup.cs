@@ -1023,6 +1023,7 @@ namespace AspNetCore.Base
 
             var appSettings = GetSettings<AppSettings>("AppSettings");
 
+            //Needs to be after AddMvc or use ConfigureApiBehaviourOptions
             //Automatic Api Validation Response when ApiController attribute is applied.
             //https://blogs.msdn.microsoft.com/webdev/2018/02/27/asp-net-core-2-1-web-apis/
             services.Configure<ApiBehaviorOptions>(options =>

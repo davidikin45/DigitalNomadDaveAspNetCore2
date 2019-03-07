@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
+//[assembly: ApiController]
 //[assembly: ApiConventionType(typeof(DefaultApiConventions))]
 namespace DND.Web
 {

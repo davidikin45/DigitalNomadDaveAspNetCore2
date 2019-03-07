@@ -70,6 +70,7 @@ namespace AspNetCore.Base
                         });
                     }
 
+                    options.AllowSynchronousIO = false;
                     options.AddServerHeader = false;
                 }
                 )
