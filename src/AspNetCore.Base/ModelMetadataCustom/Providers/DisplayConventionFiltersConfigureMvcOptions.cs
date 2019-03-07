@@ -1,7 +1,5 @@
-﻿using AspNetCore.Base.ModelMetadataCustom.Providers;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System;
 
 namespace AspNetCore.Base.ModelMetadataCustom.Providers
 {

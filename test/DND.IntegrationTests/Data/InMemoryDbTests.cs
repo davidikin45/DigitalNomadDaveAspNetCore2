@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DND.UnitTests.Data
+namespace DND.IntegrationTests.Data
 {
     public class InMemoryDbTests
     {
@@ -44,7 +44,7 @@ namespace DND.UnitTests.Data
                 var dbInitializer = new AppContextInitializerDropCreate();
                 await dbInitializer.InitializeAsync(context);
                 await context.Database.EnsureDeletedAsync(); //Clears Db Data
-                Assert.True(context.Database.Exists());
+                Assert.True(await context.Database.ExistsAsync());
             }
         }
     }

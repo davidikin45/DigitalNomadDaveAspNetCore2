@@ -1,6 +1,7 @@
 ﻿using AspNetCore.Base.Data.Helpers;
 using AspNetCore.Base.Data.Initializers;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AspnetCore.Base.Data.Initializers
@@ -8,28 +9,28 @@ namespace AspnetCore.Base.Data.Initializers
     public abstract class ContextInitializerDropMigrate<TDbContext> : IDbContextInitializer<TDbContext>
          where TDbContext : DbContext
     {
-        public async Task InitializeAsync(TDbContext context)
+        public async Task InitializeAsync(TDbContext context, CancellationToken cancellationToken = default(CancellationToken))
         {
-            InitializeSchema(context);
-            await InitializeDataAsync(context, null);
+            await InitializeSchemaAsync(context, cancellationToken);
+            await InitializeDataAsync(context, null, cancellationToken);
         }
 
-        public void InitializeSchema(TDbContext context)
+        public async Task InitializeSchemaAsync(TDbContext context, CancellationToken cancellationToken = default(CancellationToken))
         {
             //Delete database relating to this context only
-            context.EnsureTablesAndMigrationsDeleted();
+            await context.EnsureTablesAndMigrationsDeletedAsync(cancellationToken);
 
             var script = context.Database.GenerateMigrationScript();
 
             //Can only be used for sqlserver and sqlite. Throws exception for InMemory
-            context.Database.Migrate();
+            await context.Database.MigrateAsync(cancellationToken);
         }
 
-        public async Task InitializeDataAsync(TDbContext context, string tenantId)
+        public async Task InitializeDataAsync(TDbContext context, string tenantId, CancellationToken cancellationToken = default(CancellationToken))
         {
             Seed(context, tenantId);
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
 
             await OnSeedCompleteAsync(context);
         }

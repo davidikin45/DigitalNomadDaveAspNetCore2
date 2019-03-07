@@ -1,22 +1,23 @@
 ﻿using AspNetCore.Base.Data.Initializers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Hangfire
 {
     public class HangfireInitializerCreate : IDbInitializer
     {
-        public async Task InitializeAsync(string connectionString)
+        public async Task InitializeAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            InitializeSchema(connectionString);
-            await InitializeDataAsync(connectionString, null);
+            await InitializeSchemaAsync(connectionString, cancellationToken);
+            await InitializeDataAsync(connectionString, null, cancellationToken);
         }
 
-        public void InitializeSchema(string connectionString)
+        public async Task InitializeSchemaAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            HangfireInitializationHelper.EnsureDbAndTablesCreated(connectionString);           
+            await HangfireInitializationHelper.EnsureDbAndTablesCreatedAsync(connectionString, cancellationToken);           
         }
 
-        public async Task InitializeDataAsync(string connectionString, string tenantId)
+        public async Task InitializeDataAsync(string connectionString, string tenantId, CancellationToken cancellationToken = default)
         {
             Seed(connectionString, tenantId);
 

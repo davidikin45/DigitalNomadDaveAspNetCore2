@@ -39,7 +39,7 @@ namespace AspNetCore.Base.MultiTenancy.Data.Tenants.Initializers
 
                             if (!connectionStrings.Contains(connectionString))
                             {
-                                genericType.GetMethod(nameof(IDbContextInitializer<DbContext>.InitializeSchema)).Invoke(migrator, new object[] { dbContext });
+                                await (Task)genericType.GetMethod(nameof(IDbContextInitializer<DbContext>.InitializeSchemaAsync)).Invoke(migrator, new object[] { dbContext });
                                 connectionStrings.Add(connectionString);
                             }
 

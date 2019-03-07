@@ -6,16 +6,17 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Data.Helpers
 {
     public static class DbInitializationHelper
     {
-        public static bool Exists(string connectionString)
+        public static async Task<bool> ExistsAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             try
             {
-                TestConnection(connectionString);
+                await TestConnectionAsync(connectionString, cancellationToken);
                 return true;
             }
             catch
@@ -24,11 +25,11 @@ namespace AspNetCore.Base.Data.Helpers
             }
         }
 
-        public static void TestConnection(string connectionString)
+        public static async Task TestConnectionAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new Exception("Connection String empty");
+                throw new Exception("Connection String empty");          
             }
             else if (ConnectionStringHelper.IsSQLite(connectionString))
             {
@@ -37,25 +38,25 @@ namespace AspNetCore.Base.Data.Helpers
 
                 using (var conn = new SqliteConnection(builder.ConnectionString))
                 {
-                    conn.Open();
+                    await conn.OpenAsync(cancellationToken);
                 }
             }
             else
             {
                 using (var conn = new SqlConnection(connectionString))
                 {
-                    conn.Open();
+                    await conn.OpenAsync(cancellationToken);
                 }
             }
         }
 
-        public static bool HasTables(string connectionString)
+        public static async Task<bool> HasTablesAsync(string connectionString)
         {
-            var count = TableCount(connectionString);
+            var count = await TableCountAsync(connectionString);
             return count != 0;
         }
 
-        public static long TableCount(string connectionString)
+        public static async Task<long> TableCountAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -65,21 +66,21 @@ namespace AspNetCore.Base.Data.Helpers
             {
                 var builder = new SqliteConnectionStringBuilder(connectionString);
                 builder.Mode = SqliteOpenMode.ReadOnly;
-                var count = ExecuteSqliteScalar<long>(builder.ConnectionString,
-                    "SELECT COUNT(*) FROM \"sqlite_master\" WHERE \"type\" = 'table' AND \"rootpage\" IS NOT NULL AND \"name\" != 'sqlite_sequence';");
+                var count = await ExecuteSqliteScalarAsync<long>(builder.ConnectionString,
+                    "SELECT COUNT(*) FROM \"sqlite_master\" WHERE \"type\" = 'table' AND \"rootpage\" IS NOT NULL AND \"name\" != 'sqlite_sequence';", cancellationToken);
 
                 return count;
             }
             else
             {
-                var count = ExecuteSqlScalar<int>(connectionString,
-                       "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'");
+                var count = await ExecuteSqlScalarAsync<int>(connectionString,
+                       "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'", cancellationToken);
 
                 return count;
             }
         }
 
-        public static bool TableExists(string connectionString, string tableName)
+        public static async Task<bool> TableExistsAsync(string connectionString, string tableName, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -89,29 +90,29 @@ namespace AspNetCore.Base.Data.Helpers
             {
                 var builder = new SqliteConnectionStringBuilder(connectionString);
                 builder.Mode = SqliteOpenMode.ReadOnly;
-                var exists = ExecuteSqliteScalar<long>(builder.ConnectionString,
+                var exists = await ExecuteSqliteScalarAsync<long>(builder.ConnectionString,
                     $@"SELECT CASE WHEN EXISTS (
                             SELECT * FROM ""sqlite_master"" WHERE ""type"" = 'table' AND ""rootpage"" IS NOT NULL AND ""tbl_name"" = '{tableName}'
                         )
                         THEN CAST(1 AS BIT)
-                        ELSE CAST(0 AS BIT) END;");
+                        ELSE CAST(0 AS BIT) END;", cancellationToken);
 
                 return exists == 1;
             }
             else
             {
-                var exists = ExecuteSqlScalar<bool>(connectionString,
+                var exists = await ExecuteSqlScalarAsync<bool>(connectionString,
                        $@"SELECT CASE WHEN EXISTS (
                             SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = '{tableName}'
                         )
                         THEN CAST(1 AS BIT)
-                        ELSE CAST(0 AS BIT) END;");
+                        ELSE CAST(0 AS BIT) END;", cancellationToken);
 
                 return exists;
             }
         }
 
-        public static List<string> TableNames(string connectionString)
+        public static async Task<List<string>> TableNamesAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -121,23 +122,23 @@ namespace AspNetCore.Base.Data.Helpers
             {
                 var builder = new SqliteConnectionStringBuilder(connectionString);
                 builder.Mode = SqliteOpenMode.ReadOnly;
-                var tableNames = ExecuteSqliteQuery<string>(builder.ConnectionString,
+                var tableNames = await ExecuteSqliteQueryAsync<string>(builder.ConnectionString,
                     "SELECT * FROM \"sqlite_master\" WHERE \"type\" = 'table' AND \"rootpage\" IS NOT NULL AND \"name\" != 'sqlite_sequence';",
-                    row => "[" + (string)row["tbl_name"] + "]");
+                    row => "[" + (string)row["tbl_name"] + "]", cancellationToken);
 
                 return tableNames;
             }
             else
             {
-                var tableNames = ExecuteSqlQuery<string>(connectionString,
+                var tableNames = await ExecuteSqlQueryAsync<string>(connectionString,
                        "SELECT '[' + TABLE_SCHEMA + '].[' + TABLE_NAME + ']' as tbl_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_SCHEMA, TABLE_NAME",
-                       row => "[" + (string)row["tbl_name"] + "]");
+                       row => "[" + (string)row["tbl_name"] + "]", cancellationToken);
 
                 return tableNames;
             }
         }
 
-        public static bool EnsureCreated(string connectionString)
+        public static async Task<bool> EnsureCreatedAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -145,13 +146,13 @@ namespace AspNetCore.Base.Data.Helpers
             }
             else if (ConnectionStringHelper.IsSQLite(connectionString))
             {
-                bool exists = DbInitializationHelper.Exists(connectionString);
+                bool exists = await DbInitializationHelper.ExistsAsync(connectionString, cancellationToken);
 
                 if (!exists)
                 {
                     using (var conn = new SqliteConnection(connectionString))
                     {
-                        conn.Open();
+                        await conn.OpenAsync(cancellationToken);
                         return true;
                     }
                 }
@@ -162,7 +163,7 @@ namespace AspNetCore.Base.Data.Helpers
             }
             else
             {
-                bool exists = DbInitializationHelper.Exists(connectionString);
+                bool exists = await DbInitializationHelper.ExistsAsync(connectionString, cancellationToken);
 
                 if(!exists)
                 {
@@ -172,7 +173,7 @@ namespace AspNetCore.Base.Data.Helpers
                     masterConnectiongStringBuilder.InitialCatalog = "master";
                     masterConnectiongStringBuilder.AttachDBFilename = "";
 
-                    ExecuteSqlCommand(masterConnectiongStringBuilder.ConnectionString, $@"IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{dbName}') 
+                    await ExecuteSqlCommandAsync(masterConnectiongStringBuilder.ConnectionString, $@"IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{dbName}') 
                             BEGIN
                                     CREATE DATABASE [{dbName}];
 
@@ -180,7 +181,7 @@ namespace AspNetCore.Base.Data.Helpers
                                     BEGIN
                                         ALTER DATABASE [{dbName}] SET READ_COMMITTED_SNAPSHOT ON;
                                     END;
-                            END");
+                            END", cancellationToken);
 
                     var sqlConnection = new SqlConnection(connectionString);
                     SqlConnection.ClearPool(sqlConnection);
@@ -194,7 +195,7 @@ namespace AspNetCore.Base.Data.Helpers
             }
         }
 
-        public static void EnsureDestroyed(string connectionString)
+        public static async Task EnsureDestroyedAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -234,16 +235,16 @@ namespace AspNetCore.Base.Data.Helpers
 
                 var masterConnectionString = masterConnectiongStringBuilder.ConnectionString;
 
-                var fileNames = ExecuteSqlQuery(masterConnectionString, @"
+                var fileNames = await ExecuteSqlQueryAsync(masterConnectionString, @"
                 SELECT [physical_name] FROM [sys].[master_files]
                 WHERE [database_id] = DB_ID('" + dbName + "')",
-              row => (string)row["physical_name"]);
+              row => (string)row["physical_name"], cancellationToken);
 
                 if (fileNames.Any())
                 {
-                    ExecuteSqlCommand(masterConnectionString, $@"
+                    await ExecuteSqlCommandAsync(masterConnectionString, $@"
                         ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                        DROP DATABASE [{dbName}];");
+                        DROP DATABASE [{dbName}];", cancellationToken);
 
                     //ExecuteSqlCommand(masterConnectiongString, $@"
                     //    ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
@@ -272,39 +273,41 @@ namespace AspNetCore.Base.Data.Helpers
         }
 
         #region SQLite Helper Methods
-        private static TType ExecuteSqliteScalar<TType>(
+        private static async Task<TType> ExecuteSqliteScalarAsync<TType>(
         string connectionString,
-        string queryText)
+        string queryText,
+        CancellationToken cancellationToken = default)
         {
             TType result = default(TType);
             using (var connection = new SqliteConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync(cancellationToken);
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = queryText;
-                    result = (TType)command.ExecuteScalar();
+                    result = (TType)(await command.ExecuteScalarAsync(cancellationToken));
                 }
             }
 
             return result;
         }
 
-        private static List<TType> ExecuteSqliteQuery<TType>(
+        private static async Task<List<TType>> ExecuteSqliteQueryAsync<TType>(
             string connectionString,
             string queryText,
-            Func<SqliteDataReader, TType> read)
+            Func<SqliteDataReader, TType> read,
+            CancellationToken cancellationToken = default)
         {
             var result = new List<TType>();
             using (var connection = new SqliteConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = queryText;
-                    using (var reader = command.ExecuteReader())
+                    using (var reader = await command.ExecuteReaderAsync(cancellationToken))
                     {
-                        while (reader.Read())
+                        while (await reader.ReadAsync(cancellationToken))
                         {
                             result.Add(read(reader));
                         }
@@ -316,54 +319,57 @@ namespace AspNetCore.Base.Data.Helpers
         #endregion
 
         #region SQL Server Helper Methods
-        private static void ExecuteSqlCommand(
+        private static async Task ExecuteSqlCommandAsync(
         string connectionString,
-        string commandText)
+        string commandText,
+        CancellationToken cancellationToken = default)
         {
             using (var connection = new SqlConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync(cancellationToken);
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = commandText;
-                    command.ExecuteNonQuery();
+                    await command.ExecuteNonQueryAsync(cancellationToken);
                 }
             }
         }
 
-        private static TType ExecuteSqlScalar<TType>(
+        private static async Task<TType> ExecuteSqlScalarAsync<TType>(
        string connectionString,
-       string queryText)
+       string queryText,
+       CancellationToken cancellationToken = default)
         {
             TType result = default(TType);
             using (var connection = new SqlConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync(cancellationToken);
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = queryText;
-                    result = (TType)command.ExecuteScalar();
+                    result = (TType)(await command.ExecuteScalarAsync(cancellationToken));
                 }
             }
 
             return result;
         }
 
-        private static List<TType> ExecuteSqlQuery<TType>(
+        private static async Task<List<TType>> ExecuteSqlQueryAsync<TType>(
             string connectionString,
             string queryText,
-            Func<SqlDataReader, TType> read)
+            Func<SqlDataReader, TType> read,
+           CancellationToken cancellationToken = default)
         {
             var result = new List<TType>();
             using (var connection = new SqlConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync(cancellationToken);
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = queryText;
-                    using (var reader = command.ExecuteReader())
+                    using (var reader = await command.ExecuteReaderAsync(cancellationToken))
                     {
-                        while (reader.Read())
+                        while (await reader.ReadAsync(cancellationToken))
                         {
                             result.Add(read(reader));
                         }

@@ -6,7 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DND.UnitTests.Data
+namespace DND.IntegrationTests.Data
 {
     public class SqliteDbTests
     {
@@ -42,23 +42,23 @@ namespace DND.UnitTests.Data
             var dbInitializer = new HangfireInitializerDropCreate();
             await dbInitializer.InitializeAsync(connectionString);
 
-            Assert.True(DbInitializationHelper.Exists(connectionString));
-            Assert.Equal(11, DbInitializationHelper.TableCount(connectionString));
+            Assert.True(await DbInitializationHelper.ExistsAsync(connectionString));
+            Assert.Equal(11, await DbInitializationHelper.TableCountAsync(connectionString));
 
             var fullPath = Path.GetFullPath($"{dbName}.db");
             Assert.True(File.Exists(fullPath));
 
-            HangfireInitializationHelper.EnsureTablesDeleted(connectionString);
+            await HangfireInitializationHelper.EnsureTablesDeletedAsync(connectionString);
 
-            Assert.Equal(0, DbInitializationHelper.TableCount(connectionString));
+            Assert.Equal(0, await DbInitializationHelper.TableCountAsync(connectionString));
 
             Assert.True(File.Exists(fullPath));
 
-            Assert.False(DbInitializationHelper.HasTables(connectionString));
+            Assert.False(await DbInitializationHelper.HasTablesAsync(connectionString));
 
-            HangfireInitializationHelper.EnsureDbDestroyed(connectionString);
+            await HangfireInitializationHelper.EnsureDbDestroyedAsync(connectionString);
 
-            Assert.False(DbInitializationHelper.Exists(connectionString));
+            Assert.False(await DbInitializationHelper.ExistsAsync(connectionString));
 
             Assert.False(File.Exists(fullPath));
         }

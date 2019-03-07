@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DND.UnitTests.Data
+namespace DND.IntegrationTests.Data
 {
     public class SqlServerDbTests
     {
@@ -24,7 +24,7 @@ namespace DND.UnitTests.Data
                 MultipleActiveResultSets = true
             }.ConnectionString;
 
-            HangfireInitializationHelper.EnsureDbDestroyed(connectionString);
+            await HangfireInitializationHelper.EnsureDbDestroyedAsync(connectionString);
 
             using (var context = new AppContext(options))
             {
@@ -53,22 +53,22 @@ namespace DND.UnitTests.Data
                 MultipleActiveResultSets = true
             }.ConnectionString;
 
-            HangfireInitializationHelper.EnsureDbDestroyed(connectionString);
-            Assert.False(DbInitializationHelper.Exists(connectionString));
+            await HangfireInitializationHelper.EnsureDbDestroyedAsync(connectionString);
+            Assert.False(await DbInitializationHelper.ExistsAsync(connectionString));
 
             var dbInitializer = new HangfireInitializerDropCreate();
             await dbInitializer.InitializeAsync(connectionString);
 
-            DbInitializationHelper.TestConnection(connectionString);
+            await DbInitializationHelper.TestConnectionAsync(connectionString);
 
-            Assert.True(DbInitializationHelper.Exists(connectionString));
-            Assert.Equal(11, DbInitializationHelper.TableCount(connectionString));
+            Assert.True(await DbInitializationHelper.ExistsAsync(connectionString));
+            Assert.Equal(11, await DbInitializationHelper.TableCountAsync(connectionString));
 
-            HangfireInitializationHelper.EnsureTablesDeleted(connectionString);
-            Assert.Equal(0, DbInitializationHelper.TableCount(connectionString));
+            await HangfireInitializationHelper.EnsureTablesDeletedAsync(connectionString);
+            Assert.Equal(0, await DbInitializationHelper.TableCountAsync(connectionString));
 
-            HangfireInitializationHelper.EnsureDbDestroyed(connectionString);
-            Assert.False(DbInitializationHelper.Exists(connectionString));
+            await HangfireInitializationHelper.EnsureDbDestroyedAsync(connectionString);
+            Assert.False(await DbInitializationHelper.ExistsAsync(connectionString));
         }
     }
 }

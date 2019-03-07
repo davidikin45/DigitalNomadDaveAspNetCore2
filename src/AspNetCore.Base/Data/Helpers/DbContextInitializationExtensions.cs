@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Data.Helpers
 {
@@ -31,9 +33,9 @@ namespace AspNetCore.Base.Data.Helpers
 
         #region Ensure Db and Tables Created at a DbContext Level
         /// <summary>Adds objects that are used by the model for this context</summary>
-        public static void EnsureDbAndTablesCreated(this DbContext context)
+        public static async Task EnsureDbAndTablesCreatedAsync(this DbContext context, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var created = context.Database.EnsureCreated();
+            var created = await context.Database.EnsureCreatedAsync(cancellationToken);
             if (!created)
             {
                 //https://docs.microsoft.com/en-us/ef/core/managing-schemas/ensure-created
@@ -49,7 +51,7 @@ namespace AspNetCore.Base.Data.Helpers
                     {
                         try
                         {
-                            dependencies.MigrationCommandExecutor.ExecuteNonQuery(new MigrationCommand[] { createTableCommand }, dependencies.Connection);
+                            await dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(new MigrationCommand[] { createTableCommand }, dependencies.Connection, cancellationToken);
                         }
                         catch
                         {
@@ -64,12 +66,12 @@ namespace AspNetCore.Base.Data.Helpers
         #region Delete Tables and Migrations DbContent Level
         /// <summary>Just removes the database objects that are used by the model for this context.</summary>
         /// <param name="context">The context.</param>
-        public static void EnsureTablesAndMigrationsDeleted(this DbContext context)
+        public static async Task EnsureTablesAndMigrationsDeletedAsync(this DbContext context, CancellationToken cancellationToken = default(CancellationToken))
         {
             bool dbExists = false;
             try
             {
-                if (context.Database.Exists())
+                if (await context.Database.ExistsAsync(cancellationToken))
                     dbExists = true;
             }
             catch
@@ -95,7 +97,7 @@ namespace AspNetCore.Base.Data.Helpers
                     }
 
                     var commands = new List<String>();
-                    using (var transaction = context.Database.BeginTransaction())
+                    using (var transaction = await context.Database.BeginTransactionAsync(cancellationToken))
                     {
 
                         //Drop tables
@@ -106,7 +108,7 @@ namespace AspNetCore.Base.Data.Helpers
                                 try
                                 {
                                     var command = $"DROP TABLE IF EXISTS {t}";
-                                    context.Database.ExecuteSqlCommand(new RawSqlString(command));
+                                    await context.Database.ExecuteSqlCommandAsync(new RawSqlString(command), cancellationToken);
                                     commands.Add(command);
                                 }
                                 catch
@@ -117,14 +119,14 @@ namespace AspNetCore.Base.Data.Helpers
                         }
 
                         //Delete migrations
-                        if (TableExists(context.Database, "__EFMigrationsHistory"))
+                        if (await TableExistsAsync(context.Database, "__EFMigrationsHistory", cancellationToken))
                         {
                             foreach (var migrationId in context.Database.Migrations())
                             {
                                 try
                                 {
                                     var command = $"DELETE FROM [__EFMigrationsHistory] WHERE MigrationId = '{migrationId}'";
-                                    context.Database.ExecuteSqlCommand(command);
+                                    await context.Database.ExecuteSqlCommandAsync(command, cancellationToken);
                                     commands.Add(command);
                                 }
                                 catch
@@ -137,11 +139,11 @@ namespace AspNetCore.Base.Data.Helpers
                         transaction.Rollback();
                     }
 
-                    using (var transaction = context.Database.BeginTransaction())
+                    using (var transaction = await context.Database.BeginTransactionAsync(cancellationToken))
                     {
                         foreach (var command in commands)
                         {
-                            context.Database.ExecuteSqlCommand(new RawSqlString(command));
+                            await context.Database.ExecuteSqlCommandAsync(new RawSqlString(command), cancellationToken);
                         }
 
                         transaction.Commit();
@@ -149,13 +151,13 @@ namespace AspNetCore.Base.Data.Helpers
                 }
                 else if (context.Database.IsInMemory())
                 {
-                    context.Database.EnsureDeleted();
+                    await context.Database.EnsureDeletedAsync(cancellationToken);
                 }
             }
             else
             {
                 //As long as the Db is online this will physically delete db.
-                context.Database.EnsureDeleted();
+                await context.Database.EnsureDeletedAsync(cancellationToken);
             }
         }
         #endregion
@@ -180,12 +182,12 @@ namespace AspNetCore.Base.Data.Helpers
         #endregion
 
         #region Exists
-        public static bool Exists(this DatabaseFacade databaseFacade)
+        public static async Task<bool> ExistsAsync(this DatabaseFacade databaseFacade, CancellationToken cancellationToken = default(CancellationToken))
         {
             var relationalDatabaseCreator = databaseFacade.GetService<IDatabaseCreator>() as RelationalDatabaseCreator;
             if (relationalDatabaseCreator != null)
             {
-                return relationalDatabaseCreator.Exists();
+                return await relationalDatabaseCreator.ExistsAsync(cancellationToken);
 
             }
             else
@@ -196,7 +198,7 @@ namespace AspNetCore.Base.Data.Helpers
         #endregion
 
         #region Table Exists
-        public static bool TableExists(this DatabaseFacade databaseFacade, string tableName)
+        public static async Task<bool> TableExistsAsync(this DatabaseFacade databaseFacade, string tableName, CancellationToken cancellationToken = default(CancellationToken))
         {
             var relationalDatabaseCreator = databaseFacade.GetService<IDatabaseCreator>() as RelationalDatabaseCreator;
             if (relationalDatabaseCreator != null)
@@ -213,7 +215,7 @@ namespace AspNetCore.Base.Data.Helpers
                         )
                         THEN CAST(1 AS BIT)
                         ELSE CAST(0 AS BIT) END;";
-                        var exists = (long)command.ExecuteScalar();
+                        var exists = (long)(await command.ExecuteScalarAsync(cancellationToken));
                         return exists == 1;
                     }
                 }
@@ -229,7 +231,7 @@ namespace AspNetCore.Base.Data.Helpers
                         )
                         THEN CAST(1 AS BIT)
                         ELSE CAST(0 AS BIT) END;";
-                        var exists = (bool)command.ExecuteScalar();
+                        var exists = (bool)(await command.ExecuteScalarAsync());
                         return exists;
                     }
                 }
@@ -271,7 +273,7 @@ namespace AspNetCore.Base.Data.Helpers
         #endregion
 
         #region Apply Pending Migrations
-        public static void EnsureMigratedStepByStep(this DatabaseFacade database)
+        public static async Task EnsureMigratedStepByStepAsync(this DatabaseFacade database, CancellationToken cancellationToken = default(CancellationToken))
         {
             var pendingMigrations = PendingMigrations(database);
             if (pendingMigrations.Any())
@@ -280,7 +282,7 @@ namespace AspNetCore.Base.Data.Helpers
                 foreach (var targetMigration in pendingMigrations)
                 {
                     var sql = migrator.GenerateScript(targetMigration, targetMigration);
-                    migrator.Migrate(targetMigration);
+                    await migrator.MigrateAsync(targetMigration, cancellationToken);
                 }
             }
         }
@@ -327,7 +329,7 @@ namespace AspNetCore.Base.Data.Helpers
         #endregion
 
         #region Ensure Destroyed
-        public static void EnsureDestroyed(this DbContext context)
+        public static async Task EnsureDestroyedAsync(this DbContext context, CancellationToken cancellationToken = default)
         {
             if (context.Database.IsSqlServer() || context.Database.IsSqlite())
             {
@@ -340,7 +342,7 @@ namespace AspNetCore.Base.Data.Helpers
 
                 var connectionString = context.GetConnectionString();
 
-                DbInitializationHelper.EnsureDestroyed(connectionString);
+                await DbInitializationHelper.EnsureDestroyedAsync(connectionString, cancellationToken);
             }
             else
             {

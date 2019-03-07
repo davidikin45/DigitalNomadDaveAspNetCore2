@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DND.UnitTests.Data
+namespace DND.IntegrationTests.Data
 {
     public class SqliteInMemoryDbTests
     {
@@ -16,14 +16,14 @@ namespace DND.UnitTests.Data
         {
             using (var factory = new SqliteInMemoryDbContextFactory<AppContext>())
             {
-                using (var context = factory.CreateContext())
+                using (var context = await factory.CreateContextAsync())
                 {
                     var faq = new Faq() { Question = "test", Answer = "answer" };
                     context.Faqs.Add(faq);
                     await context.SaveChangesAsync();
                 }
 
-                using (var context = factory.CreateContext())
+                using (var context = await factory.CreateContextAsync())
                 {
                     var count = await context.Faqs.CountAsync();
                     Assert.Equal(1, count);
@@ -40,12 +40,12 @@ namespace DND.UnitTests.Data
         {
             using (var factory = new SqliteInMemoryDbContextFactory<AppContext>())
             {
-                using (var context = factory.CreateContext())
+                using (var context = await factory.CreateContextAsync())
                 {
                     var dbInitializer = new AppContextInitializerDropCreate();
                     await dbInitializer.InitializeAsync(context);
                     await context.Database.EnsureDeletedAsync(); //Clears Db Data
-                    Assert.True(context.Database.Exists());
+                    Assert.True(await context.Database.ExistsAsync());
                 }
             }
         }
@@ -55,12 +55,12 @@ namespace DND.UnitTests.Data
         {
             using (var factory = new SqliteInMemoryDbContextFactory<AppContext>())
             {
-                using (var context = factory.CreateContext(false))
+                using (var context = await factory.CreateContextAsync(false))
                 {
                     //var dbInitializer = new AppContextInitializerDropMigrate();
                     //await dbInitializer.InitializeAsync(context);
                     await context.Database.EnsureDeletedAsync(); //Clears Db Data
-                    Assert.True(context.Database.Exists());
+                    Assert.True(await context.Database.ExistsAsync());
                 }
             }
         }
@@ -70,12 +70,12 @@ namespace DND.UnitTests.Data
         {
             using (var factory = new SqliteInMemoryDbContextFactory<AppContext>())
             {
-                using (var context = factory.CreateContext(false))
+                using (var context = await factory.CreateContextAsync(false))
                 {
                     //var dbInitializer = new AppContextInitializerMigrate();
                     //await dbInitializer.InitializeAsync(context);
                     await context.Database.EnsureDeletedAsync(); //Clears Db Data
-                    Assert.True(context.Database.Exists());
+                    Assert.True(await context.Database.ExistsAsync());
                 }
             }
         }

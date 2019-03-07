@@ -148,31 +148,39 @@ namespace AspNetCore.Base
             ApplicationParts = binAssemblies.Concat(pluginAssemblies).Where(AssemblyBoolFilter).ToList();
         }
 
-        public Microsoft.Extensions.Logging.ILogger Logger { get; }
+        public ILogger Logger { get; }
         public IHostingEnvironment HostingEnvironment { get; }
         public IConfiguration Configuration { get; }
+
         public AppSettings AppSettings { get; }
 
         public string BinPath { get; }
         public string PluginsPath { get; }
+
         public string LogsPath { get; }
         public string DataPath { get; }
         public string BinDataPath { get; }
+
         public string AssemblyName { get; }
+        public string AppAssemblyPrefix { get; }
         public string CommonAssemblyPrefix { get; } = "AspNetCore.Base";
+
         public string PluginsFolder { get; } = @"plugins\";
         public string LogsFolder { get; } = @"logs\";
         public string DataFolder { get; } = @"data\";
-        public string AppAssemblyPrefix { get; }
-        public Func<Assembly, Boolean> AssemblyBoolFilter { get; }
-        public Func<string, Boolean> AssemblyStringFilter { get; }
-        public List<Assembly> ApplicationParts { get; }
         public string AssetsFolder { get; } = "/files";
 
+        public Func<Assembly, Boolean> AssemblyBoolFilter { get; }
+        public Func<string, Boolean> AssemblyStringFilter { get; }
+
+        public List<Assembly> ApplicationParts { get; }
+
+        #region 1. Configure Services
         // Add services to the collection. Don't build or return
         // any IServiceProvider or the ConfigureContainer method
         // won't get called.
-        //https://stackoverflow.com/questions/40844151/when-are-net-core-dependency-injected-instances-disposed
+        //Disposal: https://stackoverflow.com/questions/40844151/when-are-net-core-dependency-injected-instances-disposed
+        //If there are multiple registrations for the same service type the last registered type wins.
         public virtual void ConfigureServices(IServiceCollection services)
         {
             ConfigureSettingsServices(services);
@@ -1220,6 +1228,17 @@ namespace AspNetCore.Base
         }
         #endregion
 
+        public abstract void AddDatabases(IServiceCollection services, string tenantsConnectionString, string identityConnectionString, string hangfireConnectionString, string defaultConnectionString);
+        public abstract void AddUnitOfWorks(IServiceCollection services);
+        public abstract void AddHostedServices(IServiceCollection services);
+        public abstract void AddHangfireJobServices(IServiceCollection services);
+        public virtual void AddGraphQLSchemas(IApplicationBuilder app)
+        {
+
+        }
+        #endregion
+
+        #region 2. Configure Autofac Container
         public void ConfigureContainer(ContainerBuilder builder)
         {
             Logger.LogInformation("Configuring Autofac Modules");
@@ -1232,7 +1251,9 @@ namespace AspNetCore.Base
 
             builder.RegisterTaskRunners();
         }
+        #endregion
 
+        #region 3. Configure Request Pipeline
         private static bool IsStreamRequest(Microsoft.AspNetCore.Http.HttpContext context)
         {
             var stream = false;
@@ -1586,14 +1607,6 @@ namespace AspNetCore.Base
 
             taskRunner.RunTasksAfterApplicationConfiguration();
         }
-
-        public abstract void AddDatabases(IServiceCollection services, string tenantsConnectionString, string identityConnectionString, string hangfireConnectionString, string defaultConnectionString);
-        public abstract void AddUnitOfWorks(IServiceCollection services);
-        public abstract void AddHostedServices(IServiceCollection services);
-        public abstract void AddHangfireJobServices(IServiceCollection services);
-        public virtual void AddGraphQLSchemas(IApplicationBuilder app)
-        {
-
-        }
+        #endregion
     }
 }

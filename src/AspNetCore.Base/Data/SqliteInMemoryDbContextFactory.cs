@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Data
 {
@@ -20,18 +22,18 @@ namespace AspNetCore.Base.Data
         }
 
         //cant create and seed using the same context
-        public TDbContext CreateContext(bool create = true)
+        public async Task<TDbContext> CreateContextAsync(bool create = true, CancellationToken cancellationToken = default)
         {
             if (_connection == null)
             {
                 _connection = new SqliteConnection("DataSource=:memory:");
-                _connection.Open();
+                await _connection.OpenAsync(cancellationToken);
 
                 if(create)
                 {
                     using (var context = (TDbContext)Activator.CreateInstance(typeof(TDbContext), CreateOptions()))
                     {
-                        context.Database.EnsureCreated();
+                        await context.Database.EnsureCreatedAsync(cancellationToken);
                     }
                 }
             }

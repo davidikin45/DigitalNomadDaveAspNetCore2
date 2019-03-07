@@ -1,12 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Data.Initializers
 {
     public interface IDbInitializer
     {
-        Task InitializeAsync(string connectionString);
-        void InitializeSchema(string connectionString);
-        Task InitializeDataAsync(string context, string tenantId);
+        Task InitializeAsync(string connectionString, CancellationToken cancellationToken);
+        Task InitializeSchemaAsync(string connectionString, CancellationToken cancellationToken);
+        Task InitializeDataAsync(string context, string tenantId, CancellationToken cancellationToken);
 
         void Seed(string connectionString, string tenantId);
     }

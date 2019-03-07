@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>1701;1702;4014</NoWarn>
+    <NoWarn>1701;1702;4014;1591</NoWarn>
     <DocumentationFile>DND.Web.xml</DocumentationFile>
   </PropertyGroup>
 
@@ -172,6 +172,8 @@
 
   <Target Name="MyPreCompileTarget" BeforeTargets="Build">
     <Message Importance="high" Text="Starting Gulp Tasks" />
+    <Exec Command="node || start http://nodejs.org &amp;&amp; echo You need to install NodeJS" ContinueOnError="false" />
+    <Exec WorkingDirectory="$(ProjectDir)" Command="npm install" ContinueOnError="false" />
     <Exec WorkingDirectory="$(ProjectDir)" Command="node_modules\.bin\gulp.cmd clean" ContinueOnError="false" />
     <Exec WorkingDirectory="$(ProjectDir)" Command="node_modules\.bin\gulp.cmd less" ContinueOnError="false" />
     <Exec WorkingDirectory="$(ProjectDir)" Command="node_modules\.bin\gulp.cmd scripts" ContinueOnError="false" />

@@ -6,12 +6,14 @@ using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Hangfire
 {
     public static class HangfireInitializationHelper
     {
-        public static void EnsureTablesDeleted(string connectionString)
+        public static async Task EnsureTablesDeletedAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             var tableNames = new List<string>();
 
@@ -34,13 +36,13 @@ namespace AspNetCore.Base.Hangfire
             }
             else if (ConnectionStringHelper.IsSQLite(connectionString))
             {
-                bool dbExists = DbInitializationHelper.Exists(connectionString);
+                bool dbExists = await DbInitializationHelper.ExistsAsync(connectionString, cancellationToken);
 
                 if (dbExists)
                 {
                     using (var conn = new SqliteConnection(connectionString))
                     {
-                        conn.Open();
+                        await conn.OpenAsync(cancellationToken);
 
                         using (SqliteTransaction transaction = conn.BeginTransaction())
                         {
@@ -54,7 +56,7 @@ namespace AspNetCore.Base.Hangfire
                                         var commandSql = $"DROP TABLE IF EXISTS {t.Replace("].[",".")};";
                                         using (var command = new SqliteCommand(commandSql, conn, transaction))
                                         {
-                                            command.ExecuteNonQuery();
+                                            await command.ExecuteNonQueryAsync(cancellationToken);
                                         }
 
                                         commands.Add(commandSql);
@@ -75,7 +77,7 @@ namespace AspNetCore.Base.Hangfire
                             {
                                 using (var command = new SqliteCommand(commandSql, conn, transaction))
                                 {
-                                    command.ExecuteNonQuery();
+                                    await command.ExecuteNonQueryAsync(cancellationToken);
                                 }
                             }
 
@@ -85,18 +87,18 @@ namespace AspNetCore.Base.Hangfire
                 }
                 else
                 {
-                    DbInitializationHelper.EnsureDestroyed(connectionString);
+                    await DbInitializationHelper.EnsureDestroyedAsync(connectionString, cancellationToken);
                 }
             }
             else
             {
-                bool dbExists = DbInitializationHelper.Exists(connectionString);
+                bool dbExists = await DbInitializationHelper.ExistsAsync(connectionString, cancellationToken);
 
                 if (dbExists)
                 {
                     using (var conn = new SqlConnection(connectionString))
                     {
-                        conn.Open();
+                        await conn.OpenAsync(cancellationToken);
 
                         using (SqlTransaction transaction = conn.BeginTransaction())
                         {
@@ -110,7 +112,7 @@ namespace AspNetCore.Base.Hangfire
                                         var commandSql = $"DROP TABLE IF EXISTS {t}";
                                         using (var command = new SqlCommand(commandSql, conn, transaction))
                                         {
-                                            command.ExecuteNonQuery();
+                                            await command.ExecuteNonQueryAsync(cancellationToken);
                                         }
 
                                         commands.Add(commandSql);
@@ -131,7 +133,7 @@ namespace AspNetCore.Base.Hangfire
                             {
                                 using (var command = new SqlCommand(commandSql, conn, transaction))
                                 {
-                                    command.ExecuteNonQuery();
+                                    await command.ExecuteNonQueryAsync(cancellationToken);
                                 }
                             }
 
@@ -141,19 +143,19 @@ namespace AspNetCore.Base.Hangfire
                 }
                 else
                 {
-                    DbInitializationHelper.EnsureDestroyed(connectionString);
+                    await DbInitializationHelper.EnsureDestroyedAsync(connectionString, cancellationToken);
                 }
             }
         }
 
-        public static bool EnsureDbCreated(string connectionString)
+        public static Task<bool> EnsureDbCreatedAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            return DbInitializationHelper.EnsureCreated(connectionString);
+            return DbInitializationHelper.EnsureCreatedAsync(connectionString, cancellationToken);
         }
 
-        public static void EnsureDbAndTablesCreated(string connectionString)
+        public static async Task EnsureDbAndTablesCreatedAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            EnsureDbCreated(connectionString);
+            await EnsureDbCreatedAsync(connectionString, cancellationToken);
             if(string.IsNullOrEmpty(connectionString))
             {
 
@@ -180,9 +182,9 @@ namespace AspNetCore.Base.Hangfire
             }      
         }
 
-        public static void EnsureDbDestroyed(string connectionString)
+        public static Task EnsureDbDestroyedAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            DbInitializationHelper.EnsureDestroyed(connectionString);
+            return DbInitializationHelper.EnsureDestroyedAsync(connectionString, cancellationToken);
         }
     }
 }

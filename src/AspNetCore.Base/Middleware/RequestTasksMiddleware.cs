@@ -7,17 +7,15 @@ namespace AspNetCore.Base.Middleware
     public class RequestTasksMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly TaskRunnerRequests _taskRunner;
 
-        public RequestTasksMiddleware(RequestDelegate next, TaskRunnerRequests taskRunnerRequests)
+        public RequestTasksMiddleware(RequestDelegate next)
         {
             _next = next;
-            _taskRunner = taskRunnerRequests;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context, TaskRunnerRequests taskRunnerRequests)
         {
-            await _taskRunner.RunTasksOnEachRequestAsync();
+            await taskRunnerRequests.RunTasksOnEachRequestAsync();
 
             // Call the next delegate/middleware in the pipeline
             try
@@ -26,11 +24,11 @@ namespace AspNetCore.Base.Middleware
             }
             catch
             {
-                await _taskRunner.RunTasksOnErrorAsync();
+                await taskRunnerRequests.RunTasksOnErrorAsync();
                 throw;
             }
 
-            await _taskRunner.RunTasksAfterEachRequestAsync();
+            await taskRunnerRequests.RunTasksAfterEachRequestAsync();
         }
     }
 }

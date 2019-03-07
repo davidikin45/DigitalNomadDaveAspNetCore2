@@ -67,7 +67,8 @@ namespace AspNetCore.Base
                     {
                         options.ListenAnyIP(5000);
                         options.ListenAnyIP(5001, listenOptions => {
-                            listenOptions.UseHttps(new X509Certificate2("certificates\\localhost.private.pfx", "password"));
+                            //listenOptions.UseHttps(new X509Certificate2("certificates\\localhost.private.pfx", "password"));
+                            listenOptions.UseHttps();
                         });
                     }
 
