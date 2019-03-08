@@ -1,4 +1,4 @@
-﻿tinymce.baseURL = 'lib/tinymce';
+﻿tinymce.baseURL = '/lib/tinymce/';
 
 //https://www.tinymce.com/docs/demo/full-featured/
 
@@ -9,6 +9,18 @@ var init_obj_textareas = {
         'advlist autolink lists link image imagetools charmap print preview anchor',
         'searchreplace visualblocks code fullscreen',
         'insertdatetime media table contextmenu paste code codesample wordcount autoresize'
+    ],
+    codesample_languages: [
+        { text: 'HTML/XML', value: 'markup' },
+        { text: 'JavaScript', value: 'javascript' },
+        { text: 'CSS', value: 'css' },
+        { text: 'PHP', value: 'php' },
+        { text: 'Ruby', value: 'ruby' },
+        { text: 'Python', value: 'python' },
+        { text: 'Java', value: 'java' },
+        { text: 'C', value: 'c' },
+        { text: 'C#', value: 'csharp' },
+        { text: 'C++', value: 'cpp' }
     ],
     valid_elements: ""
     + "a[accesskey|charset|class|coords|dir<ltr?rtl|href|hreflang|id|lang|name"
@@ -270,6 +282,7 @@ var init_obj_textareas = {
     image_advtab: true,
     autoresize_bottom_margin: 20,
     content_css: cssUrl,
+    codesample_content_css: cssUrl,
     toolbar: 'preview fullscreen | undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | codesample ',
     file_browser_callback: OpenFileManager
 };

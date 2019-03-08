@@ -322,6 +322,4 @@ ASALocalRun/
 
 src/DND.Web/appsettings.Production.json
 src/DND.Web/appsettings.Staging.json
-src/DND.Web/wwwroot/files/gallery
-src/DND.Web/wwwroot/files/parellax
 .db

@@ -5,6 +5,7 @@
       "wwwroot/lib/bootstrap/css/bootstrap.css",
       "wwwroot/lib/font-awesome/css/font-awesome.css",
       "wwwroot/lib/magnific-popup/magnific-popup.css",
+      "wwwroot/lib/prismjs/themes/prism-okaidia.css",
       "wwwroot/css/menu.css",
       "wwwroot/css/modal.css",
       "wwwroot/css/polaroid-images.css",
@@ -57,7 +58,8 @@
     "inputFiles": [
       "wwwroot/lib/bootstrap/css/bootstrap.css",
       "wwwroot/lib/font-awesome/css/font-awesome.css",
-      "wwwroot/lib/magnific-popup/magnific-popup.css"
+      "wwwroot/lib/magnific-popup/magnific-popup.css",
+      "wwwroot/lib/prismjs/themes/prism-okaidia.css"
     ]
   },
   {
@@ -137,7 +139,13 @@
       "wwwroot/lib/infinite-scroll/infinite-scroll.pkgd.js",
       "wwwroot/lib/magnific-popup/jquery.magnific-popup.js",
       "wwwroot/lib/ngmap/ng-map.min.js",
-      "wwwroot/lib/@aspnet/signalr/signalr.js"
+      "wwwroot/lib/@aspnet/signalr/signalr.js",
+      "wwwroot/lib/prismjs/prism.js",
+      "wwwroot/lib/prismjs/components/prism-css.js",
+      "wwwroot/lib/prismjs/components/prism-markup.js",
+      "wwwroot/lib/prismjs/components/prism-clike.js",
+      "wwwroot/lib/prismjs/components/prism-javascript.js",
+      "wwwroot/lib/prismjs/components/prism-csharp.js"
     ],
     "minify": {
       "enabled": true,

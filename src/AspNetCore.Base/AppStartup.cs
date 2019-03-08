@@ -115,6 +115,15 @@ namespace AspNetCore.Base
             Logger.LogInformation($"Bin Data Folder: {BinDataPath}");
             if (!Directory.Exists(BinDataPath)) Directory.CreateDirectory(BinDataPath);
 
+            foreach (var publicUploadFolder in AppSettings.PublicUploadFolders.Split(','))
+            {
+                var path = HostingEnvironment.WebRootPath + publicUploadFolder;
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+            }
+
             Logger.LogInformation($"Content Root Path (Working Directory): {hostingEnvironment.ContentRootPath}");
             Logger.LogInformation($"Web Root Path: {hostingEnvironment.WebRootPath}");
 
@@ -1279,15 +1288,6 @@ namespace AspNetCore.Base
             ISignalRHubMapper signalRHubMapper, ILoggerFactory loggerFactory, IApiVersionDescriptionProvider apiVersionDescriptionProvider)
         {
             Logger.LogInformation("Configuring Request Pipeline");
-
-            foreach (var publicUploadFolder in appSettings.PublicUploadFolders.Split(','))
-            {
-                var path = env.WebRootPath + publicUploadFolder;
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
-            }
 
             app.UseHealthChecks("/hc");
 

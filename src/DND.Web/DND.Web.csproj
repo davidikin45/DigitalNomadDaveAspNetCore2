@@ -23,6 +23,19 @@
     <None Remove="wwwroot\uploads\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="wwwroot\files\advertisements\.gitignore" />
+    <Content Remove="wwwroot\files\blog-posts\.gitignore" />
+    <Content Remove="wwwroot\files\bucket-list\complete\.gitignore" />
+    <Content Remove="wwwroot\files\bucket-list\incomplete\.gitignore" />
+    <Content Remove="wwwroot\files\carousel\.gitignore" />
+    <Content Remove="wwwroot\files\gallery\.gitignore" />
+    <Content Remove="wwwroot\files\parellax\.gitignore" />
+    <Content Remove="wwwroot\files\projects\.gitignore" />
+    <Content Remove="wwwroot\files\testimonials\.gitignore" />
+    <Content Remove="wwwroot\files\videos\.gitignore" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
@@ -119,10 +132,23 @@
     <Folder Include="styles\" />
     <Folder Include="signing_keys\" />
     <Folder Include="wwwroot\css\" />
-    <Folder Include="wwwroot\files\parellax\" />
     <Folder Include="wwwroot\lib\" />
     <Folder Include="wwwroot\fonts\" />
     <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Include="wwwroot\files\advertisements\.gitignore" />
+    <None Include="wwwroot\files\blog-posts\.gitignore" />
+    <None Include="wwwroot\files\bucket-list\complete\.gitignore" />
+    <None Include="wwwroot\files\bucket-list\incomplete\.gitignore" />
+    <None Include="wwwroot\files\carousel\.gitignore" />
+    <None Include="wwwroot\files\gallery\.gitignore" />
+    <None Include="wwwroot\files\parellax\.gitignore" />
+    <None Include="wwwroot\files\projects\.gitignore" />
+    <None Include="wwwroot\files\testimonials\.gitignore" />
+    <None Include="wwwroot\files\videos\.gitignore" />
   </ItemGroup>
 
 

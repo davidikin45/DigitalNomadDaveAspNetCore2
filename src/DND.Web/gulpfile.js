@@ -171,6 +171,12 @@ var deps = {
         "tinymce.js": "",
         "tinymce.min.js": ""
     },
+    "prismjs": {
+        "themes/**/*": "themes/",
+        "plugins/**/*": "plugins/",
+        "components/**/*": "components/",
+        "prism.js": ""
+    },
     "instafeed.js": {
         "instafeed.js": "",
         "instafeed.min.js": ""
