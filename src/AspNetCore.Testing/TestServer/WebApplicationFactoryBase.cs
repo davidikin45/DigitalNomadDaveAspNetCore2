@@ -1,6 +1,8 @@
 ﻿using AspNetCore.Base.Hosting;
+using AspNetCore.Base.Routing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +40,11 @@ namespace AspNetCore.Testing.TestServer
         public IServiceProvider Services
         {
             get { return Server.Host.Services; }
+        }
+
+        public RouteInfo GetAllRoutes()
+        {
+            return RouteHelper.GetAllRoutes(Server.Host.Services.GetRequiredService<IActionDescriptorCollectionProvider>());
         }
 
         protected override IWebHostBuilder CreateWebHostBuilder()

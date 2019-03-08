@@ -51,25 +51,19 @@ namespace DND.IntegrationTests
             // Arrange
             var client = _factory.CreateClient();
 
-            var response = await client.GetAsync("/all-routes");
-
-            response.EnsureSuccessStatusCode();
-
-            var responseString = await response.Content.ReadAsStringAsync();
-
-            dynamic routes = JsonConvert.DeserializeObject(responseString);
+            var routeInfo = _factory.GetAllRoutes();
 
             var testRoutes = new List<string>();
-            foreach (var action in routes.actions)
+            foreach (var action in routeInfo.Actions)
             {
-                string template = action.SelectToken("template");
+                string path = action.Path;
 
-                IEnumerable<string> httpMethods = action.SelectToken("httpMethods").ToObject<List<string>>();
-                bool authorized = action.SelectToken("authorized");
+                IEnumerable<string> httpMethods = action.HttpMethods;
+                bool authorized = action.Authorized;
 
-                if (!authorized && template != null && (httpMethods == null || httpMethods.ToList().Contains(HttpMethod.Get.Method)))
+                if (!authorized && path != null && (httpMethods == null || httpMethods.ToList().Contains(HttpMethod.Get.Method)))
                 {
-                    testRoutes.Add("/" + template);
+                    testRoutes.Add(path);
                 }
             }
 
@@ -78,7 +72,7 @@ namespace DND.IntegrationTests
                 var testRoute = route.Replace("{culture:cultureCheck}", "en");
                 if (!testRoute.Contains("{") && !testRoute.Contains("api"))
                 {
-                    response = await client.GetAsync(testRoute);
+                    var response = await client.GetAsync(testRoute);
                     Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
                 }
             }
