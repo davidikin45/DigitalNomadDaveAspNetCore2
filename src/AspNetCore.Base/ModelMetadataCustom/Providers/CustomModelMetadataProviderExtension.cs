@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AspNetCore.Base.ModelMetadataCustom.Providers
 {
-    public static class CustomModelMetadataProviderExtension
+    public static class CustomModelMetadataProviderServiceCollectonsExtensions
     {
         public static IServiceCollection AddCustomModelMetadataProvider(this IServiceCollection services)
         {

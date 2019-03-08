@@ -6,16 +6,19 @@ using System;
 
 namespace AspNetCore.Testing.Extensions
 {
-    public static class AutofacExtensions
+    public static class AutofacWebHostBuilderExtensions
+    {
+        public static IWebHostBuilder UseAutofac(this IWebHostBuilder builder)
+        {
+            return builder.ConfigureServices(services => services.AddAutofac());
+        }
+    }
+
+    public static class AutofacServiceCollectionExtensions
     {
         public static IServiceCollection AddAutofac(this IServiceCollection services)
         {
             return services.AddSingleton<IServiceProviderFactory<ContainerBuilder>, AutofacServiceProviderFactory>();
-        }
-
-        public static IWebHostBuilder UseAutofac(this IWebHostBuilder builder)
-        {
-            return builder.ConfigureServices(services => services.AddAutofac());
         }
 
         private class AutofacServiceProviderFactory : IServiceProviderFactory<ContainerBuilder>

@@ -15,7 +15,7 @@ using System.Text;
 
 namespace AspNetCore.Base.Extensions
 {
-    public static class ServiceCollectionAuthExtensions
+    public static class AuthServiceCollectionExtensions
     {
         public static AuthenticationBuilder AddJwtAuthentication(this AuthenticationBuilder authenticationBuilder,
            string bearerTokenKey,

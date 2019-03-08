@@ -16,7 +16,7 @@ using System.Text.Encodings.Web;
 
 namespace AspNetCore.Base.Validation.Providers
 {
-    public static class RequiredFieldAsterixHtmlGeneratorExtension
+    public static class RequiredFieldAsterixHtmlGeneratorServiceCollectionExtensions
     {
         public static IServiceCollection AddRequiredFieldAsterixHtmlGenerator(this IServiceCollection services)
         {

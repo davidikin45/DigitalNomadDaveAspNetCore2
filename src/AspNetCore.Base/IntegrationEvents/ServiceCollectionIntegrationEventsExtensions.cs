@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace AspNetCore.Base.IntegrationEvents
 {
-    public static class ServiceCollectionIntegrationEventsExtensions
+    public static class IntegrationEventsServiceCollectionExtensions
     {
         public static void AddIntegrationEvents(this IServiceCollection services, string hostName, string userName, string password, string subscriptionClientName, int retryCount = 5)
         {

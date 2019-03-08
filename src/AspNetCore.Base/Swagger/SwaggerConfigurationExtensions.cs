@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace AspNetCore.Base.Swagger
 {
-    public static class SwaggerConfigurationExtensions
+    public static class SwaggerConfigurationServiceCollectionExtensions
     {
         public static IServiceCollection AddSwagger(this IServiceCollection services, string apiName, string description, string contactName, string contactWebsite, string xmlDocumentationPath)
         {

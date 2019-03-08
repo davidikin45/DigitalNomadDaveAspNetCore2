@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AspNetCore.Base.HostedServices
 {
-    public static class HostedServiceExtensionMethods
+    public static class HostedServiceServiceCollectionExtensions
     {
         public static IServiceCollection AddHostedServiceCronJob<TCronJob>(this IServiceCollection services, params string[] cronSchedules)
             where TCronJob : class, IHostedServiceCronJob

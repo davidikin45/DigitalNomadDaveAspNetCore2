@@ -1,20 +1,15 @@
-﻿using AspNetCore.Base.Data.Helpers;
-using AspNetCore.Base.Helpers;
+﻿using AspNetCore.Base.Helpers;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.SQLite;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
 
 namespace AspNetCore.Base.Hangfire
 {
-    public static class HangfireConfigurationExtensions
+    public static class HangfireConfigurationServiceCollectionExtensions
     {
         public static IServiceCollection AddHangfire(this IServiceCollection services, string connectionString, bool initializeDatabase)
         {

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace AspNetCore.Base.AzureStorage
 {
-    public static class AzureVideoStorageExtensions
+    public static class AzureVideoStorageServiceCollectionExtensions
     {
         public static IServiceCollection AddAzureVideoStorage(this IServiceCollection services, Func<IServiceProvider, IAzureVideoStorage> implementationFactory)
         {

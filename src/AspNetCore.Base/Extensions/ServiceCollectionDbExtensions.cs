@@ -8,7 +8,7 @@ using System;
 
 namespace AspNetCore.Base.Extensions
 {
-    public static class ServiceCollectionDbExtensions
+    public static class DbServiceCollectionExtensions
     {
         public static TenantDbContextIdentification<TContext> AddDbContextTenant<TContext>(this IServiceCollection services, ServiceLifetime contextLifetime = ServiceLifetime.Scoped) where TContext : DbContext
         {

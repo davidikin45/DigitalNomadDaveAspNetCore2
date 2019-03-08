@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AspNetCore.Base.Validation.Providers
 {
-    public static class InheritanceValidationAttributeAdapterProviderExtension
+    public static class InheritanceValidationAttributeAdapterProviderServiceCollectionExtensions
     {
         public static IServiceCollection AddInheritanceValidationAttributeAdapterProvider(this IServiceCollection services)
         {

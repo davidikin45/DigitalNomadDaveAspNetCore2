@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AspNetCore.Base.AzureStorage
 {
-    public static class AzureSearchExtensions
+    public static class AzureSearchServiceCollectionExtensions
     {
         public static IServiceCollection AddAzureSearch(this IServiceCollection services, Func<IServiceProvider, IAzureSearch> implementationFactory)
         {
