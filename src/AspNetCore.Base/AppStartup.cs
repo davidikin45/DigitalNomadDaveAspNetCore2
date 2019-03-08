@@ -90,7 +90,7 @@ namespace AspNetCore.Base
             //http://blog.hostforlife.eu/variables-and-configuration-in-asp-net-core-apps/
             //http://www.hishambinateya.com/goodbye-platform-abstractions
             //var workingDirectory = Directory.GetCurrentDirectory();
-            var workingDirectory = hostingEnvironment.ContentRootPath;
+            WorkingDirectory = hostingEnvironment.ContentRootPath;
 
             //AppDomain.CurrentDomain.BaseDirectory
             //Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath)
@@ -102,12 +102,12 @@ namespace AspNetCore.Base
             if (!Directory.Exists(PluginsPath)) Directory.CreateDirectory(PluginsPath);
 
             //Logs should always be relative to the Working Directory. Thats how serilog works.
-            LogsPath = Path.Combine(hostingEnvironment.ContentRootPath, LogsFolder);
+            LogsPath = Path.Combine(WorkingDirectory, LogsFolder);
             Logger.LogInformation($"Logs Folder: {LogsPath}");
             if (!Directory.Exists(LogsPath)) Directory.CreateDirectory(LogsPath);
 
             //Data should generally be relative to the Working Directory.
-            DataPath = Path.Combine(hostingEnvironment.ContentRootPath, DataFolder);
+            DataPath = Path.Combine(WorkingDirectory, DataFolder);
             Logger.LogInformation($"Data Folder: {DataPath}");
             if (!Directory.Exists(DataPath)) Directory.CreateDirectory(DataPath);
 
@@ -156,6 +156,7 @@ namespace AspNetCore.Base
 
         public string BinPath { get; }
         public string PluginsPath { get; }
+        public string WorkingDirectory { get; }
 
         public string LogsPath { get; }
         public string DataPath { get; }
@@ -360,7 +361,7 @@ namespace AspNetCore.Base
         {
             if (!options.FileSystemFolder.Contains(@":\"))
             {
-                options.FileSystemFolder = Path.Combine(BinPath, options.FileSystemFolder);
+                options.FileSystemFolder = Path.Combine(WorkingDirectory, options.FileSystemFolder);
             }
         }
 

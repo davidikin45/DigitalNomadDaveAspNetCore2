@@ -2,7 +2,6 @@ using AspNetCore.Base;
 using AspNetCore.Testing;
 using AspNetCore.Testing.TestServer;
 using DND.Web.Areas.Frontend.Controllers.Home.Models;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
