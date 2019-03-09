@@ -49,7 +49,7 @@ namespace AspNetCore.Base.Controllers.Api.Authentication
                 return await GenerateJWTToken(user);
             }
             AddErrors(result);
-            return ValidationErrors();
+            return ValidationErrors(ModelState);
         }
         #endregion
     }

@@ -1,6 +1,7 @@
 ﻿using AspNetCore.Base.ActionResults;
 using AspNetCore.Base.Alerts;
 using AspNetCore.Base.Email;
+using AspNetCore.Base.ErrorHandling;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.MultiTenancy;
 using AspNetCore.Base.Settings;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 
@@ -108,7 +110,7 @@ namespace AspNetCore.Base.Controllers.Api
             {
                 if (result.IsSuccess)
                 {
-                    webApiMessages.Add(new ValidationProblemDetails());
+                    webApiMessages.Add(new ValidationProblemDetails() { Status = StatusCodes.Status200OK, Type = "about:blank" });
                 }
                 else
                 {
@@ -117,7 +119,7 @@ namespace AspNetCore.Base.Controllers.Api
             }
 
             //For bulk return 200 regardless
-            return Success(webApiMessages);
+            return Ok(webApiMessages);
         }
 
         protected List<ValidationProblemDetails> BulkCreateResponse(IEnumerable<Result> results)
@@ -128,7 +130,7 @@ namespace AspNetCore.Base.Controllers.Api
             {
                 if (result.IsSuccess)
                 {
-                    webApiMessages.Add(new ValidationProblemDetails());
+                    webApiMessages.Add(new ValidationProblemDetails() { Status = StatusCodes.Status200OK, Type="about:blank" });
                 }
                 else
                 {
@@ -148,7 +150,7 @@ namespace AspNetCore.Base.Controllers.Api
             {
                 if(result.IsSuccess)
                 {
-                    webApiMessages.Add(new ValidationProblemDetails());
+                    webApiMessages.Add(new ValidationProblemDetails() { Status = StatusCodes.Status200OK, Type = "about:blank" });
                 }
                 else
                 {
@@ -168,7 +170,7 @@ namespace AspNetCore.Base.Controllers.Api
             {
                 if (result.IsSuccess)
                 {
-                    webApiMessages.Add(new ValidationProblemDetails());
+                    webApiMessages.Add(new ValidationProblemDetails() { Status = StatusCodes.Status200OK, Type = "about:blank" });
                 }
                 else
                 {
@@ -178,6 +180,43 @@ namespace AspNetCore.Base.Controllers.Api
 
             //For bulk return 200 regardless
             return webApiMessages;
+        }
+
+        protected CancellationToken ClientDisconnectedToken()
+        {
+            return this.HttpContext.RequestAborted;
+        }
+
+        protected virtual IActionResult Html(string html)
+        {
+            return new HTMLActionResult(html);
+        }
+
+        protected virtual IActionResult Forbidden()
+        {
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        }
+        protected virtual ActionResult BadRequest(string errorMessage)
+        {
+            var problemDetails = new ProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Instance = HttpContext.Request.Path,
+                Title = "Bad Request.",
+                Detail = errorMessage,
+                Status = StatusCodes.Status400BadRequest
+            };
+
+            var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+            problemDetails.Extensions["traceId"] = traceId;
+            problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
+
+            var result = new ObjectResult(problemDetails);
+            result.StatusCode = problemDetails.Status;
+            result.ContentTypes.Add("application/problem+json");
+            result.ContentTypes.Add("application/problem+xml");
+
+            return result;
         }
 
         protected ActionResult ValidationErrors(Result failure)
@@ -206,15 +245,41 @@ namespace AspNetCore.Base.Controllers.Api
         {
             return ValidationErrors(ModelState);
         }
-
         protected virtual ActionResult ValidationErrors(ModelStateDictionary modelState)
         {
             var problemDetails = new ValidationProblemDetails(ModelState)
             {
+                Type = "https://tools.ietf.org/html/rfc4918#section-11.2",
                 Instance = HttpContext.Request.Path,
                 Detail = "Please refer to the errors property for additional details.",
                 Status = StatusCodes.Status422UnprocessableEntity
             };
+
+            var angularErrors = new SerializableDictionary<string, List<AngularFormattedValidationError>>();
+            foreach (var kvp in problemDetails.Errors)
+            {
+                var propertyMessages = new List<AngularFormattedValidationError>();
+                foreach (var errorMessage in kvp.Value)
+                {
+                    var keyAndMessage = errorMessage.Split('|');
+                    if (keyAndMessage.Count() > 1)
+                    {
+                        //Formatted for Angular Binding
+                        //e.g required|Error Message
+                        propertyMessages.Add(new AngularFormattedValidationError(
+                            keyAndMessage[1],
+                            keyAndMessage[0]));
+                    }
+                    else
+                    {
+                        propertyMessages.Add(new AngularFormattedValidationError(
+                            keyAndMessage[0]));
+                    }
+                }
+
+                angularErrors.Add(kvp.Key, propertyMessages);
+            }
+            problemDetails.Extensions["angularErrors"] = angularErrors;
 
             var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
             problemDetails.Extensions["traceId"] = traceId;
@@ -223,51 +288,8 @@ namespace AspNetCore.Base.Controllers.Api
             var result = new UnprocessableEntityObjectResult(problemDetails);
             result.ContentTypes.Add("application/problem+json");
             result.ContentTypes.Add("application/problem+xml");
-            
-            return result;
-        }
-
-        protected virtual ActionResult Success<T>(T model)
-        {
-            return new OkObjectResult(model);
-        }
-
-        protected CancellationToken ClientDisconnectedToken()
-        {
-            return this.HttpContext.RequestAborted;
-        }
-
-        protected virtual ActionResult BadRequest(string errorMessage, int errorStatusCode = 400)
-        {
-            var problemDetails = new ProblemDetails
-            {
-                Type= "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                Instance = HttpContext.Request.Path,
-                Title = "Bad Request.",
-                Detail = errorMessage,
-                Status = errorStatusCode
-            };
-
-            var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
-            problemDetails.Extensions["traceId"] = traceId;
-            problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
-
-            var result = new ObjectResult(problemDetails);
-            result.StatusCode = errorStatusCode;
-            result.ContentTypes.Add("application/problem+json");
-            result.ContentTypes.Add("application/problem+xml");
 
             return result;
-        }
-
-        protected virtual IActionResult Html(string html)
-        {
-            return new HTMLActionResult(html);
-        }
-
-        protected virtual IActionResult Forbidden()
-        {
-            return new StatusCodeResult(StatusCodes.Status403Forbidden);
         }
     }
 }

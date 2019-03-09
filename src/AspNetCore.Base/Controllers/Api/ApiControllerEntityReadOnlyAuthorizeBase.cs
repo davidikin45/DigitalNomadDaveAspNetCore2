@@ -168,7 +168,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             var list = response.ToList();
 
-            return Success(list);
+            return Ok(list);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace AspNetCore.Base.Controllers.Api
 
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata).Replace(Environment.NewLine, ""));
 
-            return Success(data.ToList());
+            return Ok(data.ToList());
         }
         #endregion
 
@@ -278,7 +278,7 @@ namespace AspNetCore.Base.Controllers.Api
                 return NotFound();
             }
 
-            return Success(list);
+            return Ok(list);
         }
 
         [ResourceAuthorize(ResourceCollectionsCore.CRUD.Operations.Read, ResourceCollectionsCore.CRUD.Operations.ReadOwner)]

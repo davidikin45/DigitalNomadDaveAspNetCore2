@@ -78,12 +78,12 @@ namespace AspNetCore.Base.Controllers.Api.Authentication
                     return await GenerateJWTToken(user);
                 }
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return ValidationErrors();
+                return ValidationErrors(ModelState);
             }
             else
             {
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return ValidationErrors();
+                return ValidationErrors(ModelState);
             }
         }
         #endregion

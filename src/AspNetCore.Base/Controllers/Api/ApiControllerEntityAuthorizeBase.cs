@@ -196,7 +196,7 @@ namespace AspNetCore.Base.Controllers.Api
                 return NotFound();
             }
 
-            return Success(list);
+            return Ok(list);
         }
         #endregion
 
@@ -372,7 +372,7 @@ namespace AspNetCore.Base.Controllers.Api
                 return NotFound();
             }
 
-            return Success(list);
+            return Ok(list);
         }
         #endregion
 

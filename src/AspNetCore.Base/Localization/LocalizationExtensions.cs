@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Localization
 {
+    //https://stackoverflow.com/questions/40828570/asp-net-core-model-binding-error-messages-localization
     public static class LocalizationExtensions
     {
         public static IServiceCollection AddRequestLocalizationOptions(this IServiceCollection services, string defaultCulture, bool supportAllCountryFormatting, bool supportAllLanguagesFormatting, bool supportUICultureFormatting, bool allowDefaultCultureLanguage, params string[] supportedUICultures)

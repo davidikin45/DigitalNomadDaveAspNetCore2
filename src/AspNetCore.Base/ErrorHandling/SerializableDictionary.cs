@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace AspNetCore.Base.Alerts
+namespace AspNetCore.Base.ErrorHandling
 {
-
     [XmlRoot("dictionary")]
     public class SerializableDictionary<TKey, TValue>
-        : Dictionary<TKey, TValue>, IXmlSerializable
+       : Dictionary<TKey, TValue>, IXmlSerializable
     {
         public SerializableDictionary() { }
         public SerializableDictionary(IDictionary<TKey, TValue> dictionary) : base(dictionary) { }
