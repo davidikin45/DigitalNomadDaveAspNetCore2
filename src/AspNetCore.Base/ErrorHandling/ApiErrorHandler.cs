@@ -66,8 +66,28 @@ namespace AspNetCore.Base.ErrorHandling
 
             return null;
         }
+        public static (string message, int statusCode) HandleApiExceptionGlobalSerialized(HttpContext httpContext, Exception exception, bool showExceptionMessage)
+        {
+            var problemDetails = GetGlobalExceptionProblemDetails(httpContext, exception, showExceptionMessage);
 
-        public static (string message, int statusCode) HandleApiExceptionGlobal(HttpContext httpContext, Exception exception, bool showExceptionMessage)
+            var message = JsonConvert.SerializeObject(problemDetails);
+
+            return (message, StatusCodes.Status500InternalServerError);
+        }
+
+        public static IActionResult HandleApiExceptionGlobalActionResult(HttpContext httpContext, Exception exception, bool showExceptionMessage)
+        {
+            var problemDetails = GetGlobalExceptionProblemDetails(httpContext, exception, showExceptionMessage);
+
+            var result = new ObjectResult(problemDetails);
+            result.StatusCode = problemDetails.Status;
+            result.ContentTypes.Add("application/problem+json");
+            result.ContentTypes.Add("application/problem+xml");
+
+            return result;
+        }
+
+        private static ProblemDetails GetGlobalExceptionProblemDetails(HttpContext httpContext, Exception exception, bool showExceptionMessage)
         {
             var problemDetails = new ProblemDetails()
             {
@@ -86,9 +106,7 @@ namespace AspNetCore.Base.ErrorHandling
             problemDetails.Extensions["traceId"] = traceId;
             problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
 
-            var message = JsonConvert.SerializeObject(problemDetails);
-
-            return (message, StatusCodes.Status500InternalServerError);
+            return problemDetails;
         }
     }
 }

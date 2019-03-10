@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
+using WebApiContrib.Core.Results;
 
 namespace AspNetCore.Base.ErrorHandling
 {
@@ -26,17 +27,23 @@ namespace AspNetCore.Base.ErrorHandling
                     if (exceptionHandlerFeature != null)
                     {
                         var logger = loggerFactory.CreateLogger("Global exception logger");
-                        var response = ApiErrorHandler.HandleApiExceptionGlobal(context, exceptionHandlerFeature.Error, showExceptionMessage);
-                        context.Response.StatusCode = response.statusCode;
-                        context.Response.ContentType = "application/problem+json";
-                        await context.Response.WriteAsync(response.message);
+                        //var response = ApiErrorHandler.HandleApiExceptionGlobalSerialized(context, exceptionHandlerFeature.Error, showExceptionMessage);
+                        //context.Response.StatusCode = response.statusCode;
+                        //context.Response.ContentType = "application/problem+json";
+                        //await context.Response.WriteAsync(response.message);
+
+                        var actionResult = ApiErrorHandler.HandleApiExceptionGlobalActionResult(context, exceptionHandlerFeature.Error, showExceptionMessage);
+                        await context.WriteActionResult(actionResult);
                     }
                     else
                     {
-                        var response = ApiErrorHandler.HandleApiExceptionGlobal(context, null, showExceptionMessage);
-                        context.Response.StatusCode = response.statusCode;
-                        context.Response.ContentType = "application/problem+json";
-                        await context.Response.WriteAsync(response.message);
+                        //var response = ApiErrorHandler.HandleApiExceptionGlobalSerialized(context, null, showExceptionMessage);
+                        //context.Response.StatusCode = response.statusCode;
+                        //context.Response.ContentType = "application/problem+json";
+                        //await context.Response.WriteAsync(response.message);
+
+                        var actionResult = ApiErrorHandler.HandleApiExceptionGlobalActionResult(context, null, showExceptionMessage);
+                        await context.WriteActionResult(actionResult);
                     }
                 });
             };
