@@ -1,4 +1,5 @@
 ﻿using AspNetCore.Base.Data.Initializers;
+using Hangfire.Initialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +15,7 @@ namespace AspNetCore.Base.Hangfire
 
         public async Task InitializeSchemaAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            await HangfireInitializationHelper.EnsureDbAndTablesCreatedAsync(connectionString, cancellationToken);           
+            await HangfireInitializer.EnsureDbAndTablesCreatedAsync(connectionString, cancellationToken);           
         }
 
         public async Task InitializeDataAsync(string connectionString, string tenantId, CancellationToken cancellationToken = default)

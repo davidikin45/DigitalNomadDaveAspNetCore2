@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace DND.Data
 {
-    public class HangfireInitializer : IAsyncDbInitializer
+    public class HangfireDbInitializer : IAsyncDbInitializer
     {
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly ConnectionStrings _connectionStrings;
 
         public int Order => 1;
 
-        public HangfireInitializer(ConnectionStrings connectionStrings, IHostingEnvironment hostingEnvironment)
+        public HangfireDbInitializer(ConnectionStrings connectionStrings, IHostingEnvironment hostingEnvironment)
         {
             _connectionStrings = connectionStrings;
             _hostingEnvironment = hostingEnvironment;

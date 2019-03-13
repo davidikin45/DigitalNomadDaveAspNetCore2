@@ -1,7 +1,9 @@
 using AspNetCore.Base.Data.Helpers;
 using AspNetCore.Base.Hangfire;
+using Database.Initialization;
 using DND.Data;
 using DND.Data.Initializers;
+using Hangfire.Initialization;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -42,23 +44,24 @@ namespace DND.IntegrationTests.Data
             var dbInitializer = new HangfireInitializerDropCreate();
             await dbInitializer.InitializeAsync(connectionString);
 
-            Assert.True(await DbInitializationHelper.ExistsAsync(connectionString));
-            Assert.Equal(11, await DbInitializationHelper.TableCountAsync(connectionString));
+            Assert.True(await DbInitializer.ExistsAsync(connectionString));
+            Assert.Equal(11, await DbInitializer.TableCountAsync(connectionString));
 
             var fullPath = Path.GetFullPath($"{dbName}.db");
             Assert.True(File.Exists(fullPath));
 
-            await HangfireInitializationHelper.EnsureTablesDeletedAsync(connectionString);
+            await HangfireInitializer.EnsureTablesDeletedAsync(connectionString);
 
-            Assert.Equal(0, await DbInitializationHelper.TableCountAsync(connectionString));
+
+            Assert.Equal(0, await DbInitializer.TableCountAsync(connectionString));
 
             Assert.True(File.Exists(fullPath));
 
-            Assert.False(await DbInitializationHelper.HasTablesAsync(connectionString));
+            Assert.False(await DbInitializer.HasTablesAsync(connectionString));
 
-            await HangfireInitializationHelper.EnsureDbDestroyedAsync(connectionString);
+            await HangfireInitializer.EnsureDbDestroyedAsync(connectionString);
 
-            Assert.False(await DbInitializationHelper.ExistsAsync(connectionString));
+            Assert.False(await DbInitializer.ExistsAsync(connectionString));
 
             Assert.False(File.Exists(fullPath));
         }
