@@ -23,12 +23,12 @@
     <PackageReference Include="BouncyCastle.NetCore" Version="1.8.3" />
     <PackageReference Include="Database.Initialization" Version="1.0.2" />
     <PackageReference Include="EasyNetQ" Version="3.4.2" />
-    <PackageReference Include="EntityFrameworkCore.Initialization" Version="1.0.0" />
+    <PackageReference Include="EntityFrameworkCore.Initialization" Version="1.0.1" />
     <PackageReference Include="GraphQL.Server.Transports.AspNetCore" Version="3.4.0" />
     <PackageReference Include="GraphQL.Server.Transports.WebSockets" Version="3.4.0" />
     <PackageReference Include="GraphQL.Server.Ui.Playground" Version="3.4.0" />
     <PackageReference Include="Hangfire" Version="1.6.23" />
-    <PackageReference Include="Hangfire.Initialization" Version="1.0.0" />
+    <PackageReference Include="Hangfire.Initialization" Version="1.0.1" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.6.0" />
     <PackageReference Include="Hangfire.SQLite.Core" Version="1.0.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.9.2" />
