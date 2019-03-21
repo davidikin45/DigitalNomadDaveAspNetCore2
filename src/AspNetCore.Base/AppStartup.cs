@@ -211,6 +211,7 @@ namespace AspNetCore.Base
             ConfigureSignalRServices(services);
             ConfigureApiServices(services);
             ConfigureHttpClients(services);
+            ConfigureProfilingServices(services);
 
             //https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services?view=aspnetcore-2.1
             AddHostedServices(services);
@@ -1219,6 +1220,7 @@ namespace AspNetCore.Base
         {
             Logger.LogInformation("Configuring Http Clients");
 
+            services.AddTransient<ProfilingHttpHandler>();
             services.AddTransient<AuthorizationBearerProxyHttpHandler>();
             services.AddTransient<AuthorizationJwtProxyHttpHandler>();
 
@@ -1226,6 +1228,7 @@ namespace AspNetCore.Base
 
             //When using typed client its best to put client config in the constructor.
             //services.AddHttpClient<Client>()
+            //    .AddHttpMessageHandler<ProfilingHttpHandler>()
             //    .AddHttpMessageHandler<AuthorizationProxyHttpHandler>()
             //    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             //{
@@ -1234,6 +1237,7 @@ namespace AspNetCore.Base
             //});
 
             //services.AddHttpClient("name")
+            //     .AddHttpMessageHandler<ProfilingHttpHandler>()
             //     .AddHttpMessageHandler<AuthorizationProxyHttpHandler>()
             //    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             //{
@@ -1244,6 +1248,24 @@ namespace AspNetCore.Base
         }
 
         public abstract void AddHttpClients(IServiceCollection services);
+        #endregion
+
+        #region Profiling
+        //https://miniprofiler.com/dotnet/AspDotNetCore
+        public virtual void ConfigureProfilingServices(IServiceCollection services)
+        {
+            //MiniProfiler.Providers.SqlServer
+            //MiniProfiler.Providers.Sqlite
+
+            services.AddMiniProfiler(options => {
+                options.PopupRenderPosition = StackExchange.Profiling.RenderPosition.BottomLeft;
+                options.PopupStartHidden = true; //ALT + P to display
+                options.PopupShowTimeWithChildren = true;
+                options.ResultsAuthorize = (request) => true;
+                options.UserIdProvider = (request) => request.HttpContext.User.Identity.Name;
+                //options.Storage = new SqlServerStorage();
+            }).AddEntityFramework();
+        }
         #endregion
 
         #region Identity
@@ -1314,8 +1336,10 @@ namespace AspNetCore.Base
                 //Imortant: Must be before exception handling
                 //1. download profiler from https://stackify.com/prefix/
                 //2. enable .NET profiler in windows tray
-                //3. access results at http://localhost:2012
+                //3. access results at http: //localhost:2012
                 app.UseStackifyPrefix();
+
+                app.UseMiniProfiler();
 
                 // Non Api
                 app.UseWhen(context => !context.Request.Path.ToString().Contains("/api"),
