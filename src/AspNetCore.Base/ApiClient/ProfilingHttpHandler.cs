@@ -37,7 +37,7 @@ namespace AspNetCore.Base.ApiClient
 
             var requestContent = await this.GetRequestContent(request);
 
-            using (CustomTiming timing = MiniProfiler.Current.CustomTiming("http", String.Empty, httpVerb))
+            using (CustomTiming timing = StackExchange.Profiling.MiniProfiler.Current.CustomTiming("http", String.Empty, httpVerb))
             {
                 var response = await base.SendAsync(request, cancellationToken);
 

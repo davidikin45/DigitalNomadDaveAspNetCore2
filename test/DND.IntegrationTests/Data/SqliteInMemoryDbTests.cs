@@ -1,5 +1,6 @@
 using AspNetCore.Base.Data;
 using AspNetCore.Base.Data.Helpers;
+using Database.Initialization;
 using DND.Data;
 using DND.Data.Initializers;
 using DND.Domain.CMS.Faqs;
@@ -42,8 +43,12 @@ namespace DND.IntegrationTests.Data
             {
                 using (var context = await factory.CreateContextAsync())
                 {
-                    var dbInitializer = new AppContextInitializerDropCreate();
-                    await dbInitializer.InitializeAsync(context);
+                    await DbContextInitializationExtensions.EnsureTablesAndMigrationsDeletedAsync(context);
+                    await context.Database.EnsureCreatedAsync();
+            
+                    await DbContextInitializationExtensions.EnsureDbAndTablesCreatedAsync(context);
+                    //var dbInitializer = new AppContextInitializerDropCreate();
+                    //await dbInitializer.InitializeAsync(context);
                     await context.Database.EnsureDeletedAsync(); //Clears Db Data
                     Assert.True(await context.Database.ExistsAsync());
                 }

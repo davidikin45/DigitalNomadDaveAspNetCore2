@@ -4,6 +4,8 @@ using Database.Initialization;
 using DND.Data;
 using DND.Data.Initializers;
 using Hangfire.Initialization;
+using Microsoft.EntityFrameworkCore;
+using MiniProfiler.Initialization;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -60,6 +62,36 @@ namespace DND.IntegrationTests.Data
             Assert.False(await DbInitializer.HasTablesAsync(connectionString));
 
             await HangfireInitializer.EnsureDbDestroyedAsync(connectionString);
+
+            Assert.False(await DbInitializer.ExistsAsync(connectionString));
+
+            Assert.False(File.Exists(fullPath));
+        }
+
+        [Fact]
+        public async Task MiniProfilerInitialization()
+        {
+            var dbName = "MiniProfilerSqliteTest";
+            var connectionString = $"Data Source={dbName}.db;";
+
+            await MiniProfilerInitializer.EnsureTablesDeletedAsync(connectionString);
+            await MiniProfilerInitializer.EnsureDbAndTablesCreatedAsync(connectionString);
+
+            Assert.True(await DbInitializer.ExistsAsync(connectionString));
+            Assert.Equal(11, await DbInitializer.TableCountAsync(connectionString));
+
+            var fullPath = Path.GetFullPath($"{dbName}.db");
+            Assert.True(File.Exists(fullPath));
+
+            await MiniProfilerInitializer.EnsureTablesDeletedAsync(connectionString);
+
+            Assert.Equal(0, await DbInitializer.TableCountAsync(connectionString));
+
+            Assert.True(File.Exists(fullPath));
+
+            Assert.False(await DbInitializer.HasTablesAsync(connectionString));
+
+            await MiniProfilerInitializer.EnsureDbDestroyedAsync(connectionString);
 
             Assert.False(await DbInitializer.ExistsAsync(connectionString));
 

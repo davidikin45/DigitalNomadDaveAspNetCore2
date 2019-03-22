@@ -63,6 +63,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using StackExchange.Profiling.Storage;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
@@ -1254,15 +1255,18 @@ namespace AspNetCore.Base
         //https://miniprofiler.com/dotnet/AspDotNetCore
         public virtual void ConfigureProfilingServices(IServiceCollection services)
         {
-            //MiniProfiler.Providers.SqlServer
-            //MiniProfiler.Providers.Sqlite
-
             services.AddMiniProfiler(options => {
                 options.PopupRenderPosition = StackExchange.Profiling.RenderPosition.BottomLeft;
                 options.PopupStartHidden = true; //ALT + P to display
                 options.PopupShowTimeWithChildren = true;
                 options.ResultsAuthorize = (request) => true;
                 options.UserIdProvider = (request) => request.HttpContext.User.Identity.Name;
+
+                // (default is 30 minutes in MemoryCacheStorage)
+                (options.Storage as MemoryCacheStorage).CacheDuration = TimeSpan.FromMinutes(30);
+
+                //MiniProfiler.Providers.SqlServer
+                //MiniProfiler.Providers.Sqlite
                 //options.Storage = new SqlServerStorage();
             }).AddEntityFramework();
         }

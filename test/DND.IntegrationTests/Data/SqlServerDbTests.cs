@@ -5,6 +5,7 @@ using DND.Data;
 using DND.Data.Initializers;
 using Hangfire.Initialization;
 using Microsoft.EntityFrameworkCore;
+using MiniProfiler.Initialization;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Xunit;
@@ -71,6 +72,36 @@ namespace DND.IntegrationTests.Data
             Assert.Equal(0, await DbInitializer.TableCountAsync(connectionString));
 
             await HangfireInitializer.EnsureDbDestroyedAsync(connectionString);
+            Assert.False(await DbInitializer.ExistsAsync(connectionString));
+        }
+
+        [Fact]
+        public async Task MiniProfilerInitialization()
+        {
+            var dbName = " MiniProfilerSqlTest";
+            var connectionString = new SqlConnectionStringBuilder()
+            {
+                DataSource = @"(LocalDB)\MSSQLLocalDB",
+                InitialCatalog = dbName,
+                IntegratedSecurity = true,
+                MultipleActiveResultSets = true
+            }.ConnectionString;
+
+            await MiniProfilerInitializer.EnsureDbDestroyedAsync(connectionString);
+            Assert.False(await DbInitializer.ExistsAsync(connectionString));
+
+            await MiniProfilerInitializer.EnsureTablesDeletedAsync(connectionString);
+            await MiniProfilerInitializer.EnsureDbAndTablesCreatedAsync(connectionString);
+
+            await DbInitializer.TestConnectionAsync(connectionString);
+
+            Assert.True(await DbInitializer.ExistsAsync(connectionString));
+            Assert.Equal(3, await DbInitializer.TableCountAsync(connectionString));
+
+            await MiniProfilerInitializer.EnsureTablesDeletedAsync(connectionString);
+            Assert.Equal(0, await DbInitializer.TableCountAsync(connectionString));
+
+            await MiniProfilerInitializer.EnsureDbDestroyedAsync(connectionString);
             Assert.False(await DbInitializer.ExistsAsync(connectionString));
         }
     }
