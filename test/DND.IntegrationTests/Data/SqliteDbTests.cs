@@ -78,7 +78,7 @@ namespace DND.IntegrationTests.Data
             await MiniProfilerInitializer.EnsureDbAndTablesCreatedAsync(connectionString);
 
             Assert.True(await DbInitializer.ExistsAsync(connectionString));
-            Assert.Equal(11, await DbInitializer.TableCountAsync(connectionString));
+            Assert.Equal(3, await DbInitializer.TableCountAsync(connectionString));
 
             var fullPath = Path.GetFullPath($"{dbName}.db");
             Assert.True(File.Exists(fullPath));
