@@ -12,6 +12,7 @@ using AspNetCore.Base.Hangfire;
 using AspNetCore.Base.Hosting;
 using AspNetCore.Base.Localization;
 using AspNetCore.Base.Middleware;
+using AspNetCore.Base.MiniProfiler;
 using AspNetCore.Base.ModelBinders;
 using AspNetCore.Base.ModelMetadataCustom.FluentMetadata;
 using AspNetCore.Base.ModelMetadataCustom.Providers;
@@ -1255,20 +1256,7 @@ namespace AspNetCore.Base
         //https://miniprofiler.com/dotnet/AspDotNetCore
         public virtual void ConfigureProfilingServices(IServiceCollection services)
         {
-            services.AddMiniProfiler(options => {
-                options.PopupRenderPosition = StackExchange.Profiling.RenderPosition.BottomLeft;
-                options.PopupStartHidden = true; //ALT + P to display
-                options.PopupShowTimeWithChildren = true;
-                options.ResultsAuthorize = (request) => true;
-                options.UserIdProvider = (request) => request.HttpContext.User.Identity.Name;
-
-                // (default is 30 minutes in MemoryCacheStorage)
-                (options.Storage as MemoryCacheStorage).CacheDuration = TimeSpan.FromMinutes(30);
-
-                //MiniProfiler.Providers.SqlServer
-                //MiniProfiler.Providers.Sqlite
-                //options.Storage = new SqlServerStorage();
-            }).AddEntityFramework();
+            services.AddMiniProfiler("", false);
         }
         #endregion
 
@@ -1342,8 +1330,6 @@ namespace AspNetCore.Base
                 //2. enable .NET profiler in windows tray
                 //3. access results at http: //localhost:2012
                 app.UseStackifyPrefix();
-
-                app.UseMiniProfiler();
 
                 // Non Api
                 app.UseWhen(context => !context.Request.Path.ToString().Contains("/api"),
@@ -1639,6 +1625,8 @@ namespace AspNetCore.Base
             app.UseGraphQLPlayground(new GraphQLPlaygroundOptions());
 
             app.UseRequestLocalization(localizationOptions);
+
+            app.UseMiniProfiler();
 
             app.UseMvc(routes =>
             {
