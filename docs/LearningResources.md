@@ -13,6 +13,15 @@
 ## Pluralsight Courses for MVC 5 Logging
 * [.NET Logging Done Right: An Opinionated Approach Using Serilog](https://app.pluralsight.com/library/courses/dotnet-logging-using-serilog-opinionated-approach/table-of-contents)
 
+## Pluralsight Courses for Dependency Injection
+* [Dependency Injection in ASP.NET Core](https://app.pluralsight.com/library/courses/aspdotnet-core-dependency-injection/table-of-contents)
+
+## Pluralsight Courses for Asynchronous Programming
+* [Getting Started with Asynchronous Programming in .NET](https://app.pluralsight.com/library/courses/getting-started-with-asynchronous-programming-dotnet/table-of-contents)
+
+## Pluralsight Courses for Profiling
+* [Using MiniProfiler in ASP.NET Core](https://app.pluralsight.com/library/courses/using-miniprofiler-aspdotnet-core/table-of-contents)
+
 ## Pluralsight Courses for Domain Driven Design and Rich Model
 * [Clean Architecture: Patterns, Practices, and Principles](https://app.pluralsight.com/library/courses/clean-architecture-patterns-practices-principles/table-of-contents)
 * [Modern Software Architecture: Domain Models, CQRS, and Event Sourcing](https://app.pluralsight.com/library/courses/modern-software-architecture-domain-models-cqrs-event-sourcing/table-of-contents)
@@ -20,6 +29,7 @@
 * [Applying Functional Principles in C#](https://app.pluralsight.com/library/courses/csharp-applying-functional-principles/table-of-contents)
 * [Domain-Driven Design in Practice](https://app.pluralsight.com/library/courses/domain-driven-design-in-practice/table-of-contents)
 * [Domain-Driven Design Fundamentals](https://app.pluralsight.com/library/courses/domain-driven-design-fundamentals/table-of-contents)
+* [CQRS in Practice](https://app.pluralsight.com/library/courses/cqrs-in-practice/table-of-contents)
 
 ## Pluralsight Courses for Entity Framework
 * [Entity Framework Core 2: Getting Started](https://app.pluralsight.com/library/courses/entity-framework-core-2-getting-started/table-of-contents)
@@ -28,6 +38,7 @@
 ## Pluralsight Courses for APIs
 * [Building a RESTful API with ASP.NET Core](https://app.pluralsight.com/library/courses/asp-dot-net-core-restful-api-building/table-of-contents)
 * [Building Business Applications with Angular and ASP.NET Core](https://www.pluralsight.com/courses/angular-aspdotnet-core-business-applications)
+* [Documenting an ASP.NET Core API with OpenAPI / Swagger](https://app.pluralsight.com/library/courses/aspdotnet-core-api-openapi-swagger/table-of-contents)
 
 ## Pluralsight Courses for securing APIs with Bearer Tokens
 * [Building a Web App with ASP.NET Core, MVC, Entity Framework Core, Bootstrap, and Angular](https://app.pluralsight.com/library/courses/aspnetcore-mvc-efcore-bootstrap-angular-web/table-of-contents)
@@ -55,5 +66,5 @@
 ## Pluralsight Courses for Chatbot
 * [Creating Voice and Chatbots That Work Everywhere](https://app.pluralsight.com/library/courses/creating-voice-chatbots-work-everywhere/table-of-contents)
 
-##Pluralsight Courses for Git
+## Pluralsight Courses for Git
 * [Getting Started with Git](https://www.pluralsight.com/courses/git-getting-started)

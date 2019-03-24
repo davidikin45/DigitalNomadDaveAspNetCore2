@@ -16,7 +16,7 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 ```
-.NET Core 2.1
+.NET Core 2.2
 ```
 
 ### Installing
@@ -37,33 +37,17 @@ All web host processes and database creation/teardown have been automated using 
 No database required. No Domain Events fired.
 
 ```
-Execute BatchFiles\Test\UnitTests.bat
-OR
-dotnet test test\DND.UnitTests.Common\DND.UnitTests.Common.csproj
-dotnet test test\DND.UnitTests.Blog\DND.UnitTests.Blog.csproj
-dotnet test test\DND.UnitTests.CMS\DND.UnitTests.CMS.csproj
-dotnet test test\DND.UnitTests.DynamicForms\DND.UnitTests.DynamicForms.csproj
-dotnet test test\DND.UnitTests.FlightSearch\DND.UnitTests.FlightSearch.csproj
+dotnet test test\DND.UnitTests\DND.UnitTests.csproj
 ```
 
-### DND.IntegrationTestsXUnit (TestServer)
+### DND.IntegrationTests (WebApplicationFactory/TestServer)
 
-Automatically creates an Integration database on Local\MSSQLLOCALDB, seeds and runs an in process TestServer. On completion database is deleted. Domain Events fired.
-
-```
-Execute BatchFiles\Test\IntegrationTestsNUnit.bat
-OR
-dotnet test test\DND.IntegrationTestsXUnit\DND.IntegrationTestsXUnit.csproj
-```
-### DND.IntegrationTestsNUnit (Mocking)
-
-Automatically creates a Integration database on Local\MSSQLLOCALDB and seeds. On completion database is deleted. No Domain Events fired.
+Automatically creates an Integration database on Local\MSSQLLOCALDB, seeds and runs an in process TestServer. Domain Events fired.
 
 ```
-Execute BatchFiles\Test\IntegrationTestsNUnit.bat
-OR
-dotnet test test\DND.IntegrationTestsNUnit\DND.IntegrationTestsNUnit.csproj
+dotnet test test\DND.IntegrationTests\DND.IntegrationTests.csproj
 ```
+
 ### DND.UITests (SpecFlow & Selenium)
 
 Automatically creates a Integration database on Local\MSSQLLOCALDB, seeds and launches a Kestral Web Host using dotnet run. On completion database is deleted. Domain Events fired.
@@ -110,7 +94,7 @@ Publish DND.Web
 * [SpecFlow](http://specflow.org/) - Behaviour Driven Development (BDD) testing framework
 * [Selenium](https://www.seleniumhq.org/) - Browser Automation
 * [.NET Core CLI](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x) - .NET Core Command Line Tools
-* [.NET Core TestServer](https://docs.microsoft.com/en-us/aspnet/core/testing/integration-testing?view=aspnetcore-2.0) - InProcess Integration Tests
+* [.NET Core WebApplicationFactory/TestServer](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-2.2) - InProcess Integration Tests
 * [Stackify Prefix](https://stackify.com/prefix/) - Runtime performance profiler for .NET Core
 * [MiniProfiler](https://miniprofiler.com/dotnet/AspDotNetCore) - Runtime performance profiler for .NET Core
 * [Visual Studio Team Services](https://www.visualstudio.com/team-services/) - Continuous Integration (CI) and Continuous Deployment (CD)
