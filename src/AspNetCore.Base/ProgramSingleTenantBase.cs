@@ -35,6 +35,8 @@ namespace AspNetCore.Base
 
                 var host = CreateWebHostBuilder(args).Build();
 
+                //https://andrewlock.net/running-async-tasks-on-app-startup-in-asp-net-core-part-2/
+                //Even though the tasks run after the IConfiguration and DI container configuration has completed, they run before the IStartupFilters have run and the middleware pipeline has been configured.
                 await host.InitAsync();
 
                 //AppStartup.Configure will be called here
