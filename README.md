@@ -112,6 +112,7 @@ Publish DND.Web
 * [.NET Core CLI](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x) - .NET Core Command Line Tools
 * [.NET Core TestServer](https://docs.microsoft.com/en-us/aspnet/core/testing/integration-testing?view=aspnetcore-2.0) - InProcess Integration Tests
 * [Stackify Prefix](https://stackify.com/prefix/) - Runtime performance profiler for .NET Core
+* [MiniProfiler](https://miniprofiler.com/dotnet/AspDotNetCore) - Runtime performance profiler for .NET Core
 * [Visual Studio Team Services](https://www.visualstudio.com/team-services/) - Continuous Integration (CI) and Continuous Deployment (CD)
 * [Identity Server 4](http://docs.identityserver.io/en/release/) - .NET Core Identity Provider
 * [NCrunch](https://www.ncrunch.net/) - Concurrent testing tool for Visual Studio
