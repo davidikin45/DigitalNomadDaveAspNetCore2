@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace AspNetCore.Base.Tasks
 {
     //https://andrewlock.net/running-async-tasks-on-app-startup-in-asp-net-core-part-2/
+    //This allows initialization tasks to run AFTER IStartupFilters have run and the middleware pipeline has been configured.
     public class TaskExecutingServer : IServer
     {
         // Inject the original IServer implementation (KestrelServer)
