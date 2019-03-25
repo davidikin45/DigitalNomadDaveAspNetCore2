@@ -73,7 +73,7 @@ namespace AspNetCore.Base.MultiTenancy.Request.IdentificationStrategies
                 return tenantId != null;
             }
 
-            var tenant = GetTenantAsync(httpContext).Result;
+            var tenant = GetTenantAsync(httpContext).GetAwaiter().GetResult();
             if (tenant != null)
             {
                 tenantId = tenant.Id;

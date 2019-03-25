@@ -228,7 +228,8 @@ namespace AspNetCore.Testing.TestServer
 
         public virtual void InitializeWebHost(IWebHost host)
         {
-            host.InitAsync().GetAwaiter().GetResult();
+            //Throws original exception rather than AggregateException
+            //host.InitAsync().GetAwaiter().GetResult();
         }
 
         public HttpClient CreateClientToTestSecureEndpoint()

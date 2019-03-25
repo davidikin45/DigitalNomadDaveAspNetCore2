@@ -23,20 +23,7 @@ namespace AspNetCore.Base.Tasks
         public async Task StartAsync<TContext>(IHttpApplication<TContext> application, CancellationToken cancellationToken)
         {
             // Run the tasks first
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                if (scope.ServiceProvider.GetService<TaskRunnerDbInitialization>() != null)
-                {
-                    var taskRunner = scope.ServiceProvider.GetRequiredService<TaskRunnerDbInitialization>();
-                    await taskRunner.RunTasksAfterApplicationConfigurationAsync();
-                }
-
-                if (scope.ServiceProvider.GetService<TaskRunnerInitialization>() != null)
-                {
-                    var taskRunner = scope.ServiceProvider.GetRequiredService<TaskRunnerInitialization>();
-                    await taskRunner.RunTasksAfterApplicationConfigurationAsync();
-                }
-            }
+            await _serviceProvider.InitAsync();
 
             // Now start the Kestrel server properly
             await _server.StartAsync(application, cancellationToken);

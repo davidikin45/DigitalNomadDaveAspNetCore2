@@ -17,6 +17,7 @@ using AspNetCore.Base.ModelBinders;
 using AspNetCore.Base.ModelMetadataCustom.FluentMetadata;
 using AspNetCore.Base.ModelMetadataCustom.Providers;
 using AspNetCore.Base.MultiTenancy;
+using AspNetCore.Base.MultiTenancy.Middleware;
 using AspNetCore.Base.MvcFeatures;
 using AspNetCore.Base.MvcServices;
 using AspNetCore.Base.Reflection;
@@ -195,6 +196,7 @@ namespace AspNetCore.Base
         //If there are multiple registrations for the same service type the last registered type wins.
         public virtual void ConfigureServices(IServiceCollection services)
         {
+
             ConfigureSettingsServices(services);
             ConfigureDatabaseServices(services);
             ConfigureAuthenticationServices(services);

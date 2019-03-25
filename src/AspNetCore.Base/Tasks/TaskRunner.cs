@@ -32,7 +32,7 @@ namespace AspNetCore.Base.Tasks
             _logger = logger;
         }
 
-        public async Task RunTasksAfterApplicationConfigurationAsync()
+        public async Task RunDbInitializationTasksAsync()
         {
             _logger.LogInformation("Starting async db initialization");
 
@@ -73,7 +73,7 @@ namespace AspNetCore.Base.Tasks
             _logger = logger;
         }
 
-        public async Task RunTasksAfterApplicationConfigurationAsync()
+        public async Task RunInitializationTasksAsync()
         {
             _logger.LogInformation("Starting async initialization");
 

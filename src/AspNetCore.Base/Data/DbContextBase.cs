@@ -86,7 +86,7 @@ namespace AspNetCore.Base.Data
         //https://docs.microsoft.com/en-us/azure/app-service/app-service-web-tutorial-connect-msi
         public string GetMSIAccessTtoken()
         {
-            var accessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/").Result;
+            var accessToken = (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/").GetAwaiter().GetResult();
             return accessToken;
         }
         #endregion

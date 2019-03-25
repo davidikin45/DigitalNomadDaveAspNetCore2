@@ -37,6 +37,8 @@ All web host processes and database creation/teardown have been automated using 
 No database required. No Domain Events fired.
 
 ```
+Execute batch\test\UnitTests.bat
+OR
 dotnet test test\DND.UnitTests\DND.UnitTests.csproj
 ```
 
@@ -45,6 +47,8 @@ dotnet test test\DND.UnitTests\DND.UnitTests.csproj
 Automatically creates an Integration database on Local\MSSQLLOCALDB, seeds and runs an in process TestServer. Domain Events fired.
 
 ```
+Execute batch\test\IntegrationTests.bat
+OR
 dotnet test test\DND.IntegrationTests\DND.IntegrationTests.csproj
 ```
 
@@ -56,7 +60,7 @@ Automatically creates a Integration database on Local\MSSQLLOCALDB, seeds and la
 Set SeleniumUrl in test\DND.UITests\app.config
 ```
 ```
-Execute BatchFiles\Test\UITests.bat 
+Execute batch\test\UITests.bat 
 OR
 dotnet test test\DND.UITests\DND.UITests.csproj
 ```

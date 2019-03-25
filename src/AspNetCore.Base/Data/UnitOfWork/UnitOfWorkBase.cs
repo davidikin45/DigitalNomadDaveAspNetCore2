@@ -162,7 +162,7 @@ namespace AspNetCore.Base.Data.UnitOfWork
         #region Save Changes
         public virtual Result<int> Complete()
         {
-            return CompleteAsync(CancellationToken.None).Result;
+            return CompleteAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public virtual Task<Result<int>> CompleteAsync()

@@ -23,7 +23,7 @@ namespace AspNetCore.Base.MultiTenancy
         public MultiTenantService(IHttpContextAccessor accessor, ITenantsStore<TTenant> store, ITenantIdentificationService<TTenant> service)
         {
             _store = store;
-            _tenant = service.GetTenantAsync(accessor.HttpContext).Result;
+            _tenant = service.GetTenantAsync(accessor.HttpContext).GetAwaiter().GetResult();
         }
 
         public string TenantPropertyName => nameof(IEntityTenantFilter.TenantId);

@@ -128,6 +128,8 @@ namespace AspNetCore.Base.MultiTenancy
             return services.AddTenantConfiguration<TTenant>(target);
         }
 
+        //Addition to AppStartup.Configure for configuring Request Pipeline
+        //https://andrewlock.net/exploring-istartupfilter-in-asp-net-core/
         public static IServiceCollection AddTenantMiddleware<TTenant>(this IServiceCollection services)
            where TTenant : AppTenant
         {

@@ -11,7 +11,7 @@ namespace AspNetCore.Base.ApiClient
         private readonly string accessToken;
         public AuthorizationJwtProxyHttpHandler(IHttpContextAccessor httpContextAccessor)
         {
-            accessToken =  httpContextAccessor.HttpContext.GetTokenAsync("access_token").Result;
+            accessToken =  httpContextAccessor.HttpContext.GetTokenAsync("access_token").GetAwaiter().GetResult();
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(
