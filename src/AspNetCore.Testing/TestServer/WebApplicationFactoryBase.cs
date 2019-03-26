@@ -228,8 +228,10 @@ namespace AspNetCore.Testing.TestServer
 
         public virtual void InitializeWebHost(IWebHost host)
         {
+            //TestServer constructor calls var host = builder.UseServer(this) which overrides the IServer decorator for TaskExecutingServer
+
             //Throws original exception rather than AggregateException
-            //host.InitAsync().GetAwaiter().GetResult();
+            host.InitAsync().GetAwaiter().GetResult();
         }
 
         public HttpClient CreateClientToTestSecureEndpoint()
