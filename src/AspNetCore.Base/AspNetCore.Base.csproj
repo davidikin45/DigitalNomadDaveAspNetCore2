@@ -27,11 +27,11 @@
     <PackageReference Include="GraphQL.Server.Transports.AspNetCore" Version="3.4.0" />
     <PackageReference Include="GraphQL.Server.Transports.WebSockets" Version="3.4.0" />
     <PackageReference Include="GraphQL.Server.Ui.Playground" Version="3.4.0" />
-    <PackageReference Include="Hangfire" Version="1.6.23" />
+    <PackageReference Include="Hangfire" Version="1.6.24" />
     <PackageReference Include="Hangfire.Initialization" Version="1.0.16" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.6.0" />
     <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.1" />
     <PackageReference Include="HtmlTags.AspNetCore" Version="7.0.3" />
     <PackageReference Include="IdentityModel" Version="3.10.6" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />
