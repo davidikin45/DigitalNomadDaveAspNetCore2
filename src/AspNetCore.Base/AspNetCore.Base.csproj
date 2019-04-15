@@ -19,7 +19,7 @@
     <PackageReference Include="Autofac.AspNetCore.Multitenant" Version="1.0.2" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
     <PackageReference Include="AutoMapper" Version="8.0.0" />
-    <PackageReference Include="AutoMapper.Extensions.ExpressionMapping" Version="2.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.ExpressionMapping" Version="2.0.1" />
     <PackageReference Include="BouncyCastle.NetCore" Version="1.8.5" />
     <PackageReference Include="Database.Initialization" Version="1.0.13" />
     <PackageReference Include="EasyNetQ" Version="3.4.5" />
@@ -28,12 +28,12 @@
     <PackageReference Include="GraphQL.Server.Transports.WebSockets" Version="3.4.0" />
     <PackageReference Include="GraphQL.Server.Ui.Playground" Version="3.4.0" />
     <PackageReference Include="Hangfire" Version="1.7.0" />
-    <PackageReference Include="Hangfire.Initialization" Version="1.0.17" />
+    <PackageReference Include="Hangfire.Initialization" Version="1.0.18" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.6.0" />
     <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.1" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.2" />
     <PackageReference Include="HtmlTags.AspNetCore" Version="7.0.3" />
-    <PackageReference Include="IdentityModel" Version="3.10.6" />
+    <PackageReference Include="IdentityModel" Version="3.10.7" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />
     <PackageReference Include="Marvin.Cache.Headers" Version="3.1.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
@@ -66,11 +66,11 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="5.0.3" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.2.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.NetTopologySuite" Version="2.2.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" Version="2.2.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.NetTopologySuite" Version="2.2.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.NetTopologySuite" Version="2.2.4" />
     <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="2.2.0" />
