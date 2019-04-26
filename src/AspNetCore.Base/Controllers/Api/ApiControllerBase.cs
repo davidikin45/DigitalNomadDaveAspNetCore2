@@ -196,6 +196,11 @@ namespace AspNetCore.Base.Controllers.Api
         {
             return new StatusCodeResult(StatusCodes.Status403Forbidden);
         }
+
+        protected virtual ActionResult Error(string errorMessage)
+        {
+            return BadRequest(errorMessage);
+        }
         protected virtual ActionResult BadRequest(string errorMessage)
         {
             var problemDetails = new ProblemDetails

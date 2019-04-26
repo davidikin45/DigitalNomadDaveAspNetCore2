@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AspNetCore.Base.Controllers.Api
 {
     //using CSharpFunctionalExtensions;
-    public abstract class ApiControllerCQRSBase : ControllerBase
+    public abstract class ApiControllerCQRSBase : ApiControllerBase
     {
         protected new IActionResult Ok()
         {
@@ -24,7 +24,11 @@ namespace AspNetCore.Base.Controllers.Api
 
         protected IActionResult FromResult(Result result)
         {
-            return result.IsSuccess ? Ok() : Error("");
+            return result.IsSuccess ? Ok() : ValidationErrors(result);
+        }
+        protected IActionResult FromResult<T>(Result<T> result)
+        {
+            return result.IsSuccess ? Ok(result.Value) : ValidationErrors(result);
         }
     }
 }

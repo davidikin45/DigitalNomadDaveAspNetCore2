@@ -16,9 +16,9 @@
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit" Version="3.0.3" />
     <PackageReference Include="Autofac" Version="4.9.2" />
-    <PackageReference Include="Autofac.AspNetCore.Multitenant" Version="1.0.2" />
+    <PackageReference Include="Autofac.AspNetCore.Multitenant" Version="1.1.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
-    <PackageReference Include="AutoMapper" Version="8.0.0" />
+    <PackageReference Include="AutoMapper" Version="8.1.0" />
     <PackageReference Include="AutoMapper.Extensions.ExpressionMapping" Version="2.0.1" />
     <PackageReference Include="BouncyCastle.NetCore" Version="1.8.5" />
     <PackageReference Include="Database.Initialization" Version="1.0.13" />
@@ -27,13 +27,13 @@
     <PackageReference Include="GraphQL.Server.Transports.AspNetCore" Version="3.4.0" />
     <PackageReference Include="GraphQL.Server.Transports.WebSockets" Version="3.4.0" />
     <PackageReference Include="GraphQL.Server.Ui.Playground" Version="3.4.0" />
-    <PackageReference Include="Hangfire" Version="1.7.0" />
-    <PackageReference Include="Hangfire.Initialization" Version="1.0.19" />
+    <PackageReference Include="Hangfire" Version="1.7.1" />
+    <PackageReference Include="Hangfire.Initialization" Version="1.0.20" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.6.0" />
     <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.2" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.3" />
     <PackageReference Include="HtmlTags.AspNetCore" Version="7.0.3" />
-    <PackageReference Include="IdentityModel" Version="3.10.7" />
+    <PackageReference Include="IdentityModel" Version="3.10.9" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.7.0" />
     <PackageReference Include="Marvin.Cache.Headers" Version="3.1.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
@@ -94,7 +94,7 @@
     <PackageReference Include="Serilog.Sinks.Debug" Version="1.0.1" />
     <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="7.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.0.0" />
-    <PackageReference Include="StackifyMiddleware" Version="3.0.2" />
+    <PackageReference Include="StackifyMiddleware" Version="3.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-beta" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
     <PackageReference Include="WebApiContrib.Core" Version="2.2.0" />
