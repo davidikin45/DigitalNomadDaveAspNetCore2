@@ -10,13 +10,19 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
         bool IsEmpty { get; }
         event EventHandler<string> OnQueryRemoved;
 
+        void AddDynamicSubscription<Q, R, QH>(string queryName)
+        where QH : IDynamicQueryHandler<Q, R>;
+
+        void RemoveDynamicSubscription<Q, R, QH>(string eventName)
+        where QH : IDynamicQueryHandler<Q, R>;
+
         void AddSubscription<Q, R, QH>()
            where Q : IQuery<R>
-           where QH : IQueryHandler<Q, R>;
+           where QH : ITypedQueryHandler<Q, R>;
 
         void RemoveSubscription<Q, R, QH>()
-             where Q : IQuery<R>
-             where QH : IQueryHandler<Q, R>;
+              where Q : IQuery<R>
+             where QH : ITypedQueryHandler<Q, R>;
 
         bool HasSubscriptionsForQuery<Q, TResult>() where Q : IQuery<TResult>;
         bool HasSubscriptionsForQuery(string queryName);
@@ -24,10 +30,11 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
 
         void Clear();
 
+        IReadOnlyDictionary<string, QuerySubscriptionInfo> GetSubscriptions();
         IEnumerable<QuerySubscriptionInfo> GetSubscriptionsForQuery<TResult>(IQuery<TResult> query);
         IEnumerable<QuerySubscriptionInfo> GetSubscriptionsForQuery<Q, TResult>() where Q : IQuery<TResult>;
         IEnumerable<QuerySubscriptionInfo> GetSubscriptionsForQuery(string queryName);
-
+        IEnumerable<string> GetQueries();
         string GetQueryKey<T>();
     }
 }

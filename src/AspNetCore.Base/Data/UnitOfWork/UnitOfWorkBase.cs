@@ -17,7 +17,7 @@ namespace AspNetCore.Base.Data.UnitOfWork
 {
     public abstract class UnitOfWorkBase : IUnitOfWork
     {
-        protected bool commitingChanges;
+        public bool CommitingChanges { get; set; }
         protected readonly bool validateOnSave;
         protected readonly IValidationService validationService;
 
@@ -183,8 +183,8 @@ namespace AspNetCore.Base.Data.UnitOfWork
                     }
                 }
 
-                bool commitChanges = !commitingChanges;
-                commitingChanges = true;
+                bool commitChanges = !CommitingChanges;
+                CommitingChanges = true;
 
                 ExceptionDispatchInfo lastError = null;
 
@@ -207,7 +207,7 @@ namespace AspNetCore.Base.Data.UnitOfWork
 
                 if (commitChanges)
                 {
-                    commitingChanges = false;
+                    CommitingChanges = false;
                 }
 
                 if (lastError != null)

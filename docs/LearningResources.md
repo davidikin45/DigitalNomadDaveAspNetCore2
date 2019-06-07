@@ -69,3 +69,6 @@
 
 ## Pluralsight Courses for Git
 * [Getting Started with Git](https://www.pluralsight.com/courses/git-getting-started)
+
+## Pluralsight Courses for SignalR
+* [Getting Started with ASP.NET Core SignalR](https://app.pluralsight.com/library/courses/aspdotnet-core-signalr-getting-started/table-of-contents)

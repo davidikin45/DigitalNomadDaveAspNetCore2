@@ -1,9 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Cqrs.Decorators.Command
 {
     public sealed class CacheQueryDecorator<TQuery, TResult> : IQueryHandler<TQuery, TResult>
-        where TQuery : IQuery<TResult>
     {
         private readonly IQueryHandler<TQuery, TResult> _handler;
 
@@ -12,9 +12,9 @@ namespace AspNetCore.Base.Cqrs.Decorators.Command
             _handler = handler;
         }
 
-        public async Task<TResult> HandleAsync(TQuery query)
+        public async Task<TResult> HandleAsync(string queryName, TQuery query, CancellationToken cancellationToken = default)
         {
-            TResult result = await _handler.HandleAsync(query);
+            TResult result = await _handler.HandleAsync(queryName, query, cancellationToken);
             return result;
         }
     }

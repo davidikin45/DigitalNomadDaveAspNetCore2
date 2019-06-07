@@ -64,6 +64,7 @@ namespace AspNetCore.Base.HostedServices
                     await Task.Delay(delay);
                 }
 
+                //Unit of Work
                 using (var scope = _services.CreateScope())
                 {
                     var scopedProcessingService =

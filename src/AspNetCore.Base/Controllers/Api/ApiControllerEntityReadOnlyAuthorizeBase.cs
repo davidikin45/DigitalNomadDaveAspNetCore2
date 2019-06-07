@@ -54,7 +54,7 @@ namespace AspNetCore.Base.Controllers.Api
         public IEntityService Service { get; private set; }
         public ITypeHelperService TypeHelperService { get; private set; }
 
-        public ApiControllerEntityReadOnlyAuthorizeBase(IEntityService service, IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)
+        public ApiControllerEntityReadOnlyAuthorizeBase(IEntityService service,  IMapper mapper, IEmailService emailService, LinkGenerator linkGenerator, ITypeHelperService typeHelperService, AppSettings appSettings)
         : base(mapper, emailService, linkGenerator, appSettings)
         {
             Service = service;

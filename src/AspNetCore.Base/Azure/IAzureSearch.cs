@@ -5,6 +5,6 @@ namespace AspNetCore.Base.AzureStorage
 {
     public interface IAzureSearch
     {
-        Task<DocumentSearchResult> SearchAsync(string searchTerm);
+        Task<DocumentSearchResult<Document>> SearchAsync(string searchTerm);
     }
 }

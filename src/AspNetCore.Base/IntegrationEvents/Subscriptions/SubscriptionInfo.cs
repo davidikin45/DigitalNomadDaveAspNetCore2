@@ -2,12 +2,19 @@
 
 namespace AspNetCore.Base.IntegrationEvents.Subscriptions
 {
-    public partial class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManager
+    public partial class IntegrationEventBusInMemorySubscriptionsManager : IIntegrationEventBusSubscriptionsManager
     {
         public class SubscriptionInfo
         {
             public bool IsDynamic { get; }
             public Type HandlerType { get; }
+
+            public int HandlerCount { get; private set; } = 1;
+
+            public void IncrementHandlerCount()
+            {
+                HandlerCount++;
+            }
 
             private SubscriptionInfo(bool isDynamic, Type handlerType)
             {

@@ -9,7 +9,9 @@ using AspNetCore.Base.ErrorHandling;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Filters;
 using AspNetCore.Base.Hangfire;
+using AspNetCore.Base.HostedServices;
 using AspNetCore.Base.Hosting;
+using AspNetCore.Base.IntegrationEvents;
 using AspNetCore.Base.Localization;
 using AspNetCore.Base.Middleware;
 using AspNetCore.Base.MiniProfiler;
@@ -20,6 +22,7 @@ using AspNetCore.Base.MultiTenancy;
 using AspNetCore.Base.MultiTenancy.Middleware;
 using AspNetCore.Base.MvcFeatures;
 using AspNetCore.Base.MvcServices;
+using AspNetCore.Base.Notifications;
 using AspNetCore.Base.Reflection;
 using AspNetCore.Base.Routing;
 using AspNetCore.Base.Routing.Constraints;
@@ -65,6 +68,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Refit;
 using StackExchange.Profiling.Storage;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
@@ -75,12 +79,15 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using Westwind.AspNetCore.LiveReload;
 using static AspNetCore.Base.Localization.LocalizationExtensions;
 
 namespace AspNetCore.Base
 {
     public abstract class AppStartup
     {
+        //https://github.com/aspnet/Extensions/issues/1096
+        //.NET Core 3.0. IHostingEnvironment and IConfiguration only
         public AppStartup(ILoggerFactory loggerFactory, IConfiguration configuration, IHostingEnvironment hostingEnvironment)
         {
             Logger = loggerFactory.CreateLogger("Startup");
@@ -216,9 +223,8 @@ namespace AspNetCore.Base
             ConfigureApiServices(services);
             ConfigureHttpClients(services);
             ConfigureProfilingServices(services);
-
-            //https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services?view=aspnetcore-2.1
-            AddHostedServices(services);
+            ConfigureHostedServices(services);
+            ConfigureLiveReloadServices(services);
 
             AddHangfireJobServices(services);
         }
@@ -232,6 +238,7 @@ namespace AspNetCore.Base
 
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
             services.AddTransient(sp => sp.GetService<IOptions<AppSettings>>().Value);
+
 
             services.Configure<LocalizationSettings>(Configuration.GetSection("LocalizationSettings"));
             services.AddTransient(sp => sp.GetService<IOptions<LocalizationSettings>>().Value);
@@ -393,7 +400,7 @@ namespace AspNetCore.Base
             Logger.LogInformation("Configuring Databases");
 
             var connectionStrings = ManipulateConnectionStrings(GetSettings<ConnectionStrings>("ConnectionStrings"));
-            
+
             var tenantsConnectionString = connectionStrings.ContainsKey("TenantConnection") ? connectionStrings["TenantConnection"] : null;
             var identityConnectionString = connectionStrings.ContainsKey("IdentityConnection") ? connectionStrings["IdentityConnection"] : null;
             var defaultConnectionString = connectionStrings.ContainsKey("DefaultConnection") ? connectionStrings["DefaultConnection"] : null;
@@ -725,13 +732,17 @@ namespace AspNetCore.Base
             var switchSettings = GetSettings<SwitchSettings>("SwitchSettings");
             var authorizationSettings = GetSettings<AuthorizationSettings>("AuthorizationSettings");
 
-            //settings will automatically be used by JsonConvert.SerializeObject/DeserializeObject
+            //settings will automatically be used by JsonConvert.SerializeObject/DeserializeObject.
             var defaultSettings = new JsonSerializerSettings()
             {
-                ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                 Formatting = Formatting.Indented,
-                Converters =  new List<JsonConverter>() { new Newtonsoft.Json.Converters.StringEnumConverter() },
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
+                Converters = new List<JsonConverter>() { new Newtonsoft.Json.Converters.StringEnumConverter() },
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                DefaultValueHandling = DefaultValueHandling.Include,
+                NullValueHandling = NullValueHandling.Include,
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                TypeNameHandling = TypeNameHandling.None
             };
 
             JsonConvert.DefaultSettings = () => defaultSettings;
@@ -739,13 +750,24 @@ namespace AspNetCore.Base
             //https://www.strathweb.com/2018/04/generic-and-dynamically-generated-controllers-in-asp-net-core-mvc/
 
             services.AddCustomProblemDetailsClientErrorFactory();
+        
+            //.NET Core 3.0
+            //services.AddControllers(); //Controllers
+            //services.AddRazorPages(); //Razor Pages, Included in AddMvc
+            //services.AddControllersWithViews() //Controllers + Views, Included in AddMvc
 
-            // Add framework services.
             var mvc = services.AddMvc(options =>
             {
-
                 //Versioning Fix until .NET Core 3.0
                 options.EnableEndpointRouting = false;
+
+                //.NET Core 3.0 
+                //By default System.Text.Json is case sensitive. JSON.NET is default case insenstive.
+                //options.SerializerOptions.WriteIndented = defaultSettings.Formatting == Formatting.Indented;
+                //options.SerializerOptions.IgnoreNullValues = defaultSettings.DefaultValueHandling == DefaultValueHandling.Ignore;
+                //options.SerializerOptions.IgnoreReadOnlyProperties = false;
+                //options.SerializerOptions.PropertyNameCaseInsensitive = true;
+                //options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 
                 //https://github.com/aspnet/Security/issues/1764
                 options.AllowCombiningAuthorizeFilters = false;
@@ -760,10 +782,17 @@ namespace AspNetCore.Base
                     options.AddOptionalCultureRouteConvention();
                 }
 
+                //Middleware Pipeline - Wraps MVC
+                options.Filters.Add(new MiddlewareFilterAttribute(typeof(LocalizationPipeline)));
+
+                //Action Pipeline - Wraps Actions within MVC
+                options.Filters.Add<ValidatableAttribute>();
                 options.Filters.Add<ExceptionHandlingFilter>();
                 options.Filters.Add<OperationCancelledExceptionFilter>();
 
-                options.Filters.Add(new MiddlewareFilterAttribute(typeof(LocalizationPipeline)));
+                //https://stackoverflow.com/questions/31952002/asp-net-core-mvc-how-to-get-raw-json-bound-to-a-string-without-a-type
+                options.InputFormatters.Insert(0, new RawStringRequestBodyInputFormatter());
+                options.InputFormatters.Insert(0, new RawBytesRequestBodyInputFormatter());
 
                 //options.Filters.Add(typeof(ModelValidationFilter));
                 ConfigureMvcCachingProfiles(options);
@@ -780,14 +809,33 @@ namespace AspNetCore.Base
                 }
             })
             .AddXmlSerializerFormatters() //XML Opt out. Contract Serializer is Opt in
-            .AddJsonOptions(opt =>
+            .AddJsonOptions(options =>
             {
                 //https://github.com/aspnet/Mvc/blob/32e21e2a5c63e20bd62b9c1699932207b962fc50/src/Microsoft.AspNetCore.Mvc.Formatters.Json/JsonSerializerSettingsProvider.cs#L31-L41
-                opt.SerializerSettings.ReferenceLoopHandling = defaultSettings.ReferenceLoopHandling;
-                opt.SerializerSettings.Formatting = defaultSettings.Formatting;
-                opt.SerializerSettings.Converters = defaultSettings.Converters;
-                opt.SerializerSettings.ContractResolver = defaultSettings.ContractResolver;
+                options.SerializerSettings.ReferenceLoopHandling = defaultSettings.ReferenceLoopHandling;
+                options.SerializerSettings.Formatting = defaultSettings.Formatting;
+                options.SerializerSettings.Converters = defaultSettings.Converters;
+                options.SerializerSettings.ContractResolver = defaultSettings.ContractResolver;
+                options.SerializerSettings.DefaultValueHandling = defaultSettings.DefaultValueHandling;
+                options.SerializerSettings.NullValueHandling = defaultSettings.NullValueHandling;
+                options.SerializerSettings.MissingMemberHandling = defaultSettings.MissingMemberHandling;
+                options.SerializerSettings.TypeNameHandling = defaultSettings.TypeNameHandling;
             })
+           //.NET Core 3.0
+           //This sets up MVC and configures it to use Json.NET instead of that new API(System.Text.Json). AddNewtonsoftJson method has an overload that allows you to configure the Json.NET options like you were used to with AddJsonOptions in ASP.NET Core 2.x
+           //.AddNewtonsoftJson(options =>
+           //{
+           //    //using Microsoft.AspNetCore.Mvc.NewtonsoftJson
+           //    //https://github.com/aspnet/Mvc/blob/32e21e2a5c63e20bd62b9c1699932207b962fc50/src/Microsoft.AspNetCore.Mvc.Formatters.Json/JsonSerializerSettingsProvider.cs#L31-L41
+           //    options.SerializerSettings.ReferenceLoopHandling = defaultSettings.ReferenceLoopHandling;
+           //    options.SerializerSettings.Formatting = defaultSettings.Formatting;
+           //    options.SerializerSettings.Converters = defaultSettings.Converters;
+           //    options.SerializerSettings.ContractResolver = defaultSettings.ContractResolver;
+           //    options.SerializerSettings.DefaultValueHandling = defaultSettings.DefaultValueHandling;
+           //    options.SerializerSettings.NullValueHandling = defaultSettings.NullValueHandling;
+           //    options.SerializerSettings.MissingMemberHandling = defaultSettings.MissingMemberHandling;
+           //    options.SerializerSettings.TypeNameHandling = defaultSettings.TypeNameHandling;
+           //})
             .AddCookieTempDataProvider(options =>
             {
                 // new API
@@ -801,12 +849,14 @@ namespace AspNetCore.Base
             //The AddControllersAsServices method does two things - it registers all of the Controllers in your application with the DI container as Transient (if they haven't already been registered) and replaces the IControllerActivator registration with the ServiceBasedControllerActivator
             .AddControllersAsServices()
             .UsePointModelBinder()
+            //.NET Core 3.0 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation
+            //.AddRazorRuntimeCompilation();
             .UseFluentMetadata()
             .UseDisplayAttributes()
             .UseDisplayConventionFilters();
 
             services.AddRequestLocalizationOptions(
-                localizationSettings.DefaultCulture, 
+                localizationSettings.DefaultCulture,
                 localizationSettings.SupportAllCountriesFormatting,
                 localizationSettings.SupportAllLanguagesFormatting,
                 localizationSettings.SupportUICultureFormatting,
@@ -854,7 +904,7 @@ namespace AspNetCore.Base
 
                 foreach (var sharedViewFolder in sharedViewFolders)
                 {
-                    o.ViewLocationFormats.Add("/" + appSettings.MvcImplementationFolder + "Shared/Views/"+ sharedViewFolder + "/{0}" + RazorViewEngine.ViewExtension);
+                    o.ViewLocationFormats.Add("/" + appSettings.MvcImplementationFolder + "Shared/Views/" + sharedViewFolder + "/{0}" + RazorViewEngine.ViewExtension);
                 }
             });
 
@@ -1011,14 +1061,14 @@ namespace AspNetCore.Base
         }
         #endregion
 
-        #region Cqrs
+        #region Events
         public virtual void ConfigureEventServices(IServiceCollection services)
         {
             Logger.LogInformation("Configuring Events");
 
             services.AddCqrs(ApplicationParts);
-            services.AddDomainEvents(ApplicationParts);
-            //services.AddIntegrationEvents(ApplicationParts);
+            services.AddHangFireDomainEvents(ApplicationParts);
+            services.AddHangFireIntegrationEvents(ApplicationParts);
         }
         #endregion
 
@@ -1028,6 +1078,15 @@ namespace AspNetCore.Base
             Logger.LogInformation("Configuring SignalR");
 
             services.AddSignalR();
+            //.NET Core 3.0
+            //.AddJsonProtocol(options =>
+            //{
+            //    options.WriteIndented = defaultSettings.Formatting == Formatting.Indented;
+            //    options.IgnoreNullValues = defaultSettings.DefaultValueHandling == DefaultValueHandling.Ignore;
+            //    options.IgnoreReadOnlyProperties = false;
+            //    options.PropertyNameCaseInsensitive = true;
+            //    options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            //});
         }
         #endregion
 
@@ -1133,7 +1192,8 @@ namespace AspNetCore.Base
                 };
             });
 
-            services.AddVersionedApiExplorer(setupAction => {
+            services.AddVersionedApiExplorer(setupAction =>
+            {
                 setupAction.GroupNameFormat = "'v'VV";
                 //Tells swagger to replace the version in the controller route
                 setupAction.SubstituteApiVersionInUrl = true;
@@ -1149,7 +1209,7 @@ namespace AspNetCore.Base
 
                 option.ReportApiVersions = true;
                 //Header then QueryString is consistent with how Accept header/FormatFilter works.
-                option.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(), new MediaTypeApiVersionReader("v"), new HeaderApiVersionReader("api-version"), new QueryStringApiVersionReader("api-version","v","ver", "version"));
+                option.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(), new MediaTypeApiVersionReader("v"), new HeaderApiVersionReader("api-version"), new QueryStringApiVersionReader("api-version", "v", "ver", "version"));
                 //option.ApiVersionReader = new UrlSegmentApiVersionReader() /v{version:apiVersion}
                 option.DefaultApiVersion = new ApiVersion(1, 0);
                 option.AssumeDefaultVersionWhenUnspecified = true;
@@ -1195,7 +1255,7 @@ namespace AspNetCore.Base
             Logger.LogInformation("Configuring ElasticSearch");
 
             var elasticSettings = GetSettings<ElasticSettings>("ElasticSettings");
-            if(!string.IsNullOrWhiteSpace(elasticSettings.Uri))
+            if (!string.IsNullOrWhiteSpace(elasticSettings.Uri))
             {
                 services.AddElasticSearch(elasticSettings.Uri, elasticSettings.DefaultIndex, elasticSettings.DefaultTypeName);
             }
@@ -1208,7 +1268,7 @@ namespace AspNetCore.Base
             Logger.LogInformation("Configuring GraphQL");
 
             services.AddScoped<IDependencyResolver>(s => new FuncDependencyResolver(s.GetRequiredService));
-            
+
             services.AddGraphQL(o => { o.ExposeExceptions = true; })
               .AddGraphTypes(ServiceLifetime.Scoped)
               .AddUserContextBuilder(httpContext => httpContext.User)
@@ -1230,8 +1290,12 @@ namespace AspNetCore.Base
 
             AddHttpClients(services);
 
+            //JSON requests and responses are serialized/deserialized using Json.NET. By default will use the serializer settings that can be configured by setting Newtonsoft.Json.JsonConvert.DefaultSettings:
+
+            //using Microsoft.Extensions.Http
             //When using typed client its best to put client config in the constructor.
-            //services.AddHttpClient<Client>()
+            //services.AddHttpClient<IClient, Client>()
+            //
             //    .AddHttpMessageHandler<ProfilingHttpHandler>()
             //    .AddHttpMessageHandler<AuthorizationProxyHttpHandler>()
             //    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
@@ -1249,6 +1313,36 @@ namespace AspNetCore.Base
             //    AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip
             //});
 
+           // services.AddHttpClient(typeof(IClient).Name)
+           // .ConfigureHttpClient(c =>
+           // {
+           //     c.BaseAddress = new Uri("http://localhost:5000");
+           // })
+           //.AddTypedClient<IClient>((httpClient, sp) =>
+           // {
+           //      //return implementation
+           //      var defaultSettings = new JsonSerializerSettings()
+           //     {
+           //         ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+           //         Formatting = Formatting.Indented,
+           //         Converters = new List<JsonConverter>() { new Newtonsoft.Json.Converters.StringEnumConverter() },
+           //         ContractResolver = new CamelCasePropertyNamesContractResolver(),
+           //         DefaultValueHandling = DefaultValueHandling.Include,
+           //         NullValueHandling = NullValueHandling.Include,
+           //         MissingMemberHandling = MissingMemberHandling.Ignore,
+           //         TypeNameHandling = TypeNameHandling.None
+           //     };
+
+           //     return new Client(httpClient, serializerSettings);
+           //     return Refit.RestService.For<IClient>(c);
+           // });
+
+            //using Refit.HttpClientFactory
+            //https://github.com/reactiveui/refit
+
+            //var settings = new RefitSettings();
+            //services.AddRefitClient<IClient, Client>(settings)
+            //.ConfigureHttpClient(c => c.BaseAddress = new Uri("https://api.example.com"));
         }
 
         public abstract void AddHttpClients(IServiceCollection services);
@@ -1268,6 +1362,41 @@ namespace AspNetCore.Base
         {
             Logger.LogInformation("Configuring Identity");
 
+        }
+        #endregion
+
+        #region Hosted Services
+        public virtual void ConfigureHostedServices(IServiceCollection services)
+        {
+            Logger.LogInformation("Configuring Hosted Services");
+
+            //Inject IBackgroundTaskQueue into Controller to trigger background tasks.
+            //Queue.QueueBackgroundWorkItem(async token => {});
+            services.AddHostedService<QueuedHostedService>();
+            services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+
+            //https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services?view=aspnetcore-2.2
+            AddHostedServices(services);
+
+        }
+        #endregion
+
+        #region Notification Services
+        public virtual void ConfigureNotificationServices(IServiceCollection services)
+        {
+            Logger.LogInformation("Configuring Notification Services");
+
+            services.AddSingleton<INotificationService, CompositeNotificationService>();
+        }
+        #endregion
+
+        //https://github.com/RickStrahl/Westwind.AspnetCore.LiveReload
+        #region Live Reload
+        public virtual void ConfigureLiveReloadServices(IServiceCollection services)
+        {
+            Logger.LogInformation("Configuring Live Reload Services");
+
+            services.AddLiveReload();
         }
         #endregion
 
@@ -1302,7 +1431,7 @@ namespace AspNetCore.Base
             var stream = false;
 
             var filename = Path.GetFileName(context.Request.Path.ToString());
-          
+
 
             return stream;
         }
@@ -1315,11 +1444,15 @@ namespace AspNetCore.Base
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         //In older tutorials, you may see similar code in the Configure method in Startup.cs. We recommend that you use the Configure method only to set up the request pipeline. Application startup code belongs in the Main method.
         //https://docs.microsoft.com/en-us/aspnet/core/data/ef-mvc/intro?view=aspnetcore-2.2
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider, AppSettings appSettings, CacheSettings cacheSettings,
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider, AppSettings appSettings, CacheSettings cacheSettings, AuthorizationSettings authorizationSettings,
             LocalizationSettings localizationSettings, SwitchSettings switchSettings, ServerSettings serverSettings, TaskRunnerAfterApplicationConfiguration taskRunner, RequestLocalizationOptions localizationOptions,
             ISignalRHubMapper signalRHubMapper, ILoggerFactory loggerFactory, IApiVersionDescriptionProvider apiVersionDescriptionProvider)
         {
             Logger.LogInformation("Configuring Request Pipeline");
+
+            //dotnet watch run
+            // Before any other output generating middleware handlers
+            app.UseLiveReload();
 
             app.UseHealthChecks("/hc");
 
@@ -1479,20 +1612,9 @@ namespace AspNetCore.Base
                 app.UseIpRateLimiting();
             }
 
-            if (switchSettings.EnableCors)
-            {
-                if (HostingEnvironment.IsProduction())
-                {
-                    app.UseCors("AllowSpecificOrigin");
-                }
-                else
-                {
-                    app.UseCors("AllowAnyOrigin");
-                }
-            }
-
             if (switchSettings.EnableSignalR)
             {
+                //.NET Core 3.0 - move to endpoint routing
                 app.UseSignalR(routes =>
                 {
                     routes.MapHub<NotificationHub>(appSettings.SignalRUrlPrefix + "/signalr/notifications");
@@ -1592,7 +1714,7 @@ namespace AspNetCore.Base
                    List<string> publicUploadFolders = appSettings.PublicUploadFolders.Split(seperator).ToList();
                    appBranch.UseContentHandler(env, AppSettings, publicUploadFolders, cacheSettings.UploadFilesDays);
                });
-        
+
             app.UseDefaultFiles();
 
             //versioned files can have large cache expiry time
@@ -1601,13 +1723,45 @@ namespace AspNetCore.Base
             //non versioned files
             app.UseNonVersionedStaticFiles(cacheSettings.NonVersionedStaticFilesDays);
 
+            if (switchSettings.EnableCookieConsent)
+            {
+                app.UseCookiePolicy();
+            }
+
             app.UseJwtCookieAuthentication();
 
+            //--------------------------------------------- ROUTING -----------------------------//
+            //.NET Core 3.0
+            // 1. Runs matching. An endpoint is selected and set on the HttpContext if a match is found.
+            //app.UseRouting();
+
+            // 2. Middleware that run after routing occurs.
             app.UseAuthentication();
+
+            //.NET Core 3.0
+            var globalPolicyBuilder = new AuthorizationPolicyBuilder();
+            if (authorizationSettings.UserMustBeAuthorizedByDefault)
+            {
+                globalPolicyBuilder.RequireAuthenticatedUser();
+            }
+            var globalPolicy = globalPolicyBuilder.Build();
+            //app.UseAuthorization(globalPolicy);
+
+            if (switchSettings.EnableCors)
+            {
+                if (HostingEnvironment.IsProduction())
+                {
+                    app.UseCors("AllowSpecificOrigin");
+                }
+                else
+                {
+                    app.UseCors("AllowAnyOrigin");
+                }
+            }
 
             if (switchSettings.EnableHangfire)
             {
-                if(switchSettings.EnableMultiTenancy)
+                if (switchSettings.EnableMultiTenancy)
                 {
                     app.UseHangfireDashboardMultiTenant();
                 }
@@ -1617,12 +1771,8 @@ namespace AspNetCore.Base
                 }
             }
 
-            if (switchSettings.EnableCookieConsent)
-            {
-                app.UseCookiePolicy();
-            }
-
             app.UseWebSockets();
+
             AddGraphQLSchemas(app);
             app.UseGraphQLPlayground(new GraphQLPlaygroundOptions());
 
@@ -1630,17 +1780,37 @@ namespace AspNetCore.Base
 
             app.UseMiniProfiler();
 
+            var routeBuilder = new RouteBuilder(app);
+          
+            app.UseRouter(routeBuilder.Build());
+
             app.UseMvc(routes =>
             {
-                routes.AllRoutes("/all-routes");
+                routes.MapAllRoutes("/all-routes");
 
                 //https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/routing?view=aspnetcore-2.2
-                if(localizationSettings.AlwaysIncludeCultureInUrl)
+                if (localizationSettings.AlwaysIncludeCultureInUrl)
                 {
                     routes.RedirectCulturelessToDefaultCulture(localizationOptions);
                 }
             });
 
+            //.NET Core 3.0
+            //https://devblogs.microsoft.com/aspnet/asp-net-core-updates-in-net-core-3-0-preview-4/
+            // 3. Executes the endpoint that was selected by routing. replaces UseMvc and UseRouter
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    // Mapping of endpoints goes here:
+            //    endpoints.MapHealthChecks("/hc");
+            //    endpoints.MapAllRoutes("/all-routes");
+            //    endpoints.MapControllers();
+            //    endpoints.MapRazorPages();
+
+            //    endpoints.MapHub<NotificationHub>(appSettings.SignalRUrlPrefix + "/signalr/notifications");
+            //    endpoints.MapGrpcService<MyCalculatorService>();
+            //});
+
+            // 4. Middleware here will only run if nothing was matched.
             taskRunner.RunTasksAfterApplicationConfiguration();
         }
         #endregion

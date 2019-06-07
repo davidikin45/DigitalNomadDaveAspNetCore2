@@ -296,6 +296,16 @@ namespace AspNetCore.Base.Controllers.Api
 
             return result;
         }
+
+        protected IActionResult FromResult(Result result)
+        {
+            return result.IsSuccess ? Ok() : ValidationErrors(result);
+        }
+        protected IActionResult FromResult<T>(Result<T> result)
+        {
+            //ok(null) will return a 204
+            return result.IsSuccess ? Ok(result.Value) : ValidationErrors(result);
+        }
     }
 }
 

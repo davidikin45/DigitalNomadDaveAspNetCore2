@@ -11,28 +11,45 @@ namespace AspNetCore.Base.Cqrs
 {
     public static class DomainEventsServiceCollectionExtensions
     {
-        public static void AddDomainEvents(this IServiceCollection services)
+        public static void AddInMemoryDomainEvents(this IServiceCollection services)
         {
-            services.AddDomainEventMediator();
+            services.AddInMemoryDomainEventBus();
             services.AddDomainEventHandlers(new List<Assembly>() { Assembly.GetCallingAssembly() });
         }
 
-        public static void AddDomainEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies)
+        public static void AddInMemoryDomainEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies)
         {
-            services.AddDomainEventMediator();
+            services.AddInMemoryDomainEventBus();
+            services.AddDomainEventHandlers(assemblies);
+        }
+        public static void AddHangFireDomainEvents(this IServiceCollection services)
+        {
+            services.AddHangFireDomainEventBus();
+            services.AddDomainEventHandlers(new List<Assembly>() { Assembly.GetCallingAssembly() });
+        }
+
+        public static void AddHangFireDomainEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies)
+        {
+            services.AddHangFireDomainEventBus();
             services.AddDomainEventHandlers(assemblies);
         }
 
-        public static void AddDomainEventMediator(this IServiceCollection services)
+        public static void AddHangFireDomainEventBus(this IServiceCollection services)
         {
-            services.TryAddTransient<IDomainEventsMediator, DomainEventsHangfireMediator>();
+            services.TryAddTransient<IDomainEventBus, DomainEventBusHangFire>();
         }
 
+        public static void AddInMemoryDomainEventBus(this IServiceCollection services)
+        {
+            services.TryAddTransient<IDomainEventBus, DomainEventBusInMemory>();
+        }
+
+        //Registering as Interface allows decorator pattern but means can't regier two handlers for an event.
         public static void AddDomainEventHandlers(this IServiceCollection services, IEnumerable<Assembly> assemblies)
         {
             List<Type> domainEventHandlerTypes = assemblies.SelectMany(assembly => assembly.GetTypes())
                 .Where(x => x.GetInterfaces().Any(y => IsHandlerInterface(y)))
-                .Where(x => x.Name.EndsWith("Handler"))
+                .Where(x => x.Name.EndsWith("Handler") && !x.IsAbstract && !x.IsGenericType)
                 .ToList();
 
             foreach (Type domainEventHandlerType in domainEventHandlerTypes)
@@ -40,16 +57,19 @@ namespace AspNetCore.Base.Cqrs
                 AddHandlerAsService(services, domainEventHandlerType);
             }
 
-            services.AddSingleton<IDomainEventSubscriptionsManager>(sp => {
-                var subManager = new InMemoryDomainEventSubscriptionsManager();
+            services.AddSingleton<IDomainEventBusSubscriptionsManager>(sp => {
+                var subManager = new DomainEventBusInMemorySubscriptionsManager();
                 foreach (Type domainEventHandlerType in domainEventHandlerTypes.Where(x => x.GetInterfaces().Any(y => IsDomainEventHandlerInterface(y))))
                 {
-                    IEnumerable<Type> interfaceTypes = domainEventHandlerType.GetInterfaces().Where(y => IsHandlerInterface(y));
+                    IEnumerable<Type> interfaceTypes = domainEventHandlerType.GetInterfaces().Where(y => IsDomainEventHandlerInterface(y));
 
                     foreach (var interfaceType in interfaceTypes)
                     {
-                        Type commandType = interfaceType.GetGenericArguments()[0];
-                        subManager.AddSubscription(commandType, domainEventHandlerType);
+                        Type domainEventType = interfaceType.GetGenericArguments()[0];
+                        if(domainEventType != typeof(Object))
+                        {
+                            subManager.AddSubscription(domainEventType, interfaceType);
+                        }
                     }
                 }
                 return subManager;
@@ -71,7 +91,17 @@ namespace AspNetCore.Base.Cqrs
             foreach (var interfaceType in interfaceTypes)
             {
                 Func<IServiceProvider, object> factory = BuildPipeline(pipeline, interfaceType);
-                services.AddTransient(interfaceType, factory);
+
+                Type domainEventType = interfaceType.GetGenericArguments()[0];
+                if (domainEventType == typeof(Object))
+                {
+                    services.TryAddTransient(type, factory);
+                }
+                else
+                {
+                    //Decorator pattern
+                    services.AddTransient(interfaceType, factory);
+                }
             }
         }
 
@@ -143,7 +173,7 @@ namespace AspNetCore.Base.Cqrs
             if (!type.IsGenericType)
                 return false;
 
-            return IsDomainEventHandlerInterface(type) || IsDynamicDomainEventHandlerInterface(type);
+            return IsDomainEventHandlerInterface(type);
         }
 
         private static bool IsDomainEventHandlerInterface(Type type)
@@ -154,11 +184,6 @@ namespace AspNetCore.Base.Cqrs
             Type typeDefinition = type.GetGenericTypeDefinition();
 
             return typeDefinition == typeof(IDomainEventHandler<>);
-        }
-
-        private static bool IsDynamicDomainEventHandlerInterface(Type type)
-        {
-            return type == typeof(IDynamicDomainEventHandler);
         }
     }
 }

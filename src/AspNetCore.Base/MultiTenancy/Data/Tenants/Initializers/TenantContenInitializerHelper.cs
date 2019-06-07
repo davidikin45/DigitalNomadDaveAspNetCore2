@@ -20,7 +20,7 @@ namespace AspNetCore.Base.MultiTenancy.Data.Tenants.Initializers
                 var connectionStrings = new HashSet<string>();
                 foreach (var tenant in context.Tenants)
                 {
-
+                    //Unit of Work
                     using (var scope = serviceProvider.CreateScope())
                     {
                         var tenantService = scope.ServiceProvider.GetRequiredService<ITenantService<TTenant>>();

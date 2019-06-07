@@ -1,6 +1,7 @@
 ﻿using AspNetCore.Base.IntegrationEvents.Subscriptions;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
@@ -12,17 +13,41 @@ namespace AspNetCore.Base.IntegrationEvents
 {
     public static class IntegrationEventsServiceCollectionExtensions
     {
-        public static void AddIntegrationEvents(this IServiceCollection services, string hostName, string userName, string password, string subscriptionClientName, int retryCount = 5)
+        public static void AddInMemoryIntegrationEvents(this IServiceCollection services)
         {
-            services.AddRabbitMQPersistentConnection(hostName, userName, password, retryCount);
-            services.AddEventBus(subscriptionClientName, retryCount);
+            services.AddInMemoryIntegrationEventBus();
             services.AddIntegrationEventHandlers(new List<Assembly>() { Assembly.GetCallingAssembly() });
         }
 
-        public static void AddIntegrationEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies, string hostName, string userName, string password, string subscriptionClientName, int retryCount = 5)
+        public static void AddInMemoryIntegrationEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies)
+        {
+            services.AddInMemoryIntegrationEventBus();
+            services.AddIntegrationEventHandlers(assemblies);
+        }
+
+        public static void AddHangFireIntegrationEvents(this IServiceCollection services)
+        {
+            services.AddHangFireIntegrationEventBus();
+            services.AddIntegrationEventHandlers(new List<Assembly>() { Assembly.GetCallingAssembly() });
+        }
+
+        public static void AddHangFireIntegrationEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies)
+        {
+            services.AddHangFireIntegrationEventBus();
+            services.AddIntegrationEventHandlers(assemblies);
+        }
+
+        public static void AddRabbitMQIntegrationEvents(this IServiceCollection services, string hostName, string userName, string password, string subscriptionClientName, int retryCount = 5)
         {
             services.AddRabbitMQPersistentConnection(hostName, userName, password, retryCount);
-            services.AddEventBus(subscriptionClientName, retryCount);
+            services.AddRabbitMQIntegrationEventBus(subscriptionClientName, retryCount);
+            services.AddIntegrationEventHandlers(new List<Assembly>() { Assembly.GetCallingAssembly() });
+        }
+
+        public static void AddRabbitMQIntegrationEvents(this IServiceCollection services, IEnumerable<Assembly> assemblies, string hostName, string userName, string password, string subscriptionClientName, int retryCount = 5)
+        {
+            services.AddRabbitMQPersistentConnection(hostName, userName, password, retryCount);
+            services.AddRabbitMQIntegrationEventBus(subscriptionClientName, retryCount);
             services.AddIntegrationEventHandlers(assemblies);
         }
 
@@ -50,24 +75,34 @@ namespace AspNetCore.Base.IntegrationEvents
             });
         }
 
-        public static void AddEventBus(this IServiceCollection services, string subscriptionClientName, int retryCount)
+        public static void AddRabbitMQIntegrationEventBus(this IServiceCollection services, string subscriptionClientName, int retryCount)
         {
-            services.AddSingleton<IEventBus, EventBusRabbitMQ>(sp =>
+            services.AddSingleton<IIntegrationEventBus, IntegrationEventBusRabbitMQ>(sp =>
             {
                 var rabbitMQPersistentConnection = sp.GetRequiredService<IRabbitMQPersistentConnection>();
-                var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var logger = sp.GetRequiredService<ILogger<EventBusRabbitMQ>>();
-                var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
+                var logger = sp.GetRequiredService<ILogger<IntegrationEventBusRabbitMQ>>();
+                var eventBusSubcriptionsManager = sp.GetRequiredService<IIntegrationEventBusSubscriptionsManager>();
 
-                return new EventBusRabbitMQ(rabbitMQPersistentConnection, logger, iLifetimeScope, eventBusSubcriptionsManager, subscriptionClientName, retryCount);
+                return new IntegrationEventBusRabbitMQ(rabbitMQPersistentConnection, logger, sp, eventBusSubcriptionsManager, subscriptionClientName, retryCount);
             });
         }
+
+        public static void AddHangFireIntegrationEventBus(this IServiceCollection services)
+        {
+            services.AddSingleton<IIntegrationEventBus, IntegrationEventBusHangFire>();
+        }
+
+        public static void AddInMemoryIntegrationEventBus(this IServiceCollection services)
+        {
+            services.AddSingleton<IIntegrationEventBus, IntegrationEventBusInMemory>();
+        }
+
 
         public static void AddIntegrationEventHandlers(this IServiceCollection services, IEnumerable<Assembly> assemblies)
         {
             List<Type> integrationEventHandlerTypes = assemblies.SelectMany(assembly => assembly.GetTypes())
                 .Where(x => x.GetInterfaces().Any(y => IsHandlerInterface(y)))
-                .Where(x => x.Name.EndsWith("Handler"))
+                .Where(x => x.Name.EndsWith("Handler") && !x.IsAbstract && !x.IsGenericType)
                 .ToList();
 
             foreach (Type integrationEventHandlerType in integrationEventHandlerTypes)
@@ -75,16 +110,23 @@ namespace AspNetCore.Base.IntegrationEvents
                 AddHandlerAsService(services, integrationEventHandlerType);
             }
 
-            services.AddSingleton<IEventBusSubscriptionsManager>(sp => {
-                var subManager = new InMemoryEventBusSubscriptionsManager();
+            services.AddSingleton<IIntegrationEventBusSubscriptionsManager>(sp => {
+                var subManager = new IntegrationEventBusInMemorySubscriptionsManager();
+
+                //Olny typed Integration Events Autowired.
                 foreach (Type integrationEventHandlerType in integrationEventHandlerTypes.Where(x => x.GetInterfaces().Any(y => IsIntegrationEventHandlerInterface(y))))
                 {
-                    IEnumerable<Type> interfaceTypes = integrationEventHandlerType.GetInterfaces().Where(y => IsHandlerInterface(y));
+                    IEnumerable<Type> interfaceTypes = integrationEventHandlerType.GetInterfaces().Where(y => IsIntegrationEventHandlerInterface(y));
                     foreach (var interfaceType in interfaceTypes)
                     {
                         Type eventType = interfaceType.GetGenericArguments()[0];
 
-                        subManager.AddSubscription(eventType, integrationEventHandlerType);
+                        if(eventType != typeof(Object))
+                        {
+                            var eventName = subManager.GetEventKey(eventType);
+
+                            subManager.AddSubscription(eventType, interfaceType);
+                        }
                     }
                 }
                 return subManager;
@@ -107,7 +149,15 @@ namespace AspNetCore.Base.IntegrationEvents
             {
                 Func<IServiceProvider, object> factory = BuildPipeline(pipeline, interfaceType);
 
-                services.AddTransient(interfaceType, factory);
+                Type eventType = interfaceType.GetGenericArguments()[0];
+                if(eventType == typeof(Object))
+                {
+                    services.TryAddTransient(type, factory);
+                }
+                else
+                {
+                    services.AddTransient(interfaceType, factory);
+                }
             }
         }
 
@@ -176,10 +226,7 @@ namespace AspNetCore.Base.IntegrationEvents
 
         private static bool IsHandlerInterface(Type type)
         {
-            if (!type.IsGenericType)
-                return false;
-
-            return IsIntegrationEventHandlerInterface(type) || IsDynamicIntegrationEventHandlerInterface(type);
+            return IsIntegrationEventHandlerInterface(type);
         }
 
         private static bool IsIntegrationEventHandlerInterface(Type type)
@@ -190,11 +237,6 @@ namespace AspNetCore.Base.IntegrationEvents
             Type typeDefinition = type.GetGenericTypeDefinition();
 
             return typeDefinition == typeof(IIntegrationEventHandler<>);
-        }
-
-        private static bool IsDynamicIntegrationEventHandlerInterface(Type type)
-        {
-            return type == typeof(IDynamicIntegrationEventHandler);
         }
 
         //private void ConfigureEventBus(IApplicationBuilder app)

@@ -8,6 +8,7 @@ namespace AspNetCore.Base.Tasks
     {
         public static async Task InitAsync(this IServiceProvider services)
         {
+            //Unit of Work
             using (var scope = services.CreateScope())
             {
                 if (scope.ServiceProvider.GetService<TaskRunnerDbInitialization>() != null)

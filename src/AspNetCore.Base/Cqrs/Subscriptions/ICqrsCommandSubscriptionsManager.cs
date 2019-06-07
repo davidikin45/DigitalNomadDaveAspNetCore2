@@ -10,32 +10,39 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
         bool IsEmpty { get; }
         event EventHandler<string> OnCommandRemoved;
 
+        void AddDynamicSubscription<C, R, CH>(string commandName)
+            where CH: IDynamicCommandHandler<C, R>;
+
+        void AddDynamicSubscription<C, CH>(string commandName)
+         where CH : IDynamicCommandHandler<C>;
+
+        void RemoveDynamicSubscription<C, R, CH>(string eventName)
+         where CH : IDynamicCommandHandler<C, R>;
+
         void AddSubscription(Type commandType, Type commandHandlerType);
-
-        void AddSubscription<C, CH>()
-           where C : ICommand
-           where CH : ICommandHandler<C>;
-
-        void RemoveSubscription<C, CH>()
-              where C : ICommand
-             where CH : ICommandHandler<C>;
 
         void AddSubscription<C, R, CH>()
           where C : ICommand<R>
-          where CH : ICommandHandler<C, R>;
+          where CH : ITypedCommandHandler<C, R>;
+
+        void AddSubscription<C, CH>()
+          where C : ICommand
+          where CH : ITypedCommandHandler<C>;
 
         void RemoveSubscription<C, R, CH>()
              where C : ICommand<R>
-             where CH : ICommandHandler<C, R>;
+             where CH : ITypedCommandHandler<C, R>;
 
-        bool HasSubscriptionsForCommand<T>() where T : ICommand;
+        bool HasSubscriptionsForCommand<C, R>() where C : ICommand<R>;
         bool HasSubscriptionsForCommand(string commandName);
         Type GetCommandTypeByName(string commandName);
         void Clear();
 
-        IEnumerable<CommandSubscriptionInfo> GetSubscriptionsForCommand(ICommand command);
-        IEnumerable<CommandSubscriptionInfo> GetSubscriptionsForCommand<T>() where T : ICommand;
+        IReadOnlyDictionary<string, CommandSubscriptionInfo> GetSubscriptions();
+        IEnumerable<CommandSubscriptionInfo> GetSubscriptionsForCommand<R>(ICommand<R> command);
+        IEnumerable<CommandSubscriptionInfo> GetSubscriptionsForCommand<C, R>() where C : ICommand<R>;
         IEnumerable<CommandSubscriptionInfo> GetSubscriptionsForCommand(string commandName);
+        IEnumerable<string> GetCommands();
 
         string GetCommandKey<T>();
     }

@@ -18,12 +18,12 @@ namespace AspNetCore.Base.Data.UnitOfWork
     {
         protected List<(DbContext dbContext, DbContextDomainEventsEFCoreAdapter domainEvents)> contextsWithDomainEvents = new List<(DbContext dbContext, DbContextDomainEventsEFCoreAdapter domainEvents)>();
 
-        public UnitOfWorkWithEventsBase(bool validateOnSave, IValidationService validationService, IDomainEventsMediator domainEventsDispatcher, params DbContext[] contexts)
+        public UnitOfWorkWithEventsBase(bool validateOnSave, IValidationService validationService, IDomainEventBus domainEventBus, params DbContext[] contexts)
             : base(validateOnSave, validationService, contexts)
         {
             foreach (var context in contexts)
             {
-                this.contextsWithDomainEvents.Add((context, new DbContextDomainEventsEFCoreAdapter(context, domainEventsDispatcher)));
+                this.contextsWithDomainEvents.Add((context, new DbContextDomainEventsEFCoreAdapter(context, domainEventBus)));
             }
         }
 
@@ -115,8 +115,8 @@ namespace AspNetCore.Base.Data.UnitOfWork
                     }
                 }
 
-                bool commitChanges = !commitingChanges;
-                commitingChanges = true;
+                bool commitChanges = !CommitingChanges;
+                CommitingChanges = true;
 
                 ExceptionDispatchInfo lastError = null;
                 foreach (var context in contextsWithDomainEvents)
@@ -152,7 +152,7 @@ namespace AspNetCore.Base.Data.UnitOfWork
 
                 if (commitChanges)
                 {
-                    commitingChanges = false;
+                    CommitingChanges = false;
                 }
 
                 if (lastError != null)

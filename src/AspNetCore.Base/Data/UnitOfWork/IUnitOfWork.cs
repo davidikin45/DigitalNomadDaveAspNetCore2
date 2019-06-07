@@ -9,6 +9,7 @@ namespace AspNetCore.Base.Data.UnitOfWork
 {
     public interface IUnitOfWork
     {
+        bool CommitingChanges { get; set; }
         bool AutoDetectChangesEnabled { get; set; }
         QueryTrackingBehavior QueryTrackingBehavior { get; set; }
 

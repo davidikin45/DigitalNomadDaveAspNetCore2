@@ -30,75 +30,108 @@ namespace AspNetCore.Base.Cqrs
 
         public static void AddCqrsHandlers(this IServiceCollection services, IEnumerable<Assembly> assemblies)
         {
+            //commands
             List<Type> commandHandlerTypes = assemblies.SelectMany(assembly => assembly.GetTypes())
                 .Where(x => x.GetInterfaces().Any(y => IsCommandHandlerInterface(y)))
-                .Where(x => x.Name.EndsWith("Handler"))
+                .Where(x => x.Name.EndsWith("Handler") && !x.IsAbstract && !x.IsGenericType)
                 .ToList();
 
             foreach (Type commandHandlerType in commandHandlerTypes)
             {
-                AddHandlerAsService(services, commandHandlerType);
+                AddHandlerAsService(services, commandHandlerType, false);
             }
 
             services.AddSingleton<ICqrsCommandSubscriptionsManager>(sp => {
                 var subManager = new CqrsInMemoryCommandSubscriptionsManager();
-                foreach (Type commandHandlerType in commandHandlerTypes)
+                foreach (Type commandHandlerType in commandHandlerTypes.Where(x => x.GetInterfaces().Any(y => IsCommandHandlerInterface(y))))
                 {
-                    IEnumerable<Type> interfaceTypes = commandHandlerType.GetInterfaces().Where(y => IsHandlerInterface(y));
+                    IEnumerable<Type> interfaceTypes = commandHandlerType.GetInterfaces().Where(y => IsCommandHandlerInterface(y));
 
                     foreach (Type interfaceType in interfaceTypes)
                     {
                         Type commandType = interfaceType.GetGenericArguments()[0];
 
-                        subManager.AddSubscription(commandType, commandHandlerType);
+                        if (commandType != typeof(Object))
+                        {
+                            subManager.AddSubscription(commandType, interfaceType);
+                        }
                     }
                 }
                 return subManager;
             });
 
+            //queries
             List<Type> queryHandlerTypes = assemblies.SelectMany(assembly => assembly.GetTypes())
                 .Where(x => x.GetInterfaces().Any(y => IsQueryHandlerInterface(y)))
-                .Where(x => x.Name.EndsWith("Handler"))
+                .Where(x => x.Name.EndsWith("Handler") && !x.IsAbstract && !x.IsGenericType)
                 .ToList();
 
             foreach (Type queryHandlerType in queryHandlerTypes)
             {
-                AddHandlerAsService(services, queryHandlerType);
+                AddHandlerAsService(services, queryHandlerType, true);
             }
 
             services.AddSingleton<ICqrsQuerySubscriptionsManager>(sp => {
                 var subManager = new CqrsInMemoryQuerySubscriptionsManager();
-                foreach (Type queryHandlerType in queryHandlerTypes)
+                foreach (Type queryHandlerType in queryHandlerTypes.Where(x => x.GetInterfaces().Any(y => IsQueryHandlerInterface(y))))
                 {
-                    IEnumerable<Type> interfaceTypes = queryHandlerType.GetInterfaces().Where(y => IsHandlerInterface(y));
+                    IEnumerable<Type> interfaceTypes = queryHandlerType.GetInterfaces().Where(y => IsQueryHandlerInterface(y));
 
                     foreach (var interfaceType in interfaceTypes)
                     {
                         Type queryType = interfaceType.GetGenericArguments()[0];
 
-                        subManager.AddSubscription(queryType, queryHandlerType);
+                        if(queryType != typeof(Object))
+                        {
+                            subManager.AddSubscription(queryType, interfaceType);
+                        }
                     }
                 }
                 return subManager;
             });
         }
 
-        private static void AddHandlerAsService(IServiceCollection services, Type type)
+
+        private static void AddHandlerAsService(IServiceCollection services, Type type, bool isQuery)
         {
+            //Decorator Pattern by binding to handler interface instead of concrete type.
             object[] attributes = type.GetCustomAttributes(false);
 
-            List<Type> pipeline = attributes
+            List<Type> pipeline;
+            if(isQuery)
+            {
+                 pipeline = attributes
                 .Select(x => ToDecorator(x))
+                .Concat(new[] { typeof(ReadOnlyDecorator<,>) })
                 .Concat(new[] { type })
                 .Reverse()
                 .ToList();
+            }
+            else
+            {
+               pipeline = attributes
+              .Select(x => ToDecorator(x))
+              .Concat(new[] { type })
+              .Reverse()
+              .ToList();
+            }
 
             IEnumerable<Type> interfaceTypes = type.GetInterfaces().Where(y => IsHandlerInterface(y));
 
             foreach (var interfaceType in interfaceTypes)
             {
                 Func<IServiceProvider, object> factory = BuildPipeline(pipeline, interfaceType);
-                services.AddTransient(interfaceType, factory);
+
+                Type commandOrQueryType = interfaceType.GetGenericArguments()[0];
+                if (commandOrQueryType == typeof(Object))
+                {
+                    services.TryAddTransient(type, factory);
+                }
+                else
+                {
+                    //Decorator pattern
+                    services.AddTransient(interfaceType, factory);
+                }
             }
         }
 
@@ -112,6 +145,8 @@ namespace AspNetCore.Base.Cqrs
                 })
                 .ToList();
 
+           var a=  typeof(ReadOnlyDecorator<dynamic, dynamic>);
+
             Func<IServiceProvider, object> func = provider =>
             {
                 object current = null;
@@ -122,6 +157,7 @@ namespace AspNetCore.Base.Cqrs
 
                     object[] parameters = GetParameters(parameterInfos, current, provider);
 
+                    //Handler
                     current = ctor.Invoke(parameters);
                 }
 
@@ -162,10 +198,10 @@ namespace AspNetCore.Base.Cqrs
             Type type = attribute.GetType();
 
             if (type == typeof(DatabaseRetryAttribute))
-                return typeof(DatabaseRetryDecorator<>);
+                return typeof(DatabaseRetryDecorator<,>);
 
             if (type == typeof(AuditLogAttribute))
-                return typeof(AuditLoggingDecorator<>);
+                return typeof(AuditLoggingDecorator<,>);
 
             // other attributes go here
 
@@ -174,10 +210,7 @@ namespace AspNetCore.Base.Cqrs
 
         private static bool IsHandlerInterface(Type type)
         {
-            if (!type.IsGenericType)
-                return false;
-
-            return IsCommandHandlerInterface(type) || IsQueryHandlerInterface(type);
+            return IsCommandHandlerInterface(type)  || IsQueryHandlerInterface(type);
         }
 
         private static bool IsCommandHandlerInterface(Type type)
@@ -186,8 +219,8 @@ namespace AspNetCore.Base.Cqrs
                 return false;
 
             Type typeDefinition = type.GetGenericTypeDefinition();
-  
-            return typeDefinition == typeof(ICommandHandler<>) || typeDefinition == typeof(ICommandHandler<,>);
+
+            return typeDefinition == typeof(ICommandHandler<,>);
         }
 
         private static bool IsQueryHandlerInterface(Type type)

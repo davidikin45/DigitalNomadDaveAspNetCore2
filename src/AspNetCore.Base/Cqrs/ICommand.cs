@@ -13,22 +13,12 @@ namespace AspNetCore.Base.Cqrs
         }
     }
 
-    public interface ICommand<TResult> : ICommand
+    public interface ICommand<TResult>
     {
 
     }
 
-    public abstract class UserCommand : ICommand
-    {
-        public string User { get; }
-
-        public UserCommand(string user)
-        {
-            User = user;
-        }
-    }
-    
-    public interface ICommand
+    public interface ICommand : ICommand<string>
     {
 
     }

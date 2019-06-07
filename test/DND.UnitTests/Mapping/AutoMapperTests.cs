@@ -14,7 +14,7 @@ namespace DND.UnitTests.Mapping
     public class AutoMapperTests
     {
         [Fact]
-        public async Task DtoToEntity()
+        public void DtoToEntity()
         {
             var config = new MapperConfiguration(cfg => {
                 cfg.AddExpressionMapping();

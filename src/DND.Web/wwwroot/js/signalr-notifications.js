@@ -12,7 +12,7 @@ function setupSignalRNotificationsConnection()
     );
 
     signalRNotificationsConnection.on("Finished", function () {
-        connection.stop();
+        signalRNotificationsConnection.stop();
     }
     );
 

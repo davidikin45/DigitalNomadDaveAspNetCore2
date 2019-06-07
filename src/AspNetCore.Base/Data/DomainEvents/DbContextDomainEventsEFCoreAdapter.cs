@@ -14,40 +14,40 @@ namespace AspNetCore.Base.Data.DomainEvents
     public class DbContextDomainEventsEFCoreAdapter : DbContextDomainEventsBase
     {
         private DbContext _dbContext;
-        public DbContextDomainEventsEFCoreAdapter(DbContext dbContext, IDomainEventsMediator domainEvents)
-            : base(domainEvents)
+        public DbContextDomainEventsEFCoreAdapter(DbContext dbContext, IDomainEventBus domainEventBus)
+            : base(domainEventBus)
         {
             _dbContext = dbContext;
         }
 
         protected override IEnumerable<object> GetDeletedEntities()
         {
-            return _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Deleted);
+            return _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Deleted).Select(e => e.Entity);
         }
 
         protected override IEnumerable<object> GetInsertedEntities()
         {
-            return _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Added);
+            return _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Added).Select(e => e.Entity);
         }
 
         protected override IEnumerable<object> GetUpdatedEntities()
         {
-            return _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified);
+            return _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).Select(e => e.Entity);
         }
 
         protected override IEnumerable<object> GetUpdatedDeletedInsertedEntities()
         {
-            return _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified || e.State == EntityState.Deleted || e.State == EntityState.Added);
+            return _dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified || e.State == EntityState.Deleted || e.State == EntityState.Added).Select(e => e.Entity);
         }
 
-        protected override Dictionary<object, List<IDomainEvent>> GetNewPropertyUpdatedEvents()
+        protected override Dictionary<object, List<DomainEvent>> GetNewPropertyUpdatedEvents()
         {
             var entries = _dbContext.ChangeTracker.Entries().Where(x => (x.State == EntityState.Modified));
             var events = CreatePropertyUpdateEventsEFCore(entries);
 
             if (events == null)
             {
-                events = new Dictionary<object, List<IDomainEvent>>();
+                events = new Dictionary<object, List<DomainEvent>>();
             }
 
             var allDomainEvents = precommitedPropertyUpdateEvents.Values.MergeLists();
@@ -60,9 +60,9 @@ namespace AspNetCore.Base.Data.DomainEvents
             return events;
         }
 
-        private Dictionary<object, List<IDomainEvent>> CreatePropertyUpdateEventsEFCore(IEnumerable<EntityEntry> updatedEntries)
+        private Dictionary<object, List<DomainEvent>> CreatePropertyUpdateEventsEFCore(IEnumerable<EntityEntry> updatedEntries)
         {
-            var dict = new Dictionary<object, List<IDomainEvent>>();
+            var dict = new Dictionary<object, List<DomainEvent>>();
             foreach (var updatedEntry in updatedEntries.Where(e => e.Entity is IFirePropertyUpdatedEvents))
             {
 
@@ -87,7 +87,7 @@ namespace AspNetCore.Base.Data.DomainEvents
                     }
                 }
 
-                var propertyUpdatedEvents = new List<IDomainEvent>();
+                var propertyUpdatedEvents = new List<DomainEvent>();
                 foreach (string propertyName in updatedProperties)
                 {
                     Type genericType = typeof(EntityPropertyUpdatedEvent<>);
@@ -101,7 +101,7 @@ namespace AspNetCore.Base.Data.DomainEvents
                     }
 
                     object domainEvent = Activator.CreateInstance(constructed, updatedEntry.Entity, updatedBy, properties, propertyName, properties[propertyName]);
-                    propertyUpdatedEvents.Add((IDomainEvent)domainEvent);
+                    propertyUpdatedEvents.Add((DomainEvent)domainEvent);
                 }
 
                 if (propertyUpdatedEvents.Count > 0)

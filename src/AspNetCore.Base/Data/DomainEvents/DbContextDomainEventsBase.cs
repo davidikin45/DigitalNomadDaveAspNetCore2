@@ -10,20 +10,20 @@ namespace AspNetCore.Base.Data.DomainEvents
 {
     public abstract class DbContextDomainEventsBase : IDbContextDomainEvents
     {
-        private IDomainEventsMediator _domainEvents;
-        public DbContextDomainEventsBase(IDomainEventsMediator domainEvents)
+        private IDomainEventBus _domainEventBus;
+        public DbContextDomainEventsBase(IDomainEventBus domainEventBus)
         {
-            _domainEvents = domainEvents;
+            _domainEventBus = domainEventBus;
         }
 
-        protected Dictionary<object, List<IDomainEvent>> precommitedUpdatedEvents = new Dictionary<object, List<IDomainEvent>>();
+        protected Dictionary<object, List<DomainEvent>> precommitedUpdatedEvents = new Dictionary<object, List<DomainEvent>>();
         protected List<object> precommitedUpdatedEntities = new List<object>();
-        protected Dictionary<object, List<IDomainEvent>> precommitedPropertyUpdateEvents = new Dictionary<object, List<IDomainEvent>>();
-        protected Dictionary<object, List<IDomainEvent>> precommitedDeletedEvents = new Dictionary<object, List<IDomainEvent>>();
+        protected Dictionary<object, List<DomainEvent>> precommitedPropertyUpdateEvents = new Dictionary<object, List<DomainEvent>>();
+        protected Dictionary<object, List<DomainEvent>> precommitedDeletedEvents = new Dictionary<object, List<DomainEvent>>();
         protected List<object> precommitedDeletedEntities = new List<object>();
-        protected Dictionary<object, List<IDomainEvent>> precommitedInsertedEvents = new Dictionary<object, List<IDomainEvent>>();
+        protected Dictionary<object, List<DomainEvent>> precommitedInsertedEvents = new Dictionary<object, List<DomainEvent>>();
         protected List<object> precommitedInsertedEntities = new List<object>();
-        protected Dictionary<object, List<IDomainEvent>> precommitedDomainEvents = new Dictionary<object, List<IDomainEvent>>();
+        protected Dictionary<object, List<DomainEvent>> precommitedDomainEvents = new Dictionary<object, List<DomainEvent>>();
 
         public async Task FirePreCommitEventsAsync()
         {
@@ -36,7 +36,7 @@ namespace AspNetCore.Base.Data.DomainEvents
             {
                 if (!precommitedPropertyUpdateEvents.ContainsKey(entity.Key))
                 {
-                    precommitedPropertyUpdateEvents.Add(entity.Key, new List<IDomainEvent>());
+                    precommitedPropertyUpdateEvents.Add(entity.Key, new List<DomainEvent>());
                 }
 
                 foreach (var ev in entity.Value)
@@ -58,7 +58,7 @@ namespace AspNetCore.Base.Data.DomainEvents
             {
                 if (!precommitedDomainEvents.ContainsKey(entity.Key))
                 {
-                    precommitedDomainEvents.Add(entity.Key, new List<IDomainEvent>());
+                    precommitedDomainEvents.Add(entity.Key, new List<DomainEvent>());
                 }
 
                 foreach (var ev in entity.Value)
@@ -67,7 +67,7 @@ namespace AspNetCore.Base.Data.DomainEvents
                 }
             }
 
-            if (_domainEvents != null)
+            if (_domainEventBus != null)
             {
                 await DispatchDomainEventsPreCommitAsync(updatedEvents, propertiesUpdatedEvents, deletedEvents, insertedEvents, domainEvents).ConfigureAwait(false);
             }
@@ -77,7 +77,7 @@ namespace AspNetCore.Base.Data.DomainEvents
         {
             try
             {
-                if (_domainEvents != null)
+                if (_domainEventBus != null)
                 {
                     await DispatchDomainEventsPostCommitAsync(precommitedUpdatedEvents, precommitedPropertyUpdateEvents, precommitedDeletedEvents, precommitedInsertedEvents, precommitedDomainEvents).ConfigureAwait(false);
                 }
@@ -95,14 +95,14 @@ namespace AspNetCore.Base.Data.DomainEvents
             }
         }
 
-        public Dictionary<object, List<IDomainEvent>> GetNewDeletedEvents()
+        public Dictionary<object, List<DomainEvent>> GetNewDeletedEvents()
         {
             var entities = GetNewDeletedEntities();
             var events = CreateEntityDeletedEvents(entities);
 
             if (events == null)
             {
-                events = new Dictionary<object, List<IDomainEvent>>();
+                events = new Dictionary<object, List<DomainEvent>>();
             }
 
             return events;
@@ -119,14 +119,14 @@ namespace AspNetCore.Base.Data.DomainEvents
             return precommitedDeletedEntities;
         }
 
-        public Dictionary<object, List<IDomainEvent>> GetNewInsertedEvents()
+        public Dictionary<object, List<DomainEvent>> GetNewInsertedEvents()
         {
             var entities = GetNewInsertedEntities();
             var events = CreateEntityInsertedEvents(entities);
 
             if (events == null)
             {
-                events = new Dictionary<object, List<IDomainEvent>>();
+                events = new Dictionary<object, List<DomainEvent>>();
             }
 
             return events;
@@ -143,14 +143,14 @@ namespace AspNetCore.Base.Data.DomainEvents
             return precommitedInsertedEntities;
         }
 
-        public Dictionary<object, List<IDomainEvent>> GetNewUpdatedEvents()
+        public Dictionary<object, List<DomainEvent>> GetNewUpdatedEvents()
         {
             var entities = GetNewUpdatedEntities();
             var events = CreateEntityUpdatedEvents(entities);
 
             if (events == null)
             {
-                events = new Dictionary<object, List<IDomainEvent>>();
+                events = new Dictionary<object, List<DomainEvent>>();
             }
 
             return events;
@@ -167,7 +167,7 @@ namespace AspNetCore.Base.Data.DomainEvents
             return precommitedUpdatedEntities;
         }
 
-        public Dictionary<object, List<IDomainEvent>> GetNewDomainEvents()
+        public Dictionary<object, List<DomainEvent>> GetNewDomainEvents()
         {
             var entities = GetUpdatedDeletedInsertedEntities().ToList();
 
@@ -175,26 +175,26 @@ namespace AspNetCore.Base.Data.DomainEvents
 
             if (events == null)
             {
-                events = new Dictionary<object, List<IDomainEvent>>();
+                events = new Dictionary<object, List<DomainEvent>>();
             }
 
             return events;
         }
 
-        protected abstract Dictionary<object, List<IDomainEvent>> GetNewPropertyUpdatedEvents();
+        protected abstract Dictionary<object, List<DomainEvent>> GetNewPropertyUpdatedEvents();
         protected abstract IEnumerable<object> GetUpdatedDeletedInsertedEntities();
         protected abstract IEnumerable<object> GetUpdatedEntities();
         protected abstract IEnumerable<object> GetInsertedEntities();
         protected abstract IEnumerable<object> GetDeletedEntities();
 
-        public Dictionary<object, List<IDomainEvent>> CreateEntityUpdatedEvents(IEnumerable<object> updatedObjects)
+        public Dictionary<object, List<DomainEvent>> CreateEntityUpdatedEvents(IEnumerable<object> updatedObjects)
         {
-            var dict = new Dictionary<object, List<IDomainEvent>>();
+            var dict = new Dictionary<object, List<DomainEvent>>();
             var updated = updatedObjects.Where(x => x is IEntity).Cast<IEntity>();
 
             foreach (var entity in updated)
             {
-                var events = new List<IDomainEvent>();
+                var events = new List<DomainEvent>();
                 Type genericType = typeof(EntityUpdatedEvent<>);
                 Type[] typeArgs = { entity.GetType() };
                 Type constructed = genericType.MakeGenericType(typeArgs);
@@ -203,7 +203,7 @@ namespace AspNetCore.Base.Data.DomainEvents
                 {
                     updatedBy = ((IEntityAuditable)entity).UpdatedBy;
                 }
-                IDomainEvent domainEvent = (IDomainEvent)Activator.CreateInstance(constructed, entity, updatedBy);
+                DomainEvent domainEvent = (DomainEvent)Activator.CreateInstance(constructed, entity, updatedBy);
                 events.Add(domainEvent);
                 dict.Add(entity, events);
             }
@@ -231,19 +231,19 @@ namespace AspNetCore.Base.Data.DomainEvents
             return StructuralComparisons.StructuralEqualityComparer.Equals(a1, a2);
         }
 
-        public Dictionary<object, List<IDomainEvent>> CreateEntityDeletedEvents(IEnumerable<object> deletedObjects)
+        public Dictionary<object, List<DomainEvent>> CreateEntityDeletedEvents(IEnumerable<object> deletedObjects)
         {
-            var dict = new Dictionary<object, List<IDomainEvent>>();
+            var dict = new Dictionary<object, List<DomainEvent>>();
             var deleted = deletedObjects.Where(x => x is IEntity).Cast<IEntity>();
 
             foreach (var entity in deleted)
             {
-                var events = new List<IDomainEvent>();
+                var events = new List<DomainEvent>();
                 Type genericType = typeof(EntityDeletedEvent<>);
                 Type[] typeArgs = { entity.GetType() };
                 Type constructed = genericType.MakeGenericType(typeArgs);
                 string deletedBy = null;
-                IDomainEvent domainEvent = (IDomainEvent)Activator.CreateInstance(constructed, entity, deletedBy);
+                DomainEvent domainEvent = (DomainEvent)Activator.CreateInstance(constructed, entity, deletedBy);
                 events.Add(domainEvent);
                 dict.Add(entity, events);
             }
@@ -251,14 +251,14 @@ namespace AspNetCore.Base.Data.DomainEvents
             return dict;
         }
 
-        public Dictionary<object, List<IDomainEvent>> CreateEntityInsertedEvents(IEnumerable<object> insertedObjects)
+        public Dictionary<object, List<DomainEvent>> CreateEntityInsertedEvents(IEnumerable<object> insertedObjects)
         {
-            var dict = new Dictionary<object, List<IDomainEvent>>();
+            var dict = new Dictionary<object, List<DomainEvent>>();
             var inserted = insertedObjects.Where(x => x is IEntity).Cast<IEntity>();
 
             foreach (var entity in inserted)
             {
-                var events = new List<IDomainEvent>();
+                var events = new List<DomainEvent>();
                 Type genericType = typeof(EntityInsertedEvent<>);
                 Type[] typeArgs = { entity.GetType() };
                 Type constructed = genericType.MakeGenericType(typeArgs);
@@ -267,7 +267,7 @@ namespace AspNetCore.Base.Data.DomainEvents
                 {
                     createdBy = ((IEntityAuditable)entity).CreatedBy;
                 }
-                IDomainEvent domainEvent = (IDomainEvent)Activator.CreateInstance(constructed, entity, createdBy);
+                var domainEvent = (DomainEvent)Activator.CreateInstance(constructed, entity, createdBy);
                 events.Add(domainEvent);
                 dict.Add(entity, events);
             }
@@ -275,14 +275,14 @@ namespace AspNetCore.Base.Data.DomainEvents
             return dict;
         }
 
-        public Dictionary<object, List<IDomainEvent>> CreateEntityDomainEvents(IEnumerable<object> updatedDeletedInsertedObjects)
+        public Dictionary<object, List<DomainEvent>> CreateEntityDomainEvents(IEnumerable<object> updatedDeletedInsertedObjects)
         {
-            var dict = new Dictionary<object, List<IDomainEvent>>();
+            var dict = new Dictionary<object, List<DomainEvent>>();
             var updatedDeletedInserted = updatedDeletedInsertedObjects.Where(x => x is IEntity).Cast<IEntity>();
 
             foreach (var entity in updatedDeletedInserted)
             {
-                var events = new List<IDomainEvent>();
+                var events = new List<DomainEvent>();
                 if (entity is IEntityDomainEvents)
                 {
                     var domainEventsEntity = ((IEntityDomainEvents)entity);
@@ -301,18 +301,18 @@ namespace AspNetCore.Base.Data.DomainEvents
 
         //If you are handling the domain events right before committing the original transaction is because you want the side effects of those events to be included in the same transaction
         private async Task DispatchDomainEventsPreCommitAsync(
-       Dictionary<object, List<IDomainEvent>> entityUpdatedEvents,
-       Dictionary<object, List<IDomainEvent>> propertyUpdatedEvents,
-       Dictionary<object, List<IDomainEvent>> entityDeletedEvents,
-       Dictionary<object, List<IDomainEvent>> entityInsertedEvents,
-       Dictionary<object, List<IDomainEvent>> entityDomainEvents
+       Dictionary<object, List<DomainEvent>> entityUpdatedEvents,
+       Dictionary<object, List<DomainEvent>> propertyUpdatedEvents,
+       Dictionary<object, List<DomainEvent>> entityDeletedEvents,
+       Dictionary<object, List<DomainEvent>> entityInsertedEvents,
+       Dictionary<object, List<DomainEvent>> entityDomainEvents
        )
         {
             foreach (var kvp in entityUpdatedEvents)
             {
                 foreach (var domainEvent in kvp.Value)
                 {
-                    await _domainEvents.DispatchPreCommitAsync(domainEvent).ConfigureAwait(false);
+                    await _domainEventBus.PublishPreCommitAsync(domainEvent).ConfigureAwait(false);
                 }
 
                 //Property Update Events
@@ -320,7 +320,7 @@ namespace AspNetCore.Base.Data.DomainEvents
                 {
                     foreach (var propertyUpdateEvent in propertyUpdatedEvents[kvp.Key])
                     {
-                        await _domainEvents.DispatchPreCommitAsync(propertyUpdateEvent).ConfigureAwait(false);
+                        await _domainEventBus.PublishPreCommitAsync(propertyUpdateEvent).ConfigureAwait(false);
                     }
                 }
             }
@@ -329,7 +329,7 @@ namespace AspNetCore.Base.Data.DomainEvents
             {
                 foreach (var domainEvent in kvp.Value)
                 {
-                    await _domainEvents.DispatchPreCommitAsync(domainEvent).ConfigureAwait(false);
+                    await _domainEventBus.PublishPreCommitAsync(domainEvent).ConfigureAwait(false);
                 }
             }
 
@@ -337,7 +337,7 @@ namespace AspNetCore.Base.Data.DomainEvents
             {
                 foreach (var domainEvent in kvp.Value)
                 {
-                    await _domainEvents.DispatchPreCommitAsync(domainEvent).ConfigureAwait(false);
+                    await _domainEventBus.PublishPreCommitAsync(domainEvent).ConfigureAwait(false);
                 }
             }
 
@@ -345,22 +345,22 @@ namespace AspNetCore.Base.Data.DomainEvents
             {
                 foreach (var domainEvent in kvp.Value)
                 {
-                    await _domainEvents.DispatchPreCommitAsync(domainEvent).ConfigureAwait(false);
+                    await _domainEventBus.PublishPreCommitAsync(domainEvent).ConfigureAwait(false);
                 }
             }
         }
 
         //If you are handling the domain events after committing the original transaction is because you do not want the side effects of those events to be included in the same transaction. e.g sending an email
         private async Task DispatchDomainEventsPostCommitAsync(
-       Dictionary<object, List<IDomainEvent>> entityUpdatedEvents,
-       Dictionary<object, List<IDomainEvent>> propertyUpdatedEvents,
-       Dictionary<object, List<IDomainEvent>> entityDeletedEvents,
-       Dictionary<object, List<IDomainEvent>> entityInsertedEvents,
-       Dictionary<object, List<IDomainEvent>> entityDomainEvents)
+       Dictionary<object, List<DomainEvent>> entityUpdatedEvents,
+       Dictionary<object, List<DomainEvent>> propertyUpdatedEvents,
+       Dictionary<object, List<DomainEvent>> entityDeletedEvents,
+       Dictionary<object, List<DomainEvent>> entityInsertedEvents,
+       Dictionary<object, List<DomainEvent>> entityDomainEvents)
         {
 
 
-            var domainEvents = new List<IDomainEvent>();
+            var domainEvents = new List<DomainEvent>();
 
             foreach (var kvp in entityUpdatedEvents)
             {
@@ -446,7 +446,7 @@ namespace AspNetCore.Base.Data.DomainEvents
                 }
             }
 
-            await _domainEvents.DispatchPostCommitBatchAsync(domainEvents).ConfigureAwait(false);
+            await _domainEventBus.PublishPostCommitBatchAsync(domainEvents).ConfigureAwait(false);
         }
     }
 }

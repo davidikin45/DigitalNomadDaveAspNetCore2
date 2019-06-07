@@ -12,10 +12,10 @@ namespace AspNetCore.Base.IntegrationEvents
         }
 
         [JsonConstructor]
-        public IntegrationEvent(Guid id, DateTime createDate)
+        public IntegrationEvent(Guid id, DateTime creationDate)
         {
             Id = id;
-            CreationDate = createDate;
+            CreationDate = creationDate;
         }
 
         [JsonProperty]

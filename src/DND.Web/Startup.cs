@@ -1,7 +1,10 @@
 ﻿using AspNetCore.Base;
+using AspNetCore.Base.Cqrs;
+using AspNetCore.Base.DomainEvents;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.IntegrationEvents;
 using AspNetCore.Base.Tasks;
+using DND.ApplicationServices;
 using DND.Core;
 using DND.Data;
 using DND.Data.Identity;
@@ -44,6 +47,7 @@ namespace DND.Web
 
         public override void AddHangfireJobServices(IServiceCollection services)
         {
+         
             //services.AddHangfireJob<Job1>();
         }
 
@@ -70,17 +74,62 @@ namespace DND.Web
         }
     }
 
-    //public class IntegrationEvents : IAsyncInitializer
-    //{
-    //    private readonly IEventBus _eventBus;
-    //    public IntegrationEvents(IEventBus eventBus)
-    //    {
-    //        _eventBus = eventBus;
-    //    }
+    public class CqrsCommands : IAsyncInitializer
+    {
+        private readonly ICqrsMediator _mediator;
+        public CqrsCommands(ICqrsMediator mediator)
+        {
+            _mediator = mediator;
+        }
 
-    //    public Task ExecuteAsync()
-    //    {
-    //        return Task.CompletedTask;
-    //    }
-    //}
+        public Task ExecuteAsync()
+        {
+            _mediator.CqrsCommandSubscriptionManager.AddDynamicSubscription<dynamic, object, CommandHandler>("*");
+            return Task.CompletedTask;
+        }
+    }
+
+    public class CqrsQueries : IAsyncInitializer
+    {
+        private readonly ICqrsMediator _mediator;
+        public CqrsQueries(ICqrsMediator mediator)
+        {
+            _mediator = mediator;
+        }
+
+        public Task ExecuteAsync()
+        {
+            _mediator.CqrsQuerySubscriptionManager.AddDynamicSubscription<dynamic, object, QueryHandler>("*");
+            return Task.CompletedTask;
+        }
+    }
+
+    public class DomainEvents : IAsyncInitializer
+    {
+        private readonly IDomainEventBus _eventBus;
+        public DomainEvents(IDomainEventBus eventBus)
+        {
+            _eventBus = eventBus;
+        }
+
+        public Task ExecuteAsync()
+        {
+            _eventBus.DomainEventSubscriptionsManager.AddDynamicSubscription<dynamic, DomainEventHandler>("*");
+            return Task.CompletedTask;
+        }
+    }
+
+    public class IntegrationEvents : IAsyncInitializer
+    {
+        private readonly IIntegrationEventBus _eventBus;
+        public IntegrationEvents(IIntegrationEventBus eventBus)
+        {
+            _eventBus = eventBus;
+        }
+
+        public Task ExecuteAsync()
+        {
+            return Task.CompletedTask;
+        }
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using AspNetCore.Base.Cqrs;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace AspNetCore.Base.DomainEvents.Subscriptions
@@ -14,18 +15,32 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
 
         public CqrsInMemoryQuerySubscriptionsManager()
         {
-            _handlers = new Dictionary<string, List<QuerySubscriptionInfo>>();
+            _handlers = new Dictionary<string, List<QuerySubscriptionInfo>>() { { "*", new List<QuerySubscriptionInfo>() } };
             _queryTypes = new List<Type>();
         }
 
         public bool IsEmpty => !_handlers.Keys.Any();
         public void Clear() => _handlers.Clear();
 
+        public void AddDynamicSubscription<Q, R, QH>(string queryName)
+            where QH : IDynamicQueryHandler<Q, R>
+        {
+            DoAddSubscription(queryName, typeof(Q), typeof(R), typeof(QH), true);
+        }
+
+        public void RemoveDynamicSubscription<Q, R, QH>(string eventName)
+        where QH : IDynamicQueryHandler<Q, R>
+        {
+            var handlerToRemove = FindDynamicSubscriptionToRemove<Q, R, QH>(eventName);
+            DoRemoveHandler(eventName, handlerToRemove);
+        }
+
         public void AddSubscription(Type queryType, Type queryHandlerType)
         {
             var queryName = GetQueryKey(queryType);
+            var returnType = queryType.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IQuery<>)).GetGenericArguments()[0];
 
-            DoAddSubscription(queryHandlerType, queryName);
+            DoAddSubscription(queryName, queryType, returnType, queryHandlerType, false);
 
             if (!_queryTypes.Contains(queryType))
             {
@@ -35,11 +50,11 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
 
         public void AddSubscription<Q, R, QH>()
             where Q : IQuery<R>
-            where QH : IQueryHandler<Q, R>
+            where QH : ITypedQueryHandler<Q, R>
         {
             var queryName = GetQueryKey<Q>();
 
-            DoAddSubscription(typeof(QH), queryName);
+            DoAddSubscription(queryName, typeof(Q), typeof(R), typeof(QH), false);
 
             if (!_queryTypes.Contains(typeof(Q)))
             {
@@ -47,9 +62,9 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
             }
         }
 
-        private void DoAddSubscription(Type handlerType, string queryName)
+        private void DoAddSubscription(string queryName, Type queryType, Type returnType, Type handlerType, bool isDynamic)
         {
-            if (!HasSubscriptionsForQuery(queryName))
+            if (!_handlers.ContainsKey(queryName))
             {
                 _handlers.Add(queryName, new List<QuerySubscriptionInfo>());
             }
@@ -59,12 +74,19 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
                 throw new ArgumentException($"Handler Type already registered for '{queryName}'");
             }
 
-            _handlers[queryName].Add(QuerySubscriptionInfo.Typed(handlerType));
+            if(isDynamic)
+            {
+                _handlers[queryName].Add(QuerySubscriptionInfo.Dynamic(queryName, returnType, handlerType));
+            }
+            else
+            {
+                _handlers[queryName].Add(QuerySubscriptionInfo.Typed(queryName, queryType, returnType, handlerType));
+            }
         }
 
         public void RemoveSubscription<Q, R, QH>()
            where Q : IQuery<R>
-           where QH : IQueryHandler<Q, R>
+           where QH : ITypedQueryHandler<Q, R>
         {
             var handlerToRemove = FindSubscriptionToRemove<Q, R, QH>();
             var queryName = GetQueryKey<Q>();
@@ -92,17 +114,19 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
 
         public IEnumerable<QuerySubscriptionInfo> GetSubscriptionsForQuery<TResult>(IQuery<TResult> query)
         {
-            var key = GetQueryKey(query.GetType());
-            return GetSubscriptionsForQuery(key);
+            var queryName = GetQueryKey(query.GetType());
+            return GetSubscriptionsForQuery(queryName);
         }
 
         public IEnumerable<QuerySubscriptionInfo> GetSubscriptionsForQuery<Q, TResult>() where Q : IQuery<TResult>
         {
-            var key = GetQueryKey<Q>();
-            return GetSubscriptionsForQuery(key);
+            var queryName = GetQueryKey<Q>();
+            return GetSubscriptionsForQuery(queryName);
         }
 
-        public IEnumerable<QuerySubscriptionInfo> GetSubscriptionsForQuery(string queryName) => _handlers[queryName];
+        public IEnumerable<QuerySubscriptionInfo> GetSubscriptionsForQuery(string queryName) => queryName == "*" ? _handlers["*"] : (_handlers.ContainsKey(queryName) ? _handlers[queryName] : new List<QuerySubscriptionInfo>()).Concat(_handlers["*"]);
+
+        public IEnumerable<string> GetQueries() => _handlers.Keys;
 
         private void RaiseOnQueryRemoved(string queryName)
         {
@@ -113,9 +137,15 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
             }
         }
 
+        private QuerySubscriptionInfo FindDynamicSubscriptionToRemove<Q, R, QH>(string eventName)
+             where QH : IDynamicQueryHandler<Q, R>
+        {
+            return DoFindSubscriptionToRemove(eventName, typeof(QH));
+        }
+
         private QuerySubscriptionInfo FindSubscriptionToRemove<Q, R, QH>()
-             where Q : IQuery<R>
-             where QH : IQueryHandler<Q, R>
+              where Q : IQuery<R>
+           where QH : ITypedQueryHandler<Q, R>
         {
             var queryName = GetQueryKey<Q>();
             return DoFindSubscriptionToRemove(queryName, typeof(QH));
@@ -138,7 +168,7 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
             return HasSubscriptionsForQuery(key);
         }
 
-        public bool HasSubscriptionsForQuery(string queryName) => _handlers.ContainsKey(queryName);
+        public bool HasSubscriptionsForQuery(string queryName) => (_handlers.ContainsKey(queryName) && _handlers[queryName].Count > 0) || (_handlers.ContainsKey("*") && _handlers["*"].Count > 0);
 
         public Type GetQueryTypeByName(string queryName) => _queryTypes.SingleOrDefault(t => t.Name == queryName);
 
@@ -150,6 +180,11 @@ namespace AspNetCore.Base.DomainEvents.Subscriptions
         private string GetQueryKey(Type queryType)
         {
             return queryType.Name;
+        }
+
+        public IReadOnlyDictionary<string, QuerySubscriptionInfo> GetSubscriptions()
+        {
+            return new ReadOnlyDictionary<string, QuerySubscriptionInfo>(_handlers.Where(kvp => kvp.Value.Count > 0).ToDictionary(k => k.Key, v => v.Value.First()));
         }
     }
 }

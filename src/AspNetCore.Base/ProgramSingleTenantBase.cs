@@ -43,7 +43,7 @@ namespace AspNetCore.Base
                 //await host.InitAsync();
 
                 //AppStartup.Configure will be called here
-                host.Run();
+                await host.RunAsync();
 
                 return 0;
             }
@@ -58,15 +58,28 @@ namespace AspNetCore.Base
             }
         }
 
+        //.NET Core 3.0
+        //public static IHostBuilder CreateHostBuilder(string[] args) =>
+        //   Host.CreateDefaultBuilder(args)
+        //       .ConfigureWebHostDefaults(webBuilder =>
+        //       {
+        //           webBuilder.ConfigureWebHost(ConfigureWebHost);
+        //       });
+
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
                 WebHost.CreateDefaultBuilder(args)
+               .ConfigureWebHost(ConfigureWebHost);
+
+        private static void ConfigureWebHost(IWebHostBuilder webBuilder)
+        {
+                webBuilder
                 // These two settings allow an error page to be shown rather than throwing exception on startup
                 // Need to be careful putting code after IWebHostBuilder.Build()
                 .CaptureStartupErrors(true)
                 //.UseSetting("detailedErrors", "true") // Better to put this in appsettings
                 .ConfigureKestrel((context, options) =>
                 {
-                    if(context.HostingEnvironment.IsDevelopment() || context.HostingEnvironment.IsIntegration())
+                    if (context.HostingEnvironment.IsDevelopment() || context.HostingEnvironment.IsIntegration())
                     {
                         options.ListenAnyIP(5000);
                         options.ListenAnyIP(5001, listenOptions => {
@@ -92,6 +105,7 @@ namespace AspNetCore.Base
                 .UseSerilog()
                 .UseTaskExecutingServer()
                 .UseStartup<TStartup>();
+        }
 
         //WebHostBuilder - https://github.com/aspnet/Hosting/blob/3483a3250535da6f291326f3f5f1e3f66ca09901/src/Microsoft.AspNetCore.Hosting/WebHostBuilder.cs
         //WebHost.CreateDefaultBuilder(args) - https://github.com/aspnet/MetaPackages/blob/release/2.1/src/Microsoft.AspNetCore/WebHost.cs

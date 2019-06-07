@@ -1,28 +1,27 @@
-﻿using AspNetCore.Base.Settings;
-using AspNetCore.Base.Validation;
+﻿using AspNetCore.Base.Validation;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
 namespace AspNetCore.Base.Cqrs.Decorators.Command
 {
-    public sealed class DatabaseTransactionDecorator<TCommand> : ICommandHandler<TCommand>
-        where TCommand : ICommand
+    public sealed class DatabaseTransactionDecorator<TCommand, TResult> : ICommandHandler<TCommand, TResult>
     {
-        private readonly ICommandHandler<TCommand> _handler;
+        private readonly ICommandHandler<TCommand, TResult> _handler;
         private readonly TransactionScope _transactionScope;
 
-        public DatabaseTransactionDecorator(ICommandHandler<TCommand> handler)
+        public DatabaseTransactionDecorator(ICommandHandler<TCommand, TResult> handler)
         {
             _handler = handler;
             _transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted });
         }
 
-        public async Task<Result> HandleAsync(TCommand command)
+        public async Task<Result<TResult>> HandleAsync(string commandName, TCommand command, CancellationToken cancellationToken = default)
         {
             try
             {
-                Result result = await _handler.HandleAsync(command);
+                Result<TResult> result = await _handler.HandleAsync(commandName, command, cancellationToken);
 
                 _transactionScope.Complete();
 

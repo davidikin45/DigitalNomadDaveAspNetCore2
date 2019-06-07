@@ -4,33 +4,33 @@ using System.Linq;
 
 namespace AspNetCore.Base.IntegrationEvents.Subscriptions
 {
-    public partial class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManager
+    public partial class IntegrationEventBusInMemorySubscriptionsManager : IIntegrationEventBusSubscriptionsManager
     {
         private readonly Dictionary<string, List<SubscriptionInfo>> _handlers;
         private readonly List<Type> _eventTypes;
 
         public event EventHandler<string> OnEventRemoved;
 
-        public InMemoryEventBusSubscriptionsManager()
+        public IntegrationEventBusInMemorySubscriptionsManager()
         {
-            _handlers = new Dictionary<string, List<SubscriptionInfo>>();
+            _handlers = new Dictionary<string, List<SubscriptionInfo>>() { { "*", new List<SubscriptionInfo>() } };
             _eventTypes = new List<Type>();
         }
 
         public bool IsEmpty => !_handlers.Keys.Any();
         public void Clear() => _handlers.Clear();
 
-        public void AddDynamicSubscription<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
+        public void AddDynamicSubscription<TIntegrationEvent,TH>(string eventName)
+            where TH : IDynamicIntegrationEventHandler<TIntegrationEvent>
         {
-            DoAddSubscription(typeof(TH), eventName, isDynamic: true);
+            DoAddSubscription(eventName, typeof(TH), isDynamic: true);
         }
 
         public void AddSubscription(Type eventType, Type eventHandlerType)
         {
             var eventName = GetEventKey(eventType);
 
-            DoAddSubscription(eventHandlerType, eventName, isDynamic: false);
+            DoAddSubscription(eventName, eventHandlerType, isDynamic: false);
 
             if (!_eventTypes.Contains(eventType))
             {
@@ -44,7 +44,7 @@ namespace AspNetCore.Base.IntegrationEvents.Subscriptions
         {
             var eventName = GetEventKey<T>();
 
-            DoAddSubscription(typeof(TH), eventName, isDynamic: false);
+            DoAddSubscription(eventName, typeof(TH), isDynamic: false);
 
             if (!_eventTypes.Contains(typeof(T)))
             {
@@ -52,34 +52,39 @@ namespace AspNetCore.Base.IntegrationEvents.Subscriptions
             }
         }
 
-        private void DoAddSubscription(Type handlerType, string eventName, bool isDynamic)
+        private void DoAddSubscription(string eventName, Type handlerType, bool isDynamic)
         {
-            if (!HasSubscriptionsForEvent(eventName))
+            if (!_handlers.ContainsKey(eventName))
             {
                 _handlers.Add(eventName, new List<SubscriptionInfo>());
             }
 
             if (_handlers[eventName].Any(s => s.HandlerType == handlerType))
             {
-                throw new ArgumentException(
-                    $"Handler Type {handlerType.Name} already registered for '{eventName}'", nameof(handlerType));
-            }
+                var susbcription = _handlers[eventName].First(s => s.HandlerType == handlerType);
+                susbcription.IncrementHandlerCount();
 
-            if (isDynamic)
-            {
-                _handlers[eventName].Add(SubscriptionInfo.Dynamic(handlerType));
+                //throw new ArgumentException(
+                //    $"Handler Type {handlerType.Name} already registered for '{eventName}'", nameof(handlerType));
             }
             else
             {
-                _handlers[eventName].Add(SubscriptionInfo.Typed(handlerType));
+                if (isDynamic)
+                {
+                    _handlers[eventName].Add(SubscriptionInfo.Dynamic(handlerType));
+                }
+                else
+                {
+                    _handlers[eventName].Add(SubscriptionInfo.Typed(handlerType));
+                }
             }
         }
 
 
-        public void RemoveDynamicSubscription<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
+        public void RemoveDynamicSubscription<TIntegrationEvent, TH>(string eventName)
+            where TH : IDynamicIntegrationEventHandler<TIntegrationEvent>
         {
-            var handlerToRemove = FindDynamicSubscriptionToRemove<TH>(eventName);
+            var handlerToRemove = FindDynamicSubscriptionToRemove<TIntegrationEvent,TH>(eventName);
             DoRemoveHandler(eventName, handlerToRemove);
         }
 
@@ -92,7 +97,6 @@ namespace AspNetCore.Base.IntegrationEvents.Subscriptions
             var eventName = GetEventKey<T>();
             DoRemoveHandler(eventName, handlerToRemove);
         }
-
 
         private void DoRemoveHandler(string eventName, SubscriptionInfo subsToRemove)
         {
@@ -109,8 +113,13 @@ namespace AspNetCore.Base.IntegrationEvents.Subscriptions
                     }
                     RaiseOnEventRemoved(eventName);
                 }
-
             }
+        }
+
+        public IEnumerable<SubscriptionInfo> GetHandlersForEvent(IntegrationEvent integrationEvent)
+        {
+            var key = GetEventKey(integrationEvent.GetType());
+            return GetHandlersForEvent(key);
         }
 
         public IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : IntegrationEvent
@@ -118,7 +127,7 @@ namespace AspNetCore.Base.IntegrationEvents.Subscriptions
             var key = GetEventKey<T>();
             return GetHandlersForEvent(key);
         }
-        public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName) => _handlers[eventName];
+        public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName) => eventName == "*" ? _handlers["*"] : (_handlers.ContainsKey(eventName) ? _handlers[eventName] : new List<SubscriptionInfo>()).Concat(_handlers["*"]);
 
         private void RaiseOnEventRemoved(string eventName)
         {
@@ -129,9 +138,8 @@ namespace AspNetCore.Base.IntegrationEvents.Subscriptions
             }
         }
 
-
-        private SubscriptionInfo FindDynamicSubscriptionToRemove<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
+        private SubscriptionInfo FindDynamicSubscriptionToRemove<TIntegrationEvent,TH>(string eventName)
+            where TH : IDynamicIntegrationEventHandler<TIntegrationEvent>
         {
             return DoFindSubscriptionToRemove(eventName, typeof(TH));
         }
@@ -141,8 +149,8 @@ namespace AspNetCore.Base.IntegrationEvents.Subscriptions
              where T : IntegrationEvent
              where TH : IIntegrationEventHandler<T>
         {
-            var eventName = GetEventKey<T>();
-            return DoFindSubscriptionToRemove(eventName, typeof(TH));
+            var type = GetEventKey<T>();
+            return DoFindSubscriptionToRemove(type, typeof(TH));
         }
 
         private SubscriptionInfo DoFindSubscriptionToRemove(string eventName, Type handlerType)
@@ -153,26 +161,28 @@ namespace AspNetCore.Base.IntegrationEvents.Subscriptions
             }
 
             return _handlers[eventName].SingleOrDefault(s => s.HandlerType == handlerType);
-
         }
 
         public bool HasSubscriptionsForEvent<T>() where T : IntegrationEvent
         {
-            var key = GetEventKey<T>();
-            return HasSubscriptionsForEvent(key);
+            var eventName = GetEventKey<T>();
+            return HasSubscriptionsForEvent(eventName);
         }
-        public bool HasSubscriptionsForEvent(string eventName) => _handlers.ContainsKey(eventName);
+        public bool HasSubscriptionsForEvent(string eventName) => (_handlers.ContainsKey(eventName) && _handlers[eventName].Count > 0) || (_handlers.ContainsKey("*") && _handlers["*"].Count > 0);
 
-        public Type GetEventTypeByName(string eventName) => _eventTypes.SingleOrDefault(t => t.Name == eventName);
+        public Type GetEventTypeByName(string eventName) => _eventTypes.SingleOrDefault(t => t.Name == eventName) ?? _eventTypes.SingleOrDefault(t => t.Name == "*");
 
         public string GetEventKey<T>()
         {
             return GetEventKey(typeof(T));
         }
 
-        public string GetEventKey(Type eventType)
+        public string GetEventKey(Type integrationEventType)
         {
-            return eventType.Name;
+            if (integrationEventType == typeof(IntegrationEvent))
+                return "*";
+            else
+                return integrationEventType.Name;
         }
     }
 }

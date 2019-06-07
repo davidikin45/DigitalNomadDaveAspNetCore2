@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AspNetCore.Base.DomainEvents
 {
-    public class EntityInsertedEvent<T> : IDomainEvent
+    public class EntityInsertedEvent<T> : DomainEvent
         where T : class
     {
         public T Entity { get; }
@@ -34,7 +34,7 @@ namespace AspNetCore.Base.DomainEvents
         public override int GetHashCode() => HashCode.Combine(CreatedBy, Entity.GetHashCode().ToString());
     }
 
-    public class EntityUpdatedEvent<T> : IDomainEvent
+    public class EntityUpdatedEvent<T> : DomainEvent
         where T : class
     {
         public T Entity { get; }
@@ -65,7 +65,7 @@ namespace AspNetCore.Base.DomainEvents
         public override int GetHashCode() => HashCode.Combine(UpdatedBy, Entity.GetHashCode().ToString());
     }
 
-    public class EntityDeletedEvent<T> : IDomainEvent
+    public class EntityDeletedEvent<T> : DomainEvent
         where T : class
     {
         public T Entity { get; }
@@ -96,7 +96,7 @@ namespace AspNetCore.Base.DomainEvents
         public override int GetHashCode() => HashCode.Combine(DeletedBy, Entity.GetHashCode());
     }
 
-    public class EntityPropertyUpdatedEvent<T> : IDomainEvent
+    public class EntityPropertyUpdatedEvent<T> : DomainEvent
         where T : class
     {
         public T Entity { get; }

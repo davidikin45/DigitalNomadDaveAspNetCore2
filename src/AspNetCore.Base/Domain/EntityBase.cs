@@ -26,15 +26,15 @@ namespace AspNetCore.Base.Domain
         public DateTime? UpdatedOn { get; set; }
         public string UpdatedBy { get; set; }
 
-        private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
-        public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+        private readonly List<DomainEvent> _domainEvents = new List<DomainEvent>();
+        public IReadOnlyCollection<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
-        public void AddDomainEvent(IDomainEvent eventItem)
+        public void AddDomainEvent(DomainEvent eventItem)
         {
             _domainEvents.Add(eventItem);
         }
 
-        public void RemoveDomainEvent(IDomainEvent eventItem)
+        public void RemoveDomainEvent(DomainEvent eventItem)
         {
             _domainEvents.Remove(eventItem);
         }

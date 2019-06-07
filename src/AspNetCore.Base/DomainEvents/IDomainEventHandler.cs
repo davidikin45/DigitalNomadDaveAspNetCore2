@@ -1,18 +1,26 @@
 ﻿using AspNetCore.Base.Validation;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AspNetCore.Base.DomainEvents
 {
-    public interface IDomainEventHandler<T>
-        where T : IDomainEvent
+    public interface IDomainEventHandler<in T>
     {
-        Task<Result> HandlePreCommitAsync(T domainEvent);
-        Task<Result> HandlePostCommitAsync(T domainEvent);
+        //Trigger Transactional Effects
+        Task<Result> HandlePreCommitAsync(string eventName, T domainEvent, CancellationToken cancellationToken = default);
+
+        //Trigger Integration Events
+        Task<Result> HandlePostCommitAsync(string eventName, T domainEvent, CancellationToken cancellationToken = default);
     }
 
-    public interface IDynamicDomainEventHandler
+    public interface ITypedDomainEventHandler<in T> : IDomainEventHandler<T>
+        where T : DomainEvent
     {
-        Task<Result> HandlePreCommitAsync(dynamic domainEvent);
-        Task<Result> HandlePostCommitAsync(dynamic domainEvent);
+
+    }
+
+    public interface IDynamicDomainEventHandler<in T> : IDomainEventHandler<T>
+    {
+
     }
 }

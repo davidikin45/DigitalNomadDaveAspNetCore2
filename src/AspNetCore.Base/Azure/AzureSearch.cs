@@ -23,12 +23,12 @@ namespace AspNetCore.Base.AzureStorage
             _searchIndexClient = new SearchIndexClient(searchServiceName, indexName, new SearchCredentials(queryApiKey));
         }
 
-        public Task<DocumentSearchResult> SearchAsync(string searchText)
+        public Task<DocumentSearchResult<Document>> SearchAsync(string searchText)
         {
             return _searchIndexClient.Documents.SearchAsync(searchText);
         }
 
-        public Task<DocumentSearchResult> SearchAsync(string searchText, string tag, string value)
+        public Task<DocumentSearchResult<Document>> SearchAsync(string searchText, string tag, string value)
         {
             SearchParameters parameters = new SearchParameters()
             {

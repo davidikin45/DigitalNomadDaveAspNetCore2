@@ -22,8 +22,8 @@ namespace DND.Data
         public ILocationRepository LocationRepository { get; private set; }
         public ITagRepository TagRepository { get; private set; }
 
-        public AppUnitOfWork(IValidationService validationService, IDomainEventsMediator domainEventsMediator, AppContext appContext)
-            :base(true, validationService, domainEventsMediator, appContext)
+        public AppUnitOfWork(IValidationService validationService, IDomainEventBus domainEventBus, AppContext appContext)
+            :base(true, validationService, domainEventBus, appContext)
         {
 
         }

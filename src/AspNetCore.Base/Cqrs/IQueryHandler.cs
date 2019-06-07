@@ -1,10 +1,21 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace AspNetCore.Base.Cqrs
 {
-    public interface IQueryHandler<TQuery, TResult>
+    public interface IQueryHandler<in TQuery, TResult>
+    {
+        Task<TResult> HandleAsync(string queryName, TQuery query, CancellationToken cancellationToken = default);
+    }
+
+    public interface ITypedQueryHandler<in TQuery, TResult>
         where TQuery : IQuery<TResult>
     {
-        Task<TResult> HandleAsync(TQuery query);
+
+    }
+
+    public interface IDynamicQueryHandler<in TQuery, TResult> : IQueryHandler<TQuery, TResult>
+    {
+
     }
 }

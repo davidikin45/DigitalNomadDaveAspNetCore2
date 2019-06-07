@@ -1,5 +1,8 @@
-﻿using AspNetCore.Base.IntegrationEvents.Subscriptions;
+﻿using AspNetCore.Base.Data.UnitOfWork;
+using AspNetCore.Base.IntegrationEvents.Subscriptions;
+using AspNetCore.Base.Validation;
 using Autofac;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,37 +12,41 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AspNetCore.Base.IntegrationEvents
 {
     //Each microservice has a seperate queue 
     //Publisher > Exchange > Queue > Consumer
-    public class EventBusRabbitMQ : IEventBus, IDisposable
+    public class IntegrationEventBusRabbitMQ : IIntegrationEventBus, IDisposable
     {
+
         const string BROKER_NAME = "event_bus";
 
         private readonly IRabbitMQPersistentConnection _persistentConnection;
-        private readonly ILogger<EventBusRabbitMQ> _logger;
-        private readonly IEventBusSubscriptionsManager _subsManager;
-        private readonly ILifetimeScope _autofac;
+        private readonly ILogger<IntegrationEventBusRabbitMQ> _logger;
+        private readonly IIntegrationEventBusSubscriptionsManager _subsManager;
+        private readonly IServiceProvider _serviceProvider;
         private readonly string AUTOFAC_SCOPE_NAME = "event_bus";
         private readonly int _retryCount;
 
         private IModel _consumerChannel;
         private string _queueName;
 
-        public EventBusRabbitMQ(IRabbitMQPersistentConnection persistentConnection, ILogger<EventBusRabbitMQ> logger,
-            ILifetimeScope autofac, IEventBusSubscriptionsManager subsManager, string queueName = null, int retryCount = 5)
+        public IntegrationEventBusRabbitMQ(IRabbitMQPersistentConnection persistentConnection, ILogger<IntegrationEventBusRabbitMQ> logger,
+            IServiceProvider serviceProvider, IIntegrationEventBusSubscriptionsManager subsManager, string queueName = null, int retryCount = 5)
         {
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
+            _subsManager = subsManager ?? new IntegrationEventBusInMemorySubscriptionsManager();
             _queueName = queueName;
             _consumerChannel = CreateConsumerChannel();
-            _autofac = autofac;
+            _serviceProvider = serviceProvider;
             _retryCount = retryCount;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
         }
@@ -65,7 +72,7 @@ namespace AspNetCore.Base.IntegrationEvents
             }
         }
 
-        public void Publish(IntegrationEvent @event)
+        public Task PublishAsync(IntegrationEvent integrationEvent)
         {
             if (!_persistentConnection.IsConnected)
             {
@@ -81,13 +88,13 @@ namespace AspNetCore.Base.IntegrationEvents
 
             using (var channel = _persistentConnection.CreateModel())
             {
-                var eventName = @event.GetType()
+                var eventName = integrationEvent.GetType()
                     .Name;
 
                 //Explicit Exhange.
                 channel.ExchangeDeclare(exchange: BROKER_NAME, type: "direct");
 
-                var message = JsonConvert.SerializeObject(@event);
+                var message = JsonConvert.SerializeObject(integrationEvent);
                 var body = Encoding.UTF8.GetBytes(message);
 
                 policy.Execute(() =>
@@ -104,13 +111,15 @@ namespace AspNetCore.Base.IntegrationEvents
                                      body: body);
                 });
             }
+
+            return Task.CompletedTask;
         }
 
-        public void SubscribeDynamic<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
+        public void SubscribeDynamic<TIntegrationEvent,TH>(string eventName)
+            where TH : IDynamicIntegrationEventHandler<TIntegrationEvent>
         {
             DoInternalSubscription(eventName);
-            _subsManager.AddDynamicSubscription<TH>(eventName);
+            _subsManager.AddDynamicSubscription<TIntegrationEvent,TH>(eventName);
         }
 
         public void Subscribe<T, TH>()
@@ -148,10 +157,10 @@ namespace AspNetCore.Base.IntegrationEvents
             _subsManager.RemoveSubscription<T, TH>();
         }
 
-        public void UnsubscribeDynamic<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
+        public void UnsubscribeDynamic<TIntegrationEvent,TH>(string eventName)
+            where TH : IDynamicIntegrationEventHandler<TIntegrationEvent>
         {
-            _subsManager.RemoveDynamicSubscription<TH>(eventName);
+            _subsManager.RemoveDynamicSubscription<TIntegrationEvent,TH>(eventName);
         }
 
         public void Dispose()
@@ -192,7 +201,7 @@ namespace AspNetCore.Base.IntegrationEvents
                 var eventName = ea.RoutingKey;
                 var message = Encoding.UTF8.GetString(ea.Body);
 
-                await ProcessEvent(eventName, message);
+                await ProcessEventAsync(eventName, message);
 
                 //var replyProps = _consumerChannel.CreateBasicProperties();
                 //replyProps.CorrelationId = props.CorrelationId;
@@ -219,34 +228,78 @@ namespace AspNetCore.Base.IntegrationEvents
             return channel;
         }
 
-        private async Task ProcessEvent(string eventName, string message)
+        public async Task ProcessEventAsync(string eventName, string payload)
         {
             if (_subsManager.HasSubscriptionsForEvent(eventName))
             {
-                using (var scope = _autofac.BeginLifetimeScope(AUTOFAC_SCOPE_NAME))
+                var subscriptions = _subsManager.GetHandlersForEvent(eventName);
+
+                //Each Integration Event is a Unit of Work which could trigger many commands.
+                using (var scope = _serviceProvider.CreateScope())
                 {
-                    var subscriptions = _subsManager.GetHandlersForEvent(eventName);
+                    scope.ServiceProvider.BeginUnitOfWork();
+
                     foreach (var subscription in subscriptions)
                     {
-                        if (subscription.IsDynamic)
+                        for (int i = 0; i < subscription.HandlerCount; i++)
                         {
-                            var handler = scope.ResolveOptional(subscription.HandlerType) as IDynamicIntegrationEventHandler;
-                            if (handler == null) continue;
-                            dynamic eventData = JObject.Parse(message);
-                            await handler.Handle(eventData);
-                        }
-                        else
-                        {
-                            var handler = scope.ResolveOptional(subscription.HandlerType);
-                            if (handler == null) continue;
-                            var eventType = _subsManager.GetEventTypeByName(eventName);
-                            var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
-                            var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
-                            await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
+                            await ProcessEventHandlerAsync(eventName, payload, subscription.HandlerType.FullName, i, scope.ServiceProvider).ConfigureAwait(false);
                         }
                     }
+
+                    await scope.ServiceProvider.CompleteUnitOfWorkAsync();
                 }
             }
         }
+
+        public async Task ProcessEventHandlerAsync(string eventName, string payload, string handlerType, int handlerIndex, IServiceProvider serviceProvider)
+        {
+            if (_subsManager.HasSubscriptionsForEvent(eventName))
+            {
+                var subscription = _subsManager.GetHandlersForEvent(eventName).FirstOrDefault(s => s.HandlerType.FullName == handlerType);
+                if (subscription != null)
+                {
+                    dynamic integrationEvent;
+                    if (subscription.IsDynamic)
+                    {
+                        integrationEvent = JObject.Parse(payload);
+                    }
+                    else
+                    {
+                        var eventType = _subsManager.GetEventTypeByName(eventName);
+                        integrationEvent = JsonConvert.DeserializeObject(payload, eventType);
+                    }
+
+                     await DispatchEventAsync(subscription.HandlerType, handlerIndex, eventName, integrationEvent, serviceProvider).ConfigureAwait(false);
+                }
+                else
+                {
+                    throw new Exception("Invalid handler type");
+                }
+            }
+        }
+
+        private async Task DispatchEventAsync(Type handlerType, int handlerIndex, string eventName, dynamic integrationEvent, IServiceProvider serviceProvider)
+        {
+            IEnumerable<dynamic> handlers = serviceProvider.GetServices(handlerType);
+
+            dynamic handler = handlers.Skip(handlerIndex).Take(1).First();
+
+            if (handler == null)
+            {
+                throw new Exception("Invalid handler index");
+            }
+
+            Result result = await handler.HandleAsync(eventName, integrationEvent, default(CancellationToken)).ConfigureAwait(false);
+            if (result.IsFailure)
+            {
+                throw new Exception("Integration Event Failed");
+            }
+
+            //var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
+            //await (Task)concreteType.GetMethod("HandleAsync").Invoke(handler, new object[] { integrationEvent, default(CancellationToken) });
+
+        }
     }
 }
+

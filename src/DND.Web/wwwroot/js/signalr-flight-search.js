@@ -12,7 +12,7 @@ function setupSignalRFlightSearchConnection()
     );
 
     signalRFlightSearchConnection.on("Finished", function () {
-        connection.stop();
+        signalRFlightSearchConnection.stop();
     }
     );
 

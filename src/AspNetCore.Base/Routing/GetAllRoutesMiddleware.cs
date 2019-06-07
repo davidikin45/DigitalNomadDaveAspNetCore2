@@ -17,14 +17,19 @@ namespace AspNetCore.Base.Routing
     //https://gist.github.com/McKabue/b5caf25f9862b2488a9fa7898e22e86e
     public static class GetAllRoutes
     {
-        public static IApplicationBuilder AllRoutes(this IRouteBuilder routeBuilder, PathString pathString)
+        public static IApplicationBuilder MapAllRoutes(this IRouteBuilder routeBuilder, PathString pathString)
         {
             var app = routeBuilder.ApplicationBuilder;
-            app.Map(pathString, builder => {
-                builder.UseMiddleware<GetAllRoutesMiddleware>();
+            app.Map(pathString, branch => {
+                branch.UseMiddleware<GetAllRoutesMiddleware>();
             });
             return app;
         }
+
+        //public static IEndpointConventionBuilder MapAllRoutes(this IEndpointRouteBuilder routeBuilder, string pathString)
+        //{
+        //    return routeBuilder.MapHandlerMiddleware<GetAllRoutesMiddleware>(pathString);
+        //}
     }
 
     public class GetAllRoutesMiddleware

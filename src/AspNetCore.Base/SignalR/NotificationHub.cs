@@ -6,32 +6,52 @@ using System.Threading.Tasks;
 
 namespace AspNetCore.Base.SignalR
 {
-    public class NotificationHub : Hub
+    public interface INotificationClient
     {
-        //Client JS methods
+        Task ReceiveMessage(string message);
+    }
 
-        //public async Task SendMessageToClients(string message, params string[] connectionIds)
-        //{
-        //    await Clients.Clients(connectionIds.ToList()).SendAsync("ReceiveMessage", message);
-        //}
+    public class ChatHub : NotificationHub
+    {
+        //Client JS RPC methods
 
-        //public async Task SendMessageToUsers(string message, params string[] userIds)
-        //{
-        //    await Clients.Users(userIds.ToList()).SendAsync("ReceiveMessage", message);
-        //}
+        public Task SendMessageToClients(string message, params string[] connectionIds)
+        {
+            //return Clients.Clients(connectionIds.ToList()).SendAsync("ReceiveMessage", message);
+            return Clients.Clients(connectionIds.ToList()).ReceiveMessage(message);
+        }
 
-        //public async Task SendMessageToAllUsers(string message)
-        //{
-        //    await Clients.All.SendAsync("ReceiveMessage", message);
-        //}
+        public Task SendMessageToUsers(string message, params string[] userIds)
+        {
+            //return Clients.Users(userIds.ToList()).SendAsync("ReceiveMessage", message);
+            return Clients.Users(userIds.ToList()).ReceiveMessage(message);
+        }
 
-        //public Task SendMessageToGroups(string message, params string[] groups)
-        //{
-        //    return Clients.Groups(groups.ToList()).SendAsync("ReceiveMessage", message);
-        //}
+        public Task SendMessageToAllUsers(string message)
+        {
+            //return Clients.All.SendAsync("ReceiveMessage", message);
+            return Clients.All.ReceiveMessage(message);
+        }
 
+        public Task SendMessageToGroups(string message, params string[] groups)
+        {
+            //return Clients.Groups(groups.ToList()).SendAsync("ReceiveMessage", message);
+            return Clients.Groups(groups.ToList()).ReceiveMessage(message);
+        }
+
+        public Task SendMessageBackToSender(string message)
+        {
+            //return Clients.Caller.SendAsync("ReceiveMessage", message);
+            return Clients.Caller.ReceiveMessage(message);
+        }
+    }
+
+    public class NotificationHub : Hub<INotificationClient>
+    {
+       
         public override async Task OnConnectedAsync()
         {
+
             var roles = Context.User.Claims.Where(c => c.Type == ClaimTypes.Role || c.Type == "role")
                        .Select(c => c.Value)
                        .ToList();
@@ -61,24 +81,28 @@ namespace AspNetCore.Base.SignalR
 
     public static class NotificationHubServerExtensions
     {
-        public static async Task SendMessageToClients(this IHubContext<NotificationHub> hubContext, string message, params string[] connectionIds)
+        public static Task SendMessageToClients(this IHubContext<NotificationHub, INotificationClient> hubContext, string message, params string[] connectionIds)
         {
-            await hubContext.Clients.Clients(connectionIds.ToList()).SendAsync("ReceiveMessage", message);
+            //return hubContext.Clients.Clients(connectionIds.ToList()).SendAsync("ReceiveMessage", message);
+            return hubContext.Clients.Clients(connectionIds.ToList()).ReceiveMessage(message);
         }
 
-        public static async Task SendMessageToUsers(this IHubContext<NotificationHub> hubContext, string message, params string[] userIds)
+        public static Task SendMessageToUsers(this IHubContext<NotificationHub, INotificationClient> hubContext, string message, params string[] userIds)
         {
-            await hubContext.Clients.Users(userIds.ToList()).SendAsync("ReceiveMessage", message);
+            //return hubContext.Clients.Users(userIds.ToList()).SendAsync("ReceiveMessage", message);
+            return hubContext.Clients.Users(userIds.ToList()).ReceiveMessage(message);
         }
 
-        public static async Task SendMessageToAllUsers(this IHubContext<NotificationHub> hubContext, string message)
+        public static Task SendMessageToAllUsers(this IHubContext<NotificationHub, INotificationClient> hubContext, string message)
         {
-            await hubContext.Clients.All.SendAsync("ReceiveMessage", message);
+            //return hubContext.Clients.All.SendAsync("ReceiveMessage", message);
+            return hubContext.Clients.All.ReceiveMessage(message);
         }
 
-        public static Task SendMessageToGroups(this IHubContext<NotificationHub> hubContext, string message, params string[] groups)
+        public static Task SendMessageToGroups(this IHubContext<NotificationHub, INotificationClient> hubContext, string message, params string[] groups)
         {
-            return hubContext.Clients.Groups(groups.ToList()).SendAsync("ReceiveMessage", message);
+            //return hubContext.Clients.Groups(groups.ToList()).SendAsync("ReceiveMessage", message);
+            return hubContext.Clients.Groups(groups.ToList()).ReceiveMessage(message);
         }
     }
 }
