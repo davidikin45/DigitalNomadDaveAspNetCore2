@@ -1,5 +1,6 @@
 ﻿using AspnetCore.Base.Validation.Errors;
 using AspNetCore.Base.ErrorHandling;
+using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -21,7 +22,7 @@ namespace AspNetCore.Base.Filters
         public override void OnException(ExceptionContext context)
         {
             LogException(context);
-            if (context.HttpContext.Request.Path.ToString().Contains("/api"))
+            if (context.HttpContext.Request.IsApi())
             {
                 var result = ApiErrorHandler.HandleApiException(context.HttpContext, context.HttpContext.User, context.Exception);
                 if (result != null)

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AspNetCore.Base.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,7 +16,7 @@ namespace AspNetCore.Base.Filters
         }
         public override void OnException(ExceptionContext context)
         {
-            if (!context.HttpContext.Request.Path.ToString().Contains("/api"))
+            if (context.HttpContext.Request.IsMvc())
             {
                 HandleException(context);
             }

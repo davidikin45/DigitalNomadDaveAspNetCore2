@@ -9,6 +9,7 @@ using AspNetCore.Base.ErrorHandling;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Filters;
 using AspNetCore.Base.Hangfire;
+using AspNetCore.Base.Helpers;
 using AspNetCore.Base.HostedServices;
 using AspNetCore.Base.Hosting;
 using AspNetCore.Base.IntegrationEvents;
@@ -1466,7 +1467,7 @@ namespace AspNetCore.Base
 
         private static bool AreCookiesConsentedCallback(Microsoft.AspNetCore.Http.HttpContext context, string cookieConsentName)
         {
-            return context.Request.Path.ToString().Contains("/api") || (context.Request.Cookies.Keys.Contains(cookieConsentName));
+            return context.Request.IsApi() || (context.Request.Cookies.Keys.Contains(cookieConsentName));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -1495,7 +1496,7 @@ namespace AspNetCore.Base
                 app.UseStackifyPrefix();
 
                 // Non Api
-                app.UseWhen(context => !context.Request.Path.ToString().Contains("/api"),
+                app.UseWhen(context => context.Request.IsMvc(),
                     appBranch =>
                     {
                         appBranch.UseDeveloperExceptionPage();
@@ -1503,7 +1504,7 @@ namespace AspNetCore.Base
                );
 
                 // Web Api
-                app.UseWhen(context => context.Request.Path.ToString().Contains("/api"),
+                app.UseWhen(context => context.Request.IsApi(),
                     appBranch =>
                     {
                         appBranch.UseWebApiExceptionHandler(true);
@@ -1518,7 +1519,7 @@ namespace AspNetCore.Base
             else
             {
                 // Non Api
-                app.UseWhen(context => !context.Request.Path.ToString().Contains("/api"),
+                app.UseWhen(context => context.Request.IsMvc(),
                      appBranch =>
                      {
                          appBranch.UseExceptionHandler("/Error");
@@ -1526,7 +1527,7 @@ namespace AspNetCore.Base
                 );
 
                 // Web Api
-                app.UseWhen(context => context.Request.Path.ToString().Contains("/api"),
+                app.UseWhen(context => context.Request.IsApi(),
                     appBranch =>
                     {
                         appBranch.UseWebApiExceptionHandler(false);
