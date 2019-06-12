@@ -189,7 +189,7 @@ namespace AspNetCore.Base.Controllers.Api
 
         protected virtual IActionResult Html(string html)
         {
-            return new HTMLActionResult(html);
+            return new HtmlResult(html);
         }
 
         protected virtual IActionResult Forbidden()

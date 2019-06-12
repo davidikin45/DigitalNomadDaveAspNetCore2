@@ -75,7 +75,7 @@ namespace AspNetCore.Base
 
         }
 
-        public override void AddDatabases(IServiceCollection services, string defaultConnectionString, string identityConnectionString, string hangfireConnectionString, string tenantConnectionString)
+        public override void AddDatabases(IServiceCollection services, ConnectionStrings connectionStrings, string defaultConnectionString, string identityConnectionString, string hangfireConnectionString, string tenantConnectionString)
         {
             services.AddDbContext<TIdentiyDbContext>(identityConnectionString);
         }

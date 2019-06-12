@@ -14,6 +14,7 @@ namespace AspNetCore.Base.MultiTenancy.Middleware
         {
             return builder =>
             {
+                //Adds the TenantMiddleware before ALL other middleware configured in Startup Configure.
                 builder.UseMiddleware<TenantMiddleware<TTenant>>();
                 next(builder);
             };

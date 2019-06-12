@@ -19,7 +19,6 @@ using AspNetCore.Base.ModelBinders;
 using AspNetCore.Base.ModelMetadataCustom.FluentMetadata;
 using AspNetCore.Base.ModelMetadataCustom.Providers;
 using AspNetCore.Base.MultiTenancy;
-using AspNetCore.Base.MultiTenancy.Middleware;
 using AspNetCore.Base.MvcFeatures;
 using AspNetCore.Base.MvcServices;
 using AspNetCore.Base.Notifications;
@@ -68,8 +67,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using Refit;
-using StackExchange.Profiling.Storage;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
@@ -218,6 +215,7 @@ namespace AspNetCore.Base
             ConfigureResponseCompressionServices(services);
             ConfigureLocalizationServices(services);
             ConfigureMvcServices(services);
+
             ConfigureEventServices(services);
             ConfigureSignalRServices(services);
             ConfigureApiServices(services);
@@ -407,7 +405,7 @@ namespace AspNetCore.Base
             //Configuration.GetSection("ConnectionStrings").GetChildren().Any(x => x.Key == "HangfireConnection") ? Configuration.GetConnectionString("HangfireConnection").Replace("%BIN%", BinPath).Replace("%DATA%", DataPath) : null;
             var hangfireConnectionString = connectionStrings.ContainsKey("HangfireConnection") ? connectionStrings["HangfireConnection"] : null;
 
-            AddDatabases(services, tenantsConnectionString, identityConnectionString, hangfireConnectionString, defaultConnectionString);
+            AddDatabases(services, connectionStrings, tenantsConnectionString, identityConnectionString, hangfireConnectionString, defaultConnectionString);
             AddUnitOfWorks(services);
 
             services.AddHangfire(hangfireConnectionString, false);
@@ -782,14 +780,21 @@ namespace AspNetCore.Base
                     options.AddOptionalCultureRouteConvention();
                 }
 
+                //Post data to MVC Controller from API
+                options.Conventions.Add(new FromBodyAndOtherSourcesAttributeConvention());
+                //Return data uisng output formatter when acccept header is application/json or application/xml
+                options.Conventions.Add(new ConvertViewResultToObjectConvention());
+
                 //Middleware Pipeline - Wraps MVC
                 options.Filters.Add(new MiddlewareFilterAttribute(typeof(LocalizationPipeline)));
 
                 //Action Pipeline - Wraps Actions within MVC
+                //options.Filters.Add<AutoValidateFormAntiforgeryTokenAttribute>();
                 options.Filters.Add<ValidatableAttribute>();
                 options.Filters.Add<ExceptionHandlingFilter>();
                 options.Filters.Add<OperationCancelledExceptionFilter>();
 
+                //[FromBody] or [ApiController]
                 //https://stackoverflow.com/questions/31952002/asp-net-core-mvc-how-to-get-raw-json-bound-to-a-string-without-a-type
                 options.InputFormatters.Insert(0, new RawStringRequestBodyInputFormatter());
                 options.InputFormatters.Insert(0, new RawBytesRequestBodyInputFormatter());
@@ -853,7 +858,8 @@ namespace AspNetCore.Base
             //.AddRazorRuntimeCompilation();
             .UseFluentMetadata()
             .UseDisplayAttributes()
-            .UseDisplayConventionFilters();
+            .UseDisplayConventionFilters()
+            .AddAutoValidateFormAntiforgeryTokenService();
 
             services.AddRequestLocalizationOptions(
                 localizationSettings.DefaultCulture,
@@ -1061,6 +1067,15 @@ namespace AspNetCore.Base
         }
         #endregion
 
+        #region Blazor
+        public virtual void ConfigureBlazorServices(IServiceCollection services)
+        {
+            Logger.LogInformation("Configuring Blazor");
+
+            //services.AddServerSideBlazor();
+        }
+        #endregion
+
         #region Events
         public virtual void ConfigureEventServices(IServiceCollection services)
         {
@@ -1103,6 +1118,20 @@ namespace AspNetCore.Base
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.SuppressMapClientErrors = false;
+
+
+                // Summary:
+                //     Gets or sets a value that determines if model binding sources are inferred for
+                //     action parameters on controllers annotated with Microsoft.AspNetCore.Mvc.ApiControllerAttribute
+                //     is suppressed.
+                //     When enabled, the following sources are inferred: Parameters that appear as route
+                //     values, are assumed to be bound from the path (Microsoft.AspNetCore.Mvc.ModelBinding.BindingSource.Path).
+                //     Parameters of type Microsoft.AspNetCore.Http.IFormFile and Microsoft.AspNetCore.Http.IFormFileCollection
+                //     are assumed to be bound from form. Parameters that are complex (Microsoft.AspNetCore.Mvc.ModelBinding.ModelMetadata.IsComplexType)
+                //     are assumed to be bound from the body (Microsoft.AspNetCore.Mvc.ModelBinding.BindingSource.Body).
+                //     All other parameters are assumed to be bound from the query.
+                //https://github.com/aspnet/AspNetCore/blob/c565386a3ed135560bc2e9017aa54a950b4e35dd/src/Mvc/Mvc.Core/src/ApplicationModels/ApiBehaviorApplicationModelProvider.cs
+                //options.SuppressInferBindingSourcesForParameters = true;
 
                 //400
                 //401
@@ -1303,7 +1332,6 @@ namespace AspNetCore.Base
             //    AllowAutoRedirect = true,
             //    AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip
             //});
-
             //services.AddHttpClient("name")
             //     .AddHttpMessageHandler<ProfilingHttpHandler>()
             //     .AddHttpMessageHandler<AuthorizationProxyHttpHandler>()
@@ -1313,29 +1341,29 @@ namespace AspNetCore.Base
             //    AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip
             //});
 
-           // services.AddHttpClient(typeof(IClient).Name)
-           // .ConfigureHttpClient(c =>
-           // {
-           //     c.BaseAddress = new Uri("http://localhost:5000");
-           // })
-           //.AddTypedClient<IClient>((httpClient, sp) =>
-           // {
-           //      //return implementation
-           //      var defaultSettings = new JsonSerializerSettings()
-           //     {
-           //         ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-           //         Formatting = Formatting.Indented,
-           //         Converters = new List<JsonConverter>() { new Newtonsoft.Json.Converters.StringEnumConverter() },
-           //         ContractResolver = new CamelCasePropertyNamesContractResolver(),
-           //         DefaultValueHandling = DefaultValueHandling.Include,
-           //         NullValueHandling = NullValueHandling.Include,
-           //         MissingMemberHandling = MissingMemberHandling.Ignore,
-           //         TypeNameHandling = TypeNameHandling.None
-           //     };
+            // services.AddHttpClient(typeof(IClient).Name)
+            // .ConfigureHttpClient(c =>
+            // {
+            //     c.BaseAddress = new Uri("http://localhost:5000");
+            // })
+            //.AddTypedClient<IClient>((httpClient, sp) =>
+            // {
+            //      //return implementation
+            //      var defaultSettings = new JsonSerializerSettings()
+            //     {
+            //         ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            //         Formatting = Formatting.Indented,
+            //         Converters = new List<JsonConverter>() { new Newtonsoft.Json.Converters.StringEnumConverter() },
+            //         ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            //         DefaultValueHandling = DefaultValueHandling.Include,
+            //         NullValueHandling = NullValueHandling.Include,
+            //         MissingMemberHandling = MissingMemberHandling.Ignore,
+            //         TypeNameHandling = TypeNameHandling.None
+            //     };
 
-           //     return new Client(httpClient, serializerSettings);
-           //     return Refit.RestService.For<IClient>(c);
-           // });
+            //     return new Client(httpClient, serializerSettings);
+            //     return Refit.RestService.For<IClient>(c);
+            // });
 
             //using Refit.HttpClientFactory
             //https://github.com/reactiveui/refit
@@ -1400,7 +1428,7 @@ namespace AspNetCore.Base
         }
         #endregion
 
-        public abstract void AddDatabases(IServiceCollection services, string tenantsConnectionString, string identityConnectionString, string hangfireConnectionString, string defaultConnectionString);
+        public abstract void AddDatabases(IServiceCollection services, ConnectionStrings connectionStrings, string tenantsConnectionString, string identityConnectionString, string hangfireConnectionString, string defaultConnectionString);
         public abstract void AddUnitOfWorks(IServiceCollection services);
         public abstract void AddHostedServices(IServiceCollection services);
         public abstract void AddHangfireJobServices(IServiceCollection services);
@@ -1744,7 +1772,7 @@ namespace AspNetCore.Base
             {
                 globalPolicyBuilder.RequireAuthenticatedUser();
             }
-            var globalPolicy = globalPolicyBuilder.Build();
+            //var globalPolicy = globalPolicyBuilder.Build();
             //app.UseAuthorization(globalPolicy);
 
             if (switchSettings.EnableCors)
@@ -1805,6 +1833,7 @@ namespace AspNetCore.Base
             //    endpoints.MapAllRoutes("/all-routes");
             //    endpoints.MapControllers();
             //    endpoints.MapRazorPages();
+            //    endpoints.MapBlazorHub();
 
             //    endpoints.MapHub<NotificationHub>(appSettings.SignalRUrlPrefix + "/signalr/notifications");
             //    endpoints.MapGrpcService<MyCalculatorService>();

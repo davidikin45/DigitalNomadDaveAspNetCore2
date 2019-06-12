@@ -6,7 +6,24 @@
         {
             return connectionString.ToLower().Contains(".sqlite")
                 || connectionString.ToLower().Contains(".db")
-                || connectionString.ToLower().Contains(":memory:");
+                || IsSQLiteInMemory(connectionString);
+        }
+
+        public static bool IsSQLiteInMemory(string connectionString)
+        {
+            return connectionString.ToLower().Contains(":memory:");
+        }
+
+        public static bool IsLiteDb(string connectionString)
+        {
+            return connectionString.ToLower().Contains(".litedb")
+                || connectionString.ToLower().Contains(".db")
+                || IsLiteDbInMemory(connectionString);
+        }
+
+        public static bool IsLiteDbInMemory(string connectionString)
+        {
+            return connectionString.ToLower().Contains(":memory:");
         }
     }
 }

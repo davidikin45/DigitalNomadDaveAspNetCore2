@@ -29,10 +29,29 @@ namespace AspNetCore.Base.ModelBinders
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
+            if (!CanReadType(context.ModelType))
+            {
+                return false;
+            }
+
             var contentType = context.HttpContext.Request.ContentType;
-            if (string.IsNullOrEmpty(contentType) || contentType == "text/plain" || contentType == "application/json")
+            if (string.IsNullOrEmpty(contentType))
                 return true;
 
+            return IsSubsetOfAnySupportedContentType(contentType);
+        }
+
+        private bool IsSubsetOfAnySupportedContentType(string contentType)
+        {
+            var parsedContentType = new MediaType(contentType);
+            for (var i = 0; i < SupportedMediaTypes.Count; i++)
+            {
+                var supportedMediaType = new MediaType(SupportedMediaTypes[i]);
+                if (parsedContentType.IsSubsetOf(supportedMediaType))
+                {
+                    return true;
+                }
+            }
             return false;
         }
 

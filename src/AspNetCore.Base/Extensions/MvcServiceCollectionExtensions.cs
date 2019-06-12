@@ -7,7 +7,7 @@ using System.Transactions;
 
 namespace AspNetCore.Base.Extensions
 {
-    public static class ServiceCollectionMvcExtensions
+    public static class MvcServiceCollectionExtensions
     {
         public static IServiceCollection AddViewLocationExpander(this IServiceCollection services, string mvcImplementationFolder = "Mvc/")
         {

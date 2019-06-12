@@ -1,10 +1,13 @@
-﻿using AspNetCore.Base.Data.UnitOfWork;
+﻿using AspNetCore.Base.Data.NoSql;
+using AspNetCore.Base.Data.UnitOfWork;
 using AspNetCore.Base.Helpers;
 using AspNetCore.Base.MultiTenancy;
 using AspNetCore.Base.MultiTenancy.Data.Tenant;
+using LiteDB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.IO;
 
 namespace AspNetCore.Base.Extensions
 {
@@ -20,13 +23,42 @@ namespace AspNetCore.Base.Extensions
             return services.AddDbContext<TContext>(defaultConnectionString, contextLifetime).AddTenantDbContextIdentification<TContext>();
         }
 
+        public static IServiceCollection AddDbContextNoSql<TContext>(this IServiceCollection services, string connectionString, ServiceLifetime contextLifetime = ServiceLifetime.Scoped) where TContext : DbContextNoSql
+        {
+            if (connectionString == string.Empty || ConnectionStringHelper.IsLiteDbInMemory(connectionString))
+            {
+                contextLifetime = ServiceLifetime.Singleton;
+            }
+
+            if (ConnectionStringHelper.IsLiteDbInMemory(connectionString))
+            {
+                services.AddDbContextNoSqlInMemory<TContext>(contextLifetime);
+            }
+            else
+            {
+                services.Add(new ServiceDescriptor(typeof(TContext), sp => ActivatorUtilities.CreateInstance(sp, typeof(TContext), new object[] { connectionString }), contextLifetime));
+            }      
+            return services;
+        }
+
+        public static IServiceCollection AddDbContextNoSqlInMemory<TContext>(this IServiceCollection services, ServiceLifetime contextLifetime = ServiceLifetime.Singleton) where TContext : DbContextNoSql
+        {
+            services.Add(new ServiceDescriptor(typeof(TContext), sp => ActivatorUtilities.CreateInstance(sp, typeof(TContext), new object[] { new MemoryStream() }), contextLifetime));
+            return services;
+        }
+
         public static IServiceCollection AddDbContext<TContext>(this IServiceCollection services, string connectionString, ServiceLifetime contextLifetime = ServiceLifetime.Scoped) where TContext : DbContext
         {
+            if (connectionString == string.Empty || ConnectionStringHelper.IsLiteDbInMemory(connectionString))
+            {
+                contextLifetime = ServiceLifetime.Singleton;
+            }
+
             return services.AddDbContext<TContext>(options =>
-                    {
-                        options.SetConnectionString<TContext>(connectionString);
-                        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-                    }, contextLifetime);
+            {
+                options.SetConnectionString<TContext>(connectionString);
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            }, contextLifetime);
         }
 
         public static DbContextOptionsBuilder SetConnectionString<TContext>(this DbContextOptionsBuilder options, string connectionString, string migrationsAssembly = "")
@@ -40,7 +72,7 @@ namespace AspNetCore.Base.Extensions
             {
                 return options.UseInMemoryDatabase(typeof(TContext).FullName);
             }
-            if (ConnectionStringHelper.IsSQLite(connectionString))
+            else if (ConnectionStringHelper.IsSQLite(connectionString))
             {
                 if(!string.IsNullOrWhiteSpace(migrationsAssembly))
                 {
@@ -69,7 +101,7 @@ namespace AspNetCore.Base.Extensions
         }
 
         //https://medium.com/volosoft/asp-net-core-dependency-injection-best-practices-tips-tricks-c6e9c67f9d96
-        public static IServiceCollection AddDbContextInMemory<TContext>(this IServiceCollection services, ServiceLifetime contextLifetime = ServiceLifetime.Scoped) where TContext : DbContext
+        public static IServiceCollection AddDbContextInMemory<TContext>(this IServiceCollection services, ServiceLifetime contextLifetime = ServiceLifetime.Singleton) where TContext : DbContext
         {
             return services.AddDbContext<TContext>(options =>
                     options.UseInMemoryDatabase(Guid.NewGuid().ToString()), contextLifetime);
@@ -87,6 +119,14 @@ namespace AspNetCore.Base.Extensions
         {
             return services.AddDbContext<TContext>(options =>
                     options.UseSqlite(connectionString, sqlOptions => {
+                        sqlOptions.UseNetTopologySuite();
+                    }), contextLifetime);
+        }
+
+        public static IServiceCollection AddDbContextSqliteInMemory<TContext>(this IServiceCollection services, ServiceLifetime contextLifetime = ServiceLifetime.Singleton) where TContext : DbContext
+        {
+            return services.AddDbContext<TContext>(options =>
+                    options.UseSqlite(":memory:", sqlOptions => {
                         sqlOptions.UseNetTopologySuite();
                     }), contextLifetime);
         }

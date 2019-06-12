@@ -3,6 +3,7 @@ using AspNetCore.Base.Cqrs;
 using AspNetCore.Base.DomainEvents;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.IntegrationEvents;
+using AspNetCore.Base.Settings;
 using AspNetCore.Base.Tasks;
 using DND.ApplicationServices;
 using DND.Core;
@@ -29,8 +30,9 @@ namespace DND.Web
 
         }
 
-        public override void AddDatabases(IServiceCollection services, string tenantsConnectionString, string identityConnectionString, string hangfireConnectionString, string defaultConnectionString)
+        public override void AddDatabases(IServiceCollection services, ConnectionStrings connectionStrings,  string tenantsConnectionString, string identityConnectionString, string hangfireConnectionString, string defaultConnectionString)
         {
+            services.AddDbContextNoSql<NoSqlContext>(connectionStrings["NoSqlConnection"]);
             services.AddDbContext<AppContext>(defaultConnectionString);
             services.AddDbContext<IdentityContext>(identityConnectionString);
         }
