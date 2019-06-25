@@ -8,16 +8,23 @@ using MiniProfiler.Initialization;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DND.IntegrationTests.Data
 {
     public class SqliteInMemoryDbTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public SqliteInMemoryDbTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public async Task SqliteInMemoryTest()
         {
-            using (var factory = new SqliteInMemoryDbContextFactory<DND.Data.AppContext>())
+            using (var factory = new SqliteInMemoryDbContextFactory<DND.Data.AppContext>(log => _output.WriteLine(log)))
             {
                 using (var context = await factory.CreateContextAsync())
                 {
@@ -40,7 +47,7 @@ namespace DND.IntegrationTests.Data
         [Fact]
         public async Task SqliteInMemoryTestInitializationDropCreate()
         {
-            using (var factory = new SqliteInMemoryDbContextFactory<DND.Data.AppContext>())
+            using (var factory = new SqliteInMemoryDbContextFactory<DND.Data.AppContext>(log => _output.WriteLine(log)))
             {
                 using (var context = await factory.CreateContextAsync())
                 {
@@ -59,7 +66,7 @@ namespace DND.IntegrationTests.Data
         [Fact]
         public async Task SqliteInMemoryTestInitializationDropMigrate()
         {
-            using (var factory = new SqliteInMemoryDbContextFactory<DND.Data.AppContext>())
+            using (var factory = new SqliteInMemoryDbContextFactory<DND.Data.AppContext>(log => _output.WriteLine(log)))
             {
                 using (var context = await factory.CreateContextAsync(false))
                 {
@@ -74,7 +81,7 @@ namespace DND.IntegrationTests.Data
         [Fact]
         public async Task SqliteInMemoryTestInitializationMigrate()
         {
-            using (var factory = new SqliteInMemoryDbContextFactory<DND.Data.AppContext>())
+            using (var factory = new SqliteInMemoryDbContextFactory<DND.Data.AppContext>(log => _output.WriteLine(log)))
             {
                 using (var context = await factory.CreateContextAsync(false))
                 {

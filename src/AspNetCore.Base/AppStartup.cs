@@ -1,15 +1,14 @@
-﻿using AspNetCore.Base.ApiClient;
+﻿using AspnetCore.Base.Validation.Errors;
+using AspNetCore.Base.ApiClient;
 using AspNetCore.Base.Authentication;
 using AspNetCore.Base.Authorization;
 using AspNetCore.Base.Cqrs;
 using AspNetCore.Base.DependencyInjection.Modules;
 using AspNetCore.Base.ElasticSearch;
 using AspNetCore.Base.Email;
-using AspNetCore.Base.ErrorHandling;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Filters;
 using AspNetCore.Base.Hangfire;
-using AspNetCore.Base.Helpers;
 using AspNetCore.Base.HostedServices;
 using AspNetCore.Base.Hosting;
 using AspNetCore.Base.IntegrationEvents;
@@ -17,8 +16,6 @@ using AspNetCore.Base.Localization;
 using AspNetCore.Base.Middleware;
 using AspNetCore.Base.MiniProfiler;
 using AspNetCore.Base.ModelBinders;
-using AspNetCore.Base.ModelMetadataCustom.FluentMetadata;
-using AspNetCore.Base.ModelMetadataCustom.Providers;
 using AspNetCore.Base.MultiTenancy;
 using AspNetCore.Base.MvcFeatures;
 using AspNetCore.Base.MvcServices;
@@ -32,6 +29,12 @@ using AspNetCore.Base.SignalR;
 using AspNetCore.Base.Swagger;
 using AspNetCore.Base.Tasks;
 using AspNetCore.Base.Validation.Providers;
+using AspNetCore.Mvc.Extensions;
+using AspNetCore.Mvc.Extensions.Conventions.Display;
+using AspNetCore.Mvc.MvcAsApi.Conventions;
+using AspNetCore.Mvc.MvcAsApi.Extensions;
+using AspNetCore.Mvc.MvcAsApi.Middleware;
+using AspNetCore.Mvc.MvcAsApi.ModelBinding;
 using AspNetCoreRateLimit;
 using Autofac;
 using GraphQL;
@@ -48,6 +51,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -71,7 +75,6 @@ using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.IO.Compression;
@@ -261,9 +264,6 @@ namespace AspNetCore.Base
                 ManipulateTokenSettings(options);
             });
             services.AddTransient(sp => sp.GetService<IOptions<TokenSettings>>().Value);
-
-            services.Configure<DisplayConventionsDisableSettings>(Configuration.GetSection("DisplayConventionsDisableSettings"));
-            services.AddTransient(sp => sp.GetService<IOptions<DisplayConventionsDisableSettings>>().Value);
 
             services.Configure<CORSSettings>(Configuration.GetSection("CORSSettings"));
             services.AddTransient(sp => sp.GetService<IOptions<CORSSettings>>().Value);
@@ -748,25 +748,28 @@ namespace AspNetCore.Base
 
             //https://www.strathweb.com/2018/04/generic-and-dynamically-generated-controllers-in-asp-net-core-mvc/
 
-            services.AddCustomProblemDetailsClientErrorFactory();
-        
             //.NET Core 3.0
             //services.AddControllers(); //Controllers
             //services.AddRazorPages(); //Razor Pages, Included in AddMvc
             //services.AddControllersWithViews() //Controllers + Views, Included in AddMvc
 
-            var mvc = services.AddMvc(options =>
-            {
-                //Versioning Fix until .NET Core 3.0
-                options.EnableEndpointRouting = false;
-
-                //.NET Core 3.0 
+            //.NET Core 3.0 
+            //services.Configure<JsonOptions>(options =>
+            //{
                 //By default System.Text.Json is case sensitive. JSON.NET is default case insenstive.
                 //options.SerializerOptions.WriteIndented = defaultSettings.Formatting == Formatting.Indented;
                 //options.SerializerOptions.IgnoreNullValues = defaultSettings.DefaultValueHandling == DefaultValueHandling.Ignore;
                 //options.SerializerOptions.IgnoreReadOnlyProperties = false;
                 //options.SerializerOptions.PropertyNameCaseInsensitive = true;
                 //options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                //options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+            //});
+
+
+            var mvc = services.AddMvc(options =>
+            {
+                //Versioning Fix until .NET Core 3.0
+                options.EnableEndpointRouting = false;
 
                 //https://github.com/aspnet/Security/issues/1764
                 options.AllowCombiningAuthorizeFilters = false;
@@ -781,10 +784,32 @@ namespace AspNetCore.Base
                     options.AddOptionalCultureRouteConvention();
                 }
 
-                //Post data to MVC Controller from API
-                options.Conventions.Add(new FromBodyAndOtherSourcesAttributeConvention());
-                //Return data uisng output formatter when acccept header is application/json or application/xml
-                options.Conventions.Add(new ConvertViewResultToObjectConvention());
+                options.Conventions.Add(new MvcAsApiConvention(o =>
+                {
+                    o.MvcErrorOptions = (mvcErrorOptions) =>
+                    {
+
+                    };
+                    o.MvcExceptionOptions = (mvcExceptionOptions) =>
+                    {
+                        mvcExceptionOptions.ActionResultFactories.Add(typeof(UnauthorizedErrors), (context, exception, logger) =>
+                        {
+                            return context.HttpContext.User.Identity.IsAuthenticated ? new ForbidResult() : (IActionResult)new ChallengeResult();
+                        });
+                    };
+                    o.ApiErrorOptions = (apiErrorOptions) =>
+                    {
+
+                    };
+                    o.ApiExceptionOptions = (apiExceptionOptions) =>
+                    {
+                        apiExceptionOptions.ActionResultFactories.Add(typeof(UnauthorizedErrors), (context, exception, logger) =>
+                        {
+                            return context.HttpContext.User.Identity.IsAuthenticated ? new StatusCodeResult(StatusCodes.Status403Forbidden) : new UnauthorizedResult();
+                        });
+                    };
+                }));
+
 
                 //Middleware Pipeline - Wraps MVC
                 options.Filters.Add(new MiddlewareFilterAttribute(typeof(LocalizationPipeline)));
@@ -792,8 +817,7 @@ namespace AspNetCore.Base
                 //Action Pipeline - Wraps Actions within MVC
                 //options.Filters.Add<AutoValidateFormAntiforgeryTokenAttribute>();
                 options.Filters.Add<ValidatableAttribute>();
-                options.Filters.Add<ExceptionHandlingFilter>();
-                options.Filters.Add<OperationCancelledExceptionFilter>();
+                //options.Filters.Add<OperationCancelledExceptionFilterAttribute>();
 
                 //[FromBody] or [ApiController]
                 //https://stackoverflow.com/questions/31952002/asp-net-core-mvc-how-to-get-raw-json-bound-to-a-string-without-a-type
@@ -827,21 +851,21 @@ namespace AspNetCore.Base
                 options.SerializerSettings.MissingMemberHandling = defaultSettings.MissingMemberHandling;
                 options.SerializerSettings.TypeNameHandling = defaultSettings.TypeNameHandling;
             })
-           //.NET Core 3.0
-           //This sets up MVC and configures it to use Json.NET instead of that new API(System.Text.Json). AddNewtonsoftJson method has an overload that allows you to configure the Json.NET options like you were used to with AddJsonOptions in ASP.NET Core 2.x
-           //.AddNewtonsoftJson(options =>
-           //{
-           //    //using Microsoft.AspNetCore.Mvc.NewtonsoftJson
-           //    //https://github.com/aspnet/Mvc/blob/32e21e2a5c63e20bd62b9c1699932207b962fc50/src/Microsoft.AspNetCore.Mvc.Formatters.Json/JsonSerializerSettingsProvider.cs#L31-L41
-           //    options.SerializerSettings.ReferenceLoopHandling = defaultSettings.ReferenceLoopHandling;
-           //    options.SerializerSettings.Formatting = defaultSettings.Formatting;
-           //    options.SerializerSettings.Converters = defaultSettings.Converters;
-           //    options.SerializerSettings.ContractResolver = defaultSettings.ContractResolver;
-           //    options.SerializerSettings.DefaultValueHandling = defaultSettings.DefaultValueHandling;
-           //    options.SerializerSettings.NullValueHandling = defaultSettings.NullValueHandling;
-           //    options.SerializerSettings.MissingMemberHandling = defaultSettings.MissingMemberHandling;
-           //    options.SerializerSettings.TypeNameHandling = defaultSettings.TypeNameHandling;
-           //})
+            //.NET Core 3.0
+            //This sets up MVC and configures it to use Json.NET instead of that new API(System.Text.Json). AddNewtonsoftJson method has an overload that allows you to configure the Json.NET options like you were used to with AddJsonOptions in ASP.NET Core 2.x
+            //.AddNewtonsoftJson(options =>
+            //{
+            //    //using Microsoft.AspNetCore.Mvc.NewtonsoftJson
+            //    //https://github.com/aspnet/Mvc/blob/32e21e2a5c63e20bd62b9c1699932207b962fc50/src/Microsoft.AspNetCore.Mvc.Formatters.Json/JsonSerializerSettingsProvider.cs#L31-L41
+            //    options.SerializerSettings.ReferenceLoopHandling = defaultSettings.ReferenceLoopHandling;
+            //    options.SerializerSettings.Formatting = defaultSettings.Formatting;
+            //    options.SerializerSettings.Converters = defaultSettings.Converters;
+            //    options.SerializerSettings.ContractResolver = defaultSettings.ContractResolver;
+            //    options.SerializerSettings.DefaultValueHandling = defaultSettings.DefaultValueHandling;
+            //    options.SerializerSettings.NullValueHandling = defaultSettings.NullValueHandling;
+            //    options.SerializerSettings.MissingMemberHandling = defaultSettings.MissingMemberHandling;
+            //    options.SerializerSettings.TypeNameHandling = defaultSettings.TypeNameHandling;
+            //})
             .AddCookieTempDataProvider(options =>
             {
                 // new API
@@ -854,13 +878,24 @@ namespace AspNetCore.Base
             //https://andrewlock.net/controller-activation-and-dependency-injection-in-asp-net-core-mvc/
             //The AddControllersAsServices method does two things - it registers all of the Controllers in your application with the DI container as Transient (if they haven't already been registered) and replaces the IControllerActivator registration with the ServiceBasedControllerActivator
             .AddControllersAsServices()
-            .UsePointModelBinder()
+            .AddPointModelBinder();
             //.NET Core 3.0 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation
             //.AddRazorRuntimeCompilation();
-            .UseFluentMetadata()
-            .UseDisplayAttributes()
-            .UseDisplayConventionFilters()
-            .AddAutoValidateFormAntiforgeryTokenService();
+         
+
+            services.AddMvcDisplayConventions(
+            new AppendAsterixToRequiredFieldLabels((viewContext) => ((viewContext.ViewData.ContainsKey("EditMode") && (Boolean)viewContext.ViewData["EditMode"]) || (viewContext.ViewData.ContainsKey("CreateMode") && (Boolean)viewContext.ViewData["CreateMode"])) && !(viewContext.ViewData.ContainsKey("DetailsMode") && (Boolean)viewContext.ViewData["DetailsMode"])),
+            new HtmlByNameConventionFilter(),
+            new LabelTextConventionFilter(),
+            new TextAreaByNameConventionFilter(),
+            new TextboxPlaceholderConventionFilter());
+
+            services.AddMvcValidationConventions();
+            services.AddMvcDisplayAttributes();
+            services.AddInheritanceValidationAttributeAdapterProvider();
+            services.AddFluentMetadata();
+            services.AddDynamicModelBinder();
+            services.AddViewRenderer();
 
             services.AddRequestLocalizationOptions(
                 localizationSettings.DefaultCulture,
@@ -948,12 +983,6 @@ namespace AspNetCore.Base
             services.AddSingleton<BundleConfigService>();
             services.AddSingleton<NavigationService>();
 
-            services.AddCustomModelMetadataProvider();
-            //services.AddCustomObjectValidator();
-            services.AddRequiredFieldAsterixHtmlGenerator();
-
-            services.AddInheritanceValidationAttributeAdapterProvider();
-
             ConfigureMvcModelValidation(services);
             ConfigureMvcApplicationParts(mvc, services);
             ConfigureMvcRouting(services);
@@ -990,9 +1019,10 @@ namespace AspNetCore.Base
             //Accept-Language = Response Language client is able to understand.
             //Accept-Encoding = Response Compression client is able to understand.
 
-
             //Prevents returning object representation in default format when request format isn't available
-            options.ReturnHttpNotAcceptable = true;
+            options.ReturnHttpNotAcceptable = true; //If Browser sends Accept not containing */* the server will try to find a formatter that can produce a response in one of the formats specified by the accept header.
+
+            options.RespectBrowserAcceptHeader = false; //If Browser sends Accept containing */* the server will ignore Accept header and use the first formatter that can format the object.
 
             //Variable resource representations
             //Use RequestHeaderMatchesMediaTypeAttribute to route for Accept header. Version media types not URI!
@@ -1113,114 +1143,10 @@ namespace AspNetCore.Base
 
             var appSettings = GetSettings<AppSettings>("AppSettings");
 
-            //Needs to be after AddMvc or use ConfigureApiBehaviourOptions
-            //Automatic Api Validation Response when ApiController attribute is applied.
-            //https://blogs.msdn.microsoft.com/webdev/2018/02/27/asp-net-core-2-1-web-apis/
-            services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.SuppressMapClientErrors = false;
-
-
-                // Summary:
-                //     Gets or sets a value that determines if model binding sources are inferred for
-                //     action parameters on controllers annotated with Microsoft.AspNetCore.Mvc.ApiControllerAttribute
-                //     is suppressed.
-                //     When enabled, the following sources are inferred: Parameters that appear as route
-                //     values, are assumed to be bound from the path (Microsoft.AspNetCore.Mvc.ModelBinding.BindingSource.Path).
-                //     Parameters of type Microsoft.AspNetCore.Http.IFormFile and Microsoft.AspNetCore.Http.IFormFileCollection
-                //     are assumed to be bound from form. Parameters that are complex (Microsoft.AspNetCore.Mvc.ModelBinding.ModelMetadata.IsComplexType)
-                //     are assumed to be bound from the body (Microsoft.AspNetCore.Mvc.ModelBinding.BindingSource.Body).
-                //     All other parameters are assumed to be bound from the query.
-                //https://github.com/aspnet/AspNetCore/blob/c565386a3ed135560bc2e9017aa54a950b4e35dd/src/Mvc/Mvc.Core/src/ApplicationModels/ApiBehaviorApplicationModelProvider.cs
-                //options.SuppressInferBindingSourcesForParameters = true;
-
-                //400
-                //401
-                //403
-                //404
-                //406
-                //409
-                //415
-                //422
-                options.ClientErrorMapping[StatusCodes.Status500InternalServerError] = new ClientErrorData
-                {
-                    Link = "about:blank",
-                    Title = Messages.UnknownError,
-                };
-
-                options.ClientErrorMapping[StatusCodes.Status504GatewayTimeout] = new ClientErrorData
-                {
-                    Link = "about:blank",
-                    Title = Messages.RequestTimedOut,
-                };
-
-                //ApiBehaviorOptionsSetup
-                options.InvalidModelStateResponseFactory = actionContext =>
-                {
-                    var actionExecutingContext =
-                        actionContext as Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext;
-
-                    var problemDetails = new ValidationProblemDetails(actionContext.ModelState)
-                    {
-                        Instance = actionContext.HttpContext.Request.Path,
-                        Detail = "Please refer to the errors property for additional details."
-                    };
-
-                    // if there are modelstate errors & all keys were correctly
-                    // found/parsed we're dealing with validation errors
-                    if (actionContext.ModelState.ErrorCount > 0
-                        && actionExecutingContext?.ActionArguments.Count == actionContext.ActionDescriptor.Parameters.Count)
-                    {
-                        problemDetails.Type = "https://tools.ietf.org/html/rfc4918#section-11.2";
-                        problemDetails.Status = StatusCodes.Status422UnprocessableEntity;
-                    }
-                    else
-                    {
-
-                        // if one of the keys wasn't correctly found / couldn't be parsed
-                        // we're dealing with null/unparsable input
-                        problemDetails.Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
-                        problemDetails.Status = StatusCodes.Status400BadRequest;
-                    }
-
-                    var angularErrors = new SerializableDictionary<string, List<AngularFormattedValidationError>>();
-                    foreach (var kvp in problemDetails.Errors)
-                    {
-                        var propertyMessages = new List<AngularFormattedValidationError>();
-                        foreach (var errorMessage in kvp.Value)
-                        {
-                            var keyAndMessage = errorMessage.Split('|');
-                            if (keyAndMessage.Count() > 1)
-                            {
-                                //Formatted for Angular Binding
-                                //e.g required|Error Message
-                                propertyMessages.Add(new AngularFormattedValidationError(
-                                    keyAndMessage[1],
-                                    keyAndMessage[0]));
-                            }
-                            else
-                            {
-                                propertyMessages.Add(new AngularFormattedValidationError(
-                                    keyAndMessage[0]));
-                            }
-                        }
-
-                        angularErrors.Add(kvp.Key, propertyMessages);
-                    }
-                    problemDetails.Extensions["angularErrors"] = angularErrors;
-
-                    var traceId = Activity.Current?.Id ?? actionContext.HttpContext.TraceIdentifier;
-                    problemDetails.Extensions["traceId"] = traceId;
-                    problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
-
-                    var result = new ObjectResult(problemDetails);
-                    result.StatusCode = problemDetails.Status;
-                    result.ContentTypes.Add("application/problem+json");
-                    result.ContentTypes.Add("application/problem+xml");
-
-                    return result;
-                };
-            });
+            //Overrides the default IClientErrorFactory implementation which adds traceId, timeGenerated and exception details to the ProblemDetails response.
+            services.AddProblemDetailsClientErrorAndExceptionFactory(options => options.ShowExceptionDetails = HostingEnvironment.IsDevelopment() || HostingEnvironment.IsIntegration());
+            //Overrides the default InvalidModelStateResponseFactory, adds traceId and timeGenerated to the ProblemDetails response. 
+            services.ConfigureProblemDetailsInvalidModelStateFactory(options => options.EnableAngularErrors = true);
 
             services.AddVersionedApiExplorer(setupAction =>
             {
@@ -1446,7 +1372,6 @@ namespace AspNetCore.Base
 
             builder.RegisterModule(new AutofacConventionsDependencyInjectionModule() { Paths = new string[] { BinPath, PluginsPath }, Filter = AssemblyStringFilter });
             builder.RegisterModule(new AutofacTasksModule() { Paths = new string[] { BinPath, PluginsPath }, Filter = AssemblyStringFilter });
-            builder.RegisterModule(new AutofacDisplayConventionsMetadataModule() { Paths = new string[] { BinPath, PluginsPath }, Filter = AssemblyStringFilter });
             builder.RegisterModule(new AutofacConventionsSignalRHubModule() { Paths = new string[] { BinPath, PluginsPath }, Filter = AssemblyStringFilter });
             builder.RegisterModule(new AutofacAutomapperModule() { Filter = AssemblyBoolFilter });
 
@@ -1483,6 +1408,38 @@ namespace AspNetCore.Base
             // Before any other output generating middleware handlers
             app.UseLiveReload();
 
+            //--------------------------------------------- ROUTING -----------------------------//
+            //.NET Core 3.0
+            // 1. Runs matching. An endpoint is selected and set on the HttpContext if a match is found.
+            //app.UseClientSideBlazorFiles<Client.Startup>();
+            //app.UseRouting();
+            app.UseEndpointRouting();
+
+            if (HostingEnvironment.IsProduction())
+            {
+                app.UseRobotsTxt(builder =>
+                builder
+                .AddSection(section =>
+                   section
+                       .AddComment("Allow All")
+                       .AddUserAgent("*")
+                       .Allow("/")
+                   )
+                   .AddSitemap($"http://{appSettings.SiteUrl}/sitemap.xml")
+               );
+            }
+            else
+            {
+                app.UseRobotsTxt(builder =>
+                builder
+                .AddSection(section =>
+                  section
+                      .AddComment("Disallow All")
+                      .AddUserAgent("*")
+                      .Disallow("/")
+                  ));
+            }
+
             app.UseHealthChecks("/hc");
 
             if (!env.IsProduction())
@@ -1507,7 +1464,8 @@ namespace AspNetCore.Base
                 app.UseWhen(context => context.Request.IsApi(),
                     appBranch =>
                     {
-                        appBranch.UseWebApiExceptionHandler(true);
+                        appBranch.UseProblemDetailsExceptionHandler(options => options.ShowExceptionDetails = true);
+                        appBranch.UseProblemDetailsErrorResponseHandler();
                     }
                );
 
@@ -1530,7 +1488,8 @@ namespace AspNetCore.Base
                 app.UseWhen(context => context.Request.IsApi(),
                     appBranch =>
                     {
-                        appBranch.UseWebApiExceptionHandler(false);
+                        appBranch.UseProblemDetailsExceptionHandler(options => options.ShowExceptionDetails = false);
+                        appBranch.UseProblemDetailsErrorResponseHandler();
                     }
                );
 
@@ -1762,6 +1721,7 @@ namespace AspNetCore.Base
             //--------------------------------------------- ROUTING -----------------------------//
             //.NET Core 3.0
             // 1. Runs matching. An endpoint is selected and set on the HttpContext if a match is found.
+            //app.UseClientSideBlazorFiles<Client.Startup>();
             //app.UseRouting();
 
             // 2. Middleware that run after routing occurs.
@@ -1810,7 +1770,7 @@ namespace AspNetCore.Base
             app.UseMiniProfiler();
 
             var routeBuilder = new RouteBuilder(app);
-          
+
             app.UseRouter(routeBuilder.Build());
 
             app.UseMvc(routes =>
@@ -1838,6 +1798,7 @@ namespace AspNetCore.Base
 
             //    endpoints.MapHub<NotificationHub>(appSettings.SignalRUrlPrefix + "/signalr/notifications");
             //    endpoints.MapGrpcService<MyCalculatorService>();
+            //    endpoints.MapFallbackToClientSideBlazor<Client.Startup>("index.html");
             //});
 
             // 4. Middleware here will only run if nothing was matched.

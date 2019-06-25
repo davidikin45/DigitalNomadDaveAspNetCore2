@@ -128,7 +128,7 @@ else
         {
             <div class="card-columns-md-2 card-spacer-bottom">
                 @foreach (FileInfo file in fileSystemGenericRepositoryFactory.CreateFileRepositoryReadOnly(default(CancellationToken), hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + Model.Album, true, "*.*", ".jpg", ".jpeg", ".mp4", ".avi", ".txt").GetAll(AutoMapperHelper.GetOrderByFunc<FileInfo>
-        (nameof(FileInfo.LastWriteTime), OrderByType.Descending), null, null))
+        (nameof(FileInfo.LastWriteTime), "desc"), null, null))
                 {
                     if (mainPhotoVideoText == null || mainPhotoVideoText.FullName != file.FullName)
                     {

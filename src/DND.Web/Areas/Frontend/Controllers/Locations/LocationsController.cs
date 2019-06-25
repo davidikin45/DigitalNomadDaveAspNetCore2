@@ -2,12 +2,11 @@
 using AspNetCore.Base.Data.RepositoryFileSystem;
 using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Email;
-using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Helpers;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
 using AspNetCore.Base.MvcFeatures;
 using AspNetCore.Base.Settings;
+using AspNetCore.Mvc.Extensions;
 using AutoMapper;
 using DND.ApplicationServices;
 using DND.ApplicationServices.Blog.Locations.Dtos;
@@ -111,7 +110,7 @@ namespace DND.Web.Areas.Frontend.Controllers.Locations
 
         }
 
-        private async Task<WebApiPagedResponseDto<FileInfo>> GetLocationViewModel(string physicalPath, int page = 1, int pageSize = 40, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = OrderByType.Descending)
+        private async Task<WebApiPagedResponseDto<FileInfo>> GetLocationViewModel(string physicalPath, int page = 1, int pageSize = 40, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = "desc")
         {
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
 

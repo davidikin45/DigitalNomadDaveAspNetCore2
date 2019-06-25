@@ -104,6 +104,7 @@ Publish DND.Web
 * [Visual Studio Team Services](https://www.visualstudio.com/team-services/) - Continuous Integration (CI) and Continuous Deployment (CD)
 * [Identity Server 4](http://docs.identityserver.io/en/release/) - .NET Core Identity Provider
 * [NCrunch](https://www.ncrunch.net/) - Concurrent testing tool for Visual Studio
+* [RobotsTxtMiddleware](https://github.com/karl-sjogren/robots-txt-middleware/blob/master/README.md)
 
 ## Authors
 

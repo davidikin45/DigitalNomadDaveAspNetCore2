@@ -1,5 +1,5 @@
 ﻿using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
 using System;
 using System.ComponentModel.DataAnnotations;

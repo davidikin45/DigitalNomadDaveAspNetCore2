@@ -1,7 +1,6 @@
 ﻿using AspNetCore.Base.Data.RepositoryFileSystem;
 using AspNetCore.Base.Helpers;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
 using AspNetCore.Base.ViewComponents;
 using DND.ApplicationServices.CMS.Testimonials.Dtos;
 using DND.ApplicationServices.CMS.Testimonials.Services;
@@ -27,7 +26,7 @@ namespace DND.Web.Areas.Frontend.Controllers.Testimonial.ViewComponents
         public async Task<IViewComponentResult> InvokeAsync()
         {
             string orderColumn = nameof(TestimonialDto.CreatedOn);
-            string orderType = OrderByType.Descending;
+            string orderType = "desc";
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
 

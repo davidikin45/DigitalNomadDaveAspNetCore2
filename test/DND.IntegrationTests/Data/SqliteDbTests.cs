@@ -1,3 +1,4 @@
+using AspNetCore.Base.Data;
 using AspNetCore.Base.Data.Helpers;
 using AspNetCore.Base.Hangfire;
 using Database.Initialization;
@@ -9,16 +10,25 @@ using MiniProfiler.Initialization;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DND.IntegrationTests.Data
 {
     public class SqliteDbTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public SqliteDbTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public async Task Initialization()
         {
+
             var dbName = "SqliteTest";
-            var options = DbContextConnections.DbContextOptionsSqlite<AppContext>(dbName);
+            var options = DbContextConnections.DbContextOptionsSqlite<AppContext>(dbName, log => _output.WriteLine(log));
 
             using (var context = new AppContext(options))
             {
@@ -40,6 +50,7 @@ namespace DND.IntegrationTests.Data
         [Fact]
         public async Task HangfireInitialization()
         {
+
             var dbName = "HangfireSqliteTest";
             var connectionString = $"Data Source={dbName}.db;";
 
@@ -71,6 +82,7 @@ namespace DND.IntegrationTests.Data
         [Fact]
         public async Task MiniProfilerInitialization()
         {
+
             var dbName = "MiniProfilerSqliteTest";
             var connectionString = $"Data Source={dbName}.db;";
 

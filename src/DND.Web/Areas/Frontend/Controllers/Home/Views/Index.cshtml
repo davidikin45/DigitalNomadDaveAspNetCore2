@@ -91,7 +91,7 @@
 
 @{
     var repository = fileSystemGenericRepositoryFactory.CreateFileRepositoryReadOnly(default(CancellationToken), hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Parellax]), true, "*.*", ".jpg");
-    var data = repository.GetAll(AutoMapperHelper.GetOrderByFunc<FileInfo>(nameof(FileInfo.LastWriteTime), OrderByType.Descending), 0, 2).ToList();
+    var data = repository.GetAll(AutoMapperHelper.GetOrderByFunc<FileInfo>(nameof(FileInfo.LastWriteTime), "desc"), 0, 2).ToList();
 }
 
 @if (data.Count() > 0)

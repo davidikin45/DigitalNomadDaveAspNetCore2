@@ -1,4 +1,4 @@
-﻿using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+﻿using AspNetCore.Mvc.Extensions.Attributes.Display;
 using System.ComponentModel.DataAnnotations;
 
 namespace DND.Web.Areas.Frontend.Controllers.Home.Models

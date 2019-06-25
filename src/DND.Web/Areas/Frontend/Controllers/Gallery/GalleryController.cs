@@ -2,14 +2,12 @@
 using AspNetCore.Base.Data.RepositoryFileSystem;
 using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Email;
-using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Filters;
 using AspNetCore.Base.Helpers;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
 using AspNetCore.Base.MvcFeatures;
-using AspNetCore.Base.MvcServices;
 using AspNetCore.Base.Settings;
+using AspNetCore.Mvc.Extensions;
 using AutoMapper;
 using DND.ApplicationServices;
 using DND.ApplicationServices.Blog;
@@ -83,7 +81,7 @@ namespace DND.Web.Areas.Frontend.Controllers.Gallery
         [NoAjaxRequest]
         [ResponseCache(CacheProfileName = "Cache24HourParams")]
         [Route("{name}")]
-        public virtual async Task<ActionResult> Gallery(string name, int page = 1, int pageSize = 12, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = OrderByType.Descending)
+        public virtual async Task<ActionResult> Gallery(string name, int page = 1, int pageSize = 12, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = "desc")
         {
             try
             {
@@ -122,7 +120,7 @@ namespace DND.Web.Areas.Frontend.Controllers.Gallery
         [ActionName("Gallery")]
         [ResponseCache(CacheProfileName = "Cache24HourParams")]
         [Route("{name}")]
-        public virtual async Task<ActionResult> GalleryList(string name, int page = 1, int pageSize = 12, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = OrderByType.Descending)
+        public virtual async Task<ActionResult> GalleryList(string name, int page = 1, int pageSize = 12, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = "desc")
         {
             try
             {
@@ -147,7 +145,7 @@ namespace DND.Web.Areas.Frontend.Controllers.Gallery
             }
         }
 
-        private async Task<WebApiPagedResponseDto<FileInfo>> GetGalleryViewModel(string physicalPath, int page = 1, int pageSize = 40, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = OrderByType.Descending)
+        private async Task<WebApiPagedResponseDto<FileInfo>> GetGalleryViewModel(string physicalPath, int page = 1, int pageSize = 40, string orderColumn = nameof(FileInfo.LastWriteTime), string orderType = "desc")
         {
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
 

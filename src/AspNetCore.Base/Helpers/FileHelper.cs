@@ -2,6 +2,7 @@
 using AspNetCore.Base.Middleware.ImageProcessing;
 using AspNetCore.Base.MvcExtensions;
 using AspNetCore.Base.Settings;
+using AspNetCore.Mvc.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Win32;

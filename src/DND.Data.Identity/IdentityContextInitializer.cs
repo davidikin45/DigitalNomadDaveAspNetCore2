@@ -1,5 +1,6 @@
 ﻿using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Tasks;
+using AspNetCore.Mvc.Extensions;
 using DND.Data.Identity.Initializers;
 using DND.Domain.Identity;
 using Microsoft.AspNetCore.Hosting;

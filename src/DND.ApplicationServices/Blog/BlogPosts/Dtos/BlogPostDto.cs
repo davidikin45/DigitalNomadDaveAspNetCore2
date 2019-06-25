@@ -1,7 +1,8 @@
-﻿using AspNetCore.Base.Dtos;
+﻿using AspNetCore.Base.Attributes.Display;
+using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
-using AspNetCore.Base.ModelMetadataCustom.LinkAttributes;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
+using AspNetCore.Mvc.Extensions.Attributes.Link;
 using AutoMapper;
 using DND.ApplicationServices.Blog.Authors.Dtos;
 using DND.ApplicationServices.Blog.Categories.Dtos;
@@ -73,14 +74,14 @@ namespace DND.ApplicationServices.Blog.BlogPosts.Dtos
 
         [Render(AllowSortForGrid = false)]
         [Required]
-        [FolderDropdown(Folders.Gallery)]
+        [FolderAppSettingsDropdown(Folders.Gallery)]
         public string Album { get; set; }
 
         [Required]
         public bool ShowPhotosInAlbum { get; set; }
 
         [Render(ShowForGrid = false)]
-        [FileDropdown(Folders.Gallery, true)]
+        [FileAppSettingsDropdown(Folders.Gallery, true)]
         public string CarouselImage
         { get; set; }
 

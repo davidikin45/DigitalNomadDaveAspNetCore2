@@ -34,6 +34,7 @@
 ## Pluralsight Courses for Entity Framework
 * [Entity Framework Core 2: Getting Started](https://app.pluralsight.com/library/courses/entity-framework-core-2-getting-started/table-of-contents)
 * [Entity Framework in the Enterprise](https://app.pluralsight.com/library/courses/entity-framework-enterprise-update/table-of-contents)
+* [Testing with EF Core](https://app.pluralsight.com/library/courses/ef-core-testing/table-of-contents)
 
 ## Pluralsight Courses for APIs
 * [Building a RESTful API with ASP.NET Core](https://app.pluralsight.com/library/courses/asp-dot-net-core-restful-api-building/table-of-contents)

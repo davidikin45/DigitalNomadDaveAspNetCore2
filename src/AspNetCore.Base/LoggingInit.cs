@@ -16,7 +16,7 @@ namespace AspnetCore.Base
     //Error = 4
     //Critical = 5
 
-    public class Logging
+    public class LoggingInit
     {
         //https://www.humankode.com/asp-net-core/logging-with-elasticsearch-kibana-asp-net-core-and-docker
         public static void Init(IConfiguration configuration, string elasticUri = null)

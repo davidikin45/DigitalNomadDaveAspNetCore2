@@ -1,10 +1,9 @@
 ﻿using AspNetCore.Base.Data.RepositoryFileSystem;
-using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Helpers;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
 using AspNetCore.Base.Settings;
 using AspNetCore.Base.ViewComponents;
+using AspNetCore.Mvc.Extensions;
 using DND.ApplicationServices;
 using DND.ApplicationServices.Blog;
 using DND.ApplicationServices.Blog.BlogPosts.Dtos;
@@ -41,7 +40,7 @@ namespace DND.Web.Areas.Frontend.Controllers.CarouselItem.ViewComponents
         public async Task<IViewComponentResult> InvokeAsync()
         {
             string orderColumn = nameof(CarouselItemDto.CreatedOn);
-            string orderType = OrderByType.Descending;
+            string orderType = "desc";
 
             var cts = TaskHelper.CreateChildCancellationTokenSource(ClientDisconnectedToken());
 

@@ -1,4 +1,4 @@
-﻿using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+﻿using AspNetCore.Mvc.Extensions.Attributes.Display;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AspNetCore.Base.Dtos

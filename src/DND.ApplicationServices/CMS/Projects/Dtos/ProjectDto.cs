@@ -1,8 +1,8 @@
-﻿using AspNetCore.Base.Dtos;
+﻿using AspNetCore.Base.Attributes.Display;
+using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
-using DND.Core;
 using DND.Domain.CMS.Projects;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -18,11 +18,11 @@ namespace DND.ApplicationServices.CMS.Projects.Dtos
         public string Link { get; set; }
 
         [Render(AllowSortForGrid = false)]
-        [FileDropdown(Folders.Projects, true)]
+        [FileAppSettingsDropdown(Folders.Projects, true)]
         public string File { get; set; }
 
         [Render(AllowSortForGrid = false)]
-        [FolderDropdown(Folders.Gallery, true)]
+        [FolderAppSettingsDropdown(Folders.Gallery, true)]
         public string Album { get; set; }
 
         [Required, StringLength(200)]

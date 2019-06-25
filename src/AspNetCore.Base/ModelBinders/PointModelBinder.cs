@@ -74,7 +74,7 @@ namespace AspNetCore.Base.ModelBinders
 
     public static class PointConfigurationExtensions
     {
-        public static IMvcBuilder UsePointModelBinder(this IMvcBuilder builder)
+        public static IMvcBuilder AddPointModelBinder(this IMvcBuilder builder)
         {
             builder.Services.AddSingleton<IConfigureOptions<MvcOptions>, PointMvcOptionsSetup>();
             return builder;

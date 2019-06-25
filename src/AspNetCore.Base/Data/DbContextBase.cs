@@ -1,13 +1,16 @@
 ﻿using AspNetCore.Base.Data.Converters;
 using AspNetCore.Base.Data.Helpers;
 using AspNetCore.Base.Data.Migrations;
+using AspNetCore.Base.Logging;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,21 +49,37 @@ namespace AspNetCore.Base.Data
         public static readonly ILoggerFactory CommandLoggerFactory
          = new ServiceCollection().AddLogging(builder =>
          {
-             builder.AddDebug().AddConsole().AddFilter(DbLoggerCategory.Database.Command.Name, LogLevel.Information);
+             builder.AddDebug().AddConsole().AddAction(LogCommand).AddFilter(DbLoggerCategory.Database.Command.Name, LogLevel.Information);
          }).BuildServiceProvider()
          .GetService<ILoggerFactory>();
 
         public static readonly ILoggerFactory ChangeTrackerLoggerFactory
          = new ServiceCollection().AddLogging(builder =>
-         {
-             builder.AddDebug().AddConsole().AddFilter(DbLoggerCategory.ChangeTracking.Name, LogLevel.Debug);
+         {         
+             builder.AddDebug().AddConsole().AddAction(LogCommand).AddFilter(DbLoggerCategory.ChangeTracking.Name, LogLevel.Debug);
          }).BuildServiceProvider()
          .GetService<ILoggerFactory>();
+
+        public static Action<string> Log { get; set; }
+        private static void LogCommand(string log)
+        {
+            Log?.Invoke(log);
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning));
-            optionsBuilder.UseLoggerFactory(CommandLoggerFactory).EnableSensitiveDataLogging();
+
+            if (optionsBuilder.Options.Extensions is CoreOptionsExtension)
+            {
+                var coreOptionsExtension = optionsBuilder.Options.Extensions as CoreOptionsExtension;
+                if (coreOptionsExtension.LoggerFactory == null)
+                {
+                    optionsBuilder.UseLoggerFactory(CommandLoggerFactory);
+                }
+            }
+            optionsBuilder.EnableSensitiveDataLogging();
+
             optionsBuilder.ReplaceService<IMigrationsAnnotationProvider, RelationalMigrationsAnnotationsProvider>();
         }
 

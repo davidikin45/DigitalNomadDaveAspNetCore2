@@ -1,4 +1,4 @@
-﻿using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+﻿using AspNetCore.Mvc.Extensions.Attributes.Display;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

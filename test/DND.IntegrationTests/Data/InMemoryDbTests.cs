@@ -1,3 +1,4 @@
+using AspNetCore.Base.Data;
 using AspNetCore.Base.Data.Helpers;
 using DND.Data;
 using DND.Data.Initializers;
@@ -5,16 +6,23 @@ using DND.Domain.CMS.Faqs;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DND.IntegrationTests.Data
 {
     public class InMemoryDbTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public InMemoryDbTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public async Task InMemoryTest()
         {
-            var options = DbContextConnections.DbContextOptionsInMemory<AppContext>();
-
+            var options = DbContextConnections.DbContextOptionsInMemory<AppContext>("", log => _output.WriteLine(log));
             using (var context = new AppContext(options))
             {
                 var uow = new AppUnitOfWork(null, null, context);

@@ -4,6 +4,7 @@ using AspNetCore.Base.DependencyInjection;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Hosting;
 using AspNetCore.Base.Tasks;
+using AspNetCore.Mvc.Extensions;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -30,7 +31,7 @@ namespace AspNetCore.Base
         {
             Configuration = Config.Build(args, Directory.GetCurrentDirectory(), typeof(TStartup).Assembly.GetName().Name);
 
-            Logging.Init(Configuration);
+            LoggingInit.Init(Configuration);
 
             try
             {

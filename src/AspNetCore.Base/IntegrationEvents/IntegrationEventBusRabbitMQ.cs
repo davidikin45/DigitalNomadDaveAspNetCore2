@@ -32,7 +32,6 @@ namespace AspNetCore.Base.IntegrationEvents
         private readonly ILogger<IntegrationEventBusRabbitMQ> _logger;
         private readonly IIntegrationEventBusSubscriptionsManager _subsManager;
         private readonly IServiceProvider _serviceProvider;
-        private readonly string AUTOFAC_SCOPE_NAME = "event_bus";
         private readonly int _retryCount;
 
         private IModel _consumerChannel;

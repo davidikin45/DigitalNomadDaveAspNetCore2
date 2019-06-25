@@ -1,6 +1,7 @@
 ﻿using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Helpers;
 using AspNetCore.Base.Settings;
+using AspNetCore.Mvc.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;

@@ -1,4 +1,0 @@
-﻿User-agent: *
-Allow: /
-
-Sitemap: http://www.digitalnomaddave.com/sitemap.xml

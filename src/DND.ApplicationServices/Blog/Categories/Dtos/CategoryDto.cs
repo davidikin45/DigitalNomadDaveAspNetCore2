@@ -1,13 +1,10 @@
 ﻿using AspNetCore.Base.Dtos;
-using AspNetCore.Base.Helpers;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
 using DND.Domain.Blog.Categories;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace DND.ApplicationServices.Blog.Categories.Dtos
 {

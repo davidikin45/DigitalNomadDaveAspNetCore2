@@ -1,8 +1,4 @@
-﻿using AspNetCore.Base.ModelMetadataCustom;
-using AspNetCore.Base.ModelMetadataCustom.FluentMetadata;
-using AspNetCore.Base.ModelMetadataCustom.Providers;
-using GeoAPI.Geometries;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using NetTopologySuite.Geometries;

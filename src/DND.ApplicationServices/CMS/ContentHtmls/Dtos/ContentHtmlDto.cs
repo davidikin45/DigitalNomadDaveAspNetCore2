@@ -1,6 +1,6 @@
 ﻿using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
 using DND.Domain.CMS.ContentHtmls;
 using Microsoft.AspNetCore.Mvc;

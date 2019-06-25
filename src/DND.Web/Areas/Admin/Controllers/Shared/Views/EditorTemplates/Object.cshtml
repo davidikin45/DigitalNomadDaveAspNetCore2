@@ -1,8 +1,5 @@
 ﻿@model dynamic
 @{
-    var properties = ((CustomModelMetadata)ViewData.ModelMetadata).PropertiesRuntime(ViewData.Model);
-    var propertyModelExplorers = Html.ModelExplorerPropertiesRuntime();
-
     string guid = Guid.NewGuid().ToString();
     var collections = ViewData.ModelMetadata.Properties.Where(p => p.DataTypeName == "ModelRepeater" && (((bool)ViewBag.EditMode && p.ShowForEdit) || ((bool)ViewBag.CreateMode && (!p.AdditionalValues.ContainsKey("ShowForCreate") || (bool)p.AdditionalValues["ShowForCreate"]))));
     var hasCollections = collections.Count() > 0;

@@ -1,13 +1,11 @@
 ﻿using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
-using DND.ApplicationServices.Blog.BlogPosts.Dtos;
 using DND.ApplicationServices.Blog.Tags.Dtos;
 using DND.Domain.Blog.Tags;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace DND.Domain.Blog.BlogPosts.Dtos

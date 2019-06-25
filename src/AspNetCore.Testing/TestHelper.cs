@@ -1,19 +1,31 @@
 ﻿using AspNetCore.Base.Data.Repository;
 using AspNetCore.Base.Extensions;
+using AspNetCore.Base.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
 using System.Security.Claims;
+using Xunit.Abstractions;
 
 namespace AspNetCore.Testing
 {
     public static class TestHelper
     {
+        public static ILoggerFactory xUnitCommandLoggerFactory(ITestOutputHelper output)
+        => new ServiceCollection().AddLogging(builder =>
+        {
+            builder.AddAction(log => output.WriteLine(log))
+            .AddFilter(DbLoggerCategory.Database.Command.Name, LogLevel.Information);
+        }).BuildServiceProvider()
+        .GetService<ILoggerFactory>();
+
         public static void MockCurrentUser(this Controller controller, string userId, string username, string authenticationType)
         {
             controller.MockHttpContext(userId, username, authenticationType);

@@ -1,12 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AspNetCore.Base.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Data.Common;
 using System.Data.SqlClient;
 
 namespace AspNetCore.Base.Data.Helpers
 {
+    //xUnit.net expose ITestOutputHelper
     public static class DbContextConnections
     {
-        public static DbContextOptions<TContext> DbContextOptionsSqlite<TContext>(string dbName)
+        public static ILoggerFactory CommandLoggerFactory(Action<string> logger)
+          => new ServiceCollection().AddLogging(builder =>
+          {
+              builder.AddAction(logger).AddFilter(DbLoggerCategory.Database.Command.Name, LogLevel.Information);
+          }).BuildServiceProvider()
+          .GetService<ILoggerFactory>();
+
+        public static DbContextOptions<TContext> DbContextOptionsSqlite<TContext>(string dbName, Action<string> logAction = null)
           where TContext : DbContext
         {
 
@@ -14,11 +26,22 @@ namespace AspNetCore.Base.Data.Helpers
 
             var builder = new DbContextOptionsBuilder<TContext>();
             builder.UseSqlite(connectionString);
+            builder.UseLoggerFactory(CommandLoggerFactory(logAction));
             builder.EnableSensitiveDataLogging();
             return builder.Options;
         }
 
-        public static DbContextOptions<TContext> DbContextOptionsSqliteInMemory<TContext>()
+        public static DbContextOptions<TContext> DbContextOptionsSqliteInMemory<TContext>(DbConnection connection, Action<string> logAction = null)
+         where TContext : DbContext
+        {
+            var builder = new DbContextOptionsBuilder<TContext>();
+            builder.UseSqlite(connection);
+            builder.UseLoggerFactory(CommandLoggerFactory(logAction));
+            builder.EnableSensitiveDataLogging();
+            return builder.Options;
+        }
+
+        public static DbContextOptions<TContext> DbContextOptionsSqliteInMemory<TContext>(Action<string> logAction = null)
          where TContext : DbContext
         {
 
@@ -26,11 +49,12 @@ namespace AspNetCore.Base.Data.Helpers
 
             var builder = new DbContextOptionsBuilder<TContext>();
             builder.UseSqlite(connectionString);
+            builder.UseLoggerFactory(CommandLoggerFactory(logAction));
             builder.EnableSensitiveDataLogging();
             return builder.Options;
         }
 
-        public static DbContextOptions<TContext> DbContextOptionsInMemory<TContext>(string dbName = "")
+        public static DbContextOptions<TContext> DbContextOptionsInMemory<TContext>(string dbName = "", Action<string> logAction = null)
              where TContext : DbContext
         {
             if (string.IsNullOrEmpty(dbName))
@@ -40,11 +64,12 @@ namespace AspNetCore.Base.Data.Helpers
 
             var builder = new DbContextOptionsBuilder<TContext>();
             builder.UseInMemoryDatabase(dbName);
+            builder.UseLoggerFactory(CommandLoggerFactory(logAction));
             builder.EnableSensitiveDataLogging();
             return builder.Options;
         }
 
-        public static DbContextOptions<TContext> DbContextOptionsSqlLocalDB<TContext>(string dbName)
+        public static DbContextOptions<TContext> DbContextOptionsSqlLocalDB<TContext>(string dbName, Action<string> logAction = null)
              where TContext : DbContext
         {
             var connectionString = new SqlConnectionStringBuilder()
@@ -57,6 +82,7 @@ namespace AspNetCore.Base.Data.Helpers
 
             var builder = new DbContextOptionsBuilder<TContext>();
             builder.UseSqlServer(connectionString);
+            builder.UseLoggerFactory(CommandLoggerFactory(logAction));
             builder.EnableSensitiveDataLogging();
             return builder.Options;
         }

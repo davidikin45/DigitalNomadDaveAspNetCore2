@@ -1,8 +1,8 @@
-﻿using AspNetCore.Base.Dtos;
+﻿using AspNetCore.Base.Attributes.Display;
+using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
-using DND.Core;
 using DND.Domain.CMS.Testimonials;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -18,7 +18,7 @@ namespace DND.ApplicationServices.CMS.Testimonials.Dtos
         public string QuoteText { get; set; }
 
         [Render(AllowSortForGrid = false)]
-        [FileDropdown(Folders.Testimonials, true)]
+        [FileAppSettingsDropdown(Folders.Testimonials, true)]
         public string File { get; set; }
 
         [Render(ShowForEdit = true, ShowForCreate = false, ShowForGrid = true)]

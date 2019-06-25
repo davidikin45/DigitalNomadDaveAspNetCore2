@@ -31,7 +31,7 @@
 {
     HashSet<string> files = new HashSet<string>();
     <div class="card-columns-md-2">
-        @foreach (FileInfo file in fileSystemGenericRepositoryFactory.CreateFileRepositoryReadOnly(default(CancellationToken), hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + Model.Album, true, "*.*", ".jpg", ".jpeg", ".mp4", ".avi", ".txt").GetAll(AutoMapperHelper.GetOrderByFunc<FileInfo>(nameof(FileInfo.LastWriteTime), OrderByType.Descending), null, null))
+        @foreach (FileInfo file in fileSystemGenericRepositoryFactory.CreateFileRepositoryReadOnly(default(CancellationToken), hostingEnvironment.MapWwwPath(appSettings.Folders[Folders.Gallery]) + Model.Album, true, "*.*", ".jpg", ".jpeg", ".mp4", ".avi", ".txt").GetAll(AutoMapperHelper.GetOrderByFunc<FileInfo>(nameof(FileInfo.LastWriteTime), "desc"), null, null))
         {
             if (!files.Contains(file.Name))
             {

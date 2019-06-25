@@ -3,14 +3,13 @@ using AspNetCore.Base.Alerts;
 using AspNetCore.Base.Controllers.Mvc;
 using AspNetCore.Base.Data.RepositoryFileSystem;
 using AspNetCore.Base.Email;
-using AspNetCore.Base.Extensions;
 using AspNetCore.Base.Helpers;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
 using AspNetCore.Base.MvcExtensions;
 using AspNetCore.Base.MvcFeatures;
 using AspNetCore.Base.MvcServices;
 using AspNetCore.Base.Settings;
+using AspNetCore.Mvc.Extensions;
 using AutoMapper;
 using DND.ApplicationServices;
 using DND.ApplicationServices.Blog;
@@ -276,7 +275,7 @@ namespace DND.Web.Areas.Frontend.Controllers.Home
             }
 
             var repository = _fileSystemGenericRepositoryFactory.CreateFolderRepository(cancellationToken, _hostingEnvironment.MapWwwPath(AppSettings.Folders[Folders.Gallery]));
-            foreach (DirectoryInfo f in (await repository.GetAllAsync(AutoMapperHelper.GetOrderByFunc<DirectoryInfo>(nameof(DirectoryInfo.LastWriteTime), OrderByType.Descending), null, null)))
+            foreach (DirectoryInfo f in (await repository.GetAllAsync(AutoMapperHelper.GetOrderByFunc<DirectoryInfo>(nameof(DirectoryInfo.LastWriteTime), "desc"), null, null)))
             {
                 nodes.Add(
                    new SitemapNode()

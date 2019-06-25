@@ -1,11 +1,10 @@
 ﻿using AspNetCore.Base.ActionResults;
-using AspNetCore.Base.Alerts;
 using AspNetCore.Base.Email;
-using AspNetCore.Base.ErrorHandling;
 using AspNetCore.Base.Extensions;
 using AspNetCore.Base.MultiTenancy;
 using AspNetCore.Base.Settings;
 using AspNetCore.Base.Validation;
+using AspNetCore.Mvc.MvcAsApi.Factories;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,8 +12,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 
@@ -203,25 +200,17 @@ namespace AspNetCore.Base.Controllers.Api
         }
         protected virtual ActionResult BadRequest(string errorMessage)
         {
-            var problemDetails = new ProblemDetails
+            var problemDetails = ProblemDetailsFactory.GetProblemDetails(HttpContext, "Bad Request.", StatusCodes.Status400BadRequest, errorMessage);
+
+            return new ObjectResult(problemDetails)
             {
-                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                Instance = HttpContext.Request.Path,
-                Title = "Bad Request.",
-                Detail = errorMessage,
-                Status = StatusCodes.Status400BadRequest
+                StatusCode = problemDetails.Status,
+                ContentTypes =
+                    {
+                        "application/problem+json",
+                        "application/problem+xml",
+                    },
             };
-
-            var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
-            problemDetails.Extensions["traceId"] = traceId;
-            problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
-
-            var result = new ObjectResult(problemDetails);
-            result.StatusCode = problemDetails.Status;
-            result.ContentTypes.Add("application/problem+json");
-            result.ContentTypes.Add("application/problem+xml");
-
-            return result;
         }
 
         protected ActionResult ValidationErrors(Result failure)
@@ -252,49 +241,17 @@ namespace AspNetCore.Base.Controllers.Api
         }
         protected virtual ActionResult ValidationErrors(ModelStateDictionary modelState)
         {
-            var problemDetails = new ValidationProblemDetails(ModelState)
-            {
-                Type = "https://tools.ietf.org/html/rfc4918#section-11.2",
-                Instance = HttpContext.Request.Path,
-                Detail = "Please refer to the errors property for additional details.",
-                Status = StatusCodes.Status422UnprocessableEntity
-            };
+            var problemDetails = ProblemDetailsFactory.GetValidationProblemDetails(HttpContext, modelState, StatusCodes.Status422UnprocessableEntity, true);
 
-            var angularErrors = new SerializableDictionary<string, List<AngularFormattedValidationError>>();
-            foreach (var kvp in problemDetails.Errors)
-            {
-                var propertyMessages = new List<AngularFormattedValidationError>();
-                foreach (var errorMessage in kvp.Value)
-                {
-                    var keyAndMessage = errorMessage.Split('|');
-                    if (keyAndMessage.Count() > 1)
+             return new ObjectResult(problemDetails)
+             {
+                 StatusCode = problemDetails.Status,
+                 ContentTypes =
                     {
-                        //Formatted for Angular Binding
-                        //e.g required|Error Message
-                        propertyMessages.Add(new AngularFormattedValidationError(
-                            keyAndMessage[1],
-                            keyAndMessage[0]));
-                    }
-                    else
-                    {
-                        propertyMessages.Add(new AngularFormattedValidationError(
-                            keyAndMessage[0]));
-                    }
-                }
-
-                angularErrors.Add(kvp.Key, propertyMessages);
-            }
-            problemDetails.Extensions["angularErrors"] = angularErrors;
-
-            var traceId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
-            problemDetails.Extensions["traceId"] = traceId;
-            problemDetails.Extensions["timeGenerated"] = DateTime.UtcNow;
-
-            var result = new UnprocessableEntityObjectResult(problemDetails);
-            result.ContentTypes.Add("application/problem+json");
-            result.ContentTypes.Add("application/problem+xml");
-
-            return result;
+                        "application/problem+json",
+                        "application/problem+xml",
+                    },
+             };
         }
 
         protected IActionResult FromResult(Result result)

@@ -1,3 +1,4 @@
+using AspNetCore.Base.Data;
 using AspNetCore.Base.Data.Helpers;
 using AspNetCore.Base.Hangfire;
 using Database.Initialization;
@@ -9,16 +10,24 @@ using MiniProfiler.Initialization;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DND.IntegrationTests.Data
 {
     public class SqlServerDbTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public SqlServerDbTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public async Task Initialization()
         {
             //db location = C:\Users\{user}
-            var options = DbContextConnections.DbContextOptionsSqlLocalDB<AppContext>("SqlTest");
+            var options = DbContextConnections.DbContextOptionsSqlLocalDB<AppContext>("SqlTest", log => _output.WriteLine(log));
 
             var connectionString = new SqlConnectionStringBuilder()
             {

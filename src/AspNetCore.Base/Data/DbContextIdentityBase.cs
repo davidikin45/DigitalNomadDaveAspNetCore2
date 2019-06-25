@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -61,7 +62,17 @@ namespace AspNetCore.Base.Data.UnitOfWork
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning));
-            optionsBuilder.UseLoggerFactory(CommandLoggerFactory).EnableSensitiveDataLogging();
+
+            if (optionsBuilder.Options.Extensions is CoreOptionsExtension)
+            {
+                var coreOptionsExtension = optionsBuilder.Options.Extensions as CoreOptionsExtension;
+                if (coreOptionsExtension.LoggerFactory == null)
+                {
+                    optionsBuilder.UseLoggerFactory(CommandLoggerFactory);
+                }
+            }
+            optionsBuilder.EnableSensitiveDataLogging();
+
             optionsBuilder.ReplaceService<IMigrationsAnnotationProvider, RelationalMigrationsAnnotationsProvider>();
         }
 

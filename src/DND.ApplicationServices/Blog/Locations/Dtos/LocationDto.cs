@@ -1,15 +1,13 @@
-﻿using AspNetCore.Base.Dtos;
+﻿using AspNetCore.Base.Attributes.Display;
+using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
 using AspNetCore.Base.MvcExtensions;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
 using DND.Domain.Blog.Locations;
-using GeoAPI.Geometries;
-using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 
 namespace DND.ApplicationServices.Blog.Locations.Dtos
 {
@@ -31,7 +29,7 @@ namespace DND.ApplicationServices.Blog.Locations.Dtos
 
         [Render(AllowSortForGrid = false)]
         //[Required]
-        [FolderDropdown(Folders.Gallery, true)]
+        [FolderAppSettingsDropdown(Folders.Gallery, true)]
         public string Album { get; set; }
 
         //[Dropdown(typeof(User), nameof(User.Name))]

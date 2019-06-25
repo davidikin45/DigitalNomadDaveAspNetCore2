@@ -1,20 +1,21 @@
-﻿using AspNetCore.Base.Dtos;
+﻿using AspNetCore.Base.Attributes.Display;
+using AspNetCore.Base.Dtos;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
-using DND.Core;
 using DND.Domain.CMS.CarouselItems;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 namespace DND.ApplicationServices.CMS.CarouselItems.Dtos
 {
+
+
     public class CarouselItemDto : DtoAggregateRootBase<int>, IHaveCustomMappings, IValidatableObject
     {
         [Render(AllowSortForGrid = false)]
-        [FolderDropdown(Folders.Gallery, true)]
+        [FolderAppSettingsDropdown(Folders.Gallery, true)]
         public string Album { get; set; }
 
         public string Title { get; set; }
@@ -27,7 +28,7 @@ namespace DND.ApplicationServices.CMS.CarouselItems.Dtos
         public string Link { get; set; }
 
         [Render(AllowSortForGrid = false)]
-        [FileDropdown(Folders.Carousel, true)]
+        [FileAppSettingsDropdown(Folders.Carousel, true)]
         public string File { get; set; }
 
         [Render(ShowForEdit = true, ShowForCreate = false, ShowForGrid = true)]

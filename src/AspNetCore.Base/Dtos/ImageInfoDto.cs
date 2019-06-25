@@ -1,10 +1,8 @@
 ﻿using AspNetCore.Base.Data.RepositoryFileSystem.File;
 using AspNetCore.Base.Mapping;
-using AspNetCore.Base.ModelMetadataCustom.DisplayAttributes;
 using AspNetCore.Base.MvcExtensions;
+using AspNetCore.Mvc.Extensions.Attributes.Display;
 using AutoMapper;
-using GeoAPI.Geometries;
-using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using System;
 using System.ComponentModel.DataAnnotations;
