@@ -95,6 +95,7 @@ namespace AspNetCore.Base
                 )
                 .UseAutofac()
                 .UseConfiguration(Configuration) ////IWebHostBuilder configuration is added to the app's configuration, but the converse isn't true. ConfigureAppConfiguration doesn't affect the IWebHostBuilder configuration.
+                .UseIISIntegration()
                 .UseAzureKeyVault()
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
