@@ -7,15 +7,15 @@ namespace AspNetCore.Base.Swagger
     //Need to also add 
     //[ApiExplorerSettings(IgnoreApi = true)]
     //[Produces("Accept")] or [Consumes("ContentType")]
-    public abstract class AcceptHeaderOperationFilter<TSchemaType> : IOperationFilter
+    public abstract class ContentTypeOperationFilter<TSchemaType> : IOperationFilter
     {
         private readonly string _operationId;
-        private readonly string _acceptHeader;
+        private readonly string _contentTypeHeader;
 
-        public AcceptHeaderOperationFilter(string operationId, string acceptHeader)
+        public ContentTypeOperationFilter(string operationId, string contentTypeHeader)
         {
             _operationId = operationId;
-            _acceptHeader = acceptHeader;
+            _contentTypeHeader = contentTypeHeader;
         }
 
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
@@ -25,9 +25,12 @@ namespace AspNetCore.Base.Swagger
                 return;
             }
 
-            operation.Responses[StatusCodes.Status200OK.ToString()].Content.Add(_acceptHeader, new OpenApiMediaType() {
-                Schema = context.SchemaGenerator.GenerateSchema(typeof(TSchemaType), context.SchemaRepository)
-            });
+            operation.RequestBody.Content.Add(
+                _contentTypeHeader,
+                new OpenApiMediaType()
+                {
+                    Schema = context.SchemaGenerator.GenerateSchema(typeof(TSchemaType), context.SchemaRepository)
+                });
         }
     }
 }

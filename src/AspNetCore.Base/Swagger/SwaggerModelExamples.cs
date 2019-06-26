@@ -7,7 +7,7 @@ namespace AspNetCore.Base.Swagger
     {
         public void Apply(OpenApiSchema model, SchemaFilterContext context)
         {
-            if (context.SystemType == typeof(Microsoft.AspNetCore.JsonPatch.Operations.Operation))
+            if (context.Type == typeof(Microsoft.AspNetCore.JsonPatch.Operations.Operation))
             {
                 //model.Example = new { op = "add/replace/remove/copy/move/test", path = "/property", value = "value", from = "/property" };
             };

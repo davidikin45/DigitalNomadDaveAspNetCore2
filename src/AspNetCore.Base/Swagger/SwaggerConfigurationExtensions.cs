@@ -76,6 +76,7 @@ namespace AspNetCore.Base.Swagger
                     $"v{v.ToString()}" == documentName);
             });
 
+            //Accept Header Operation Filter
             c.OperationFilter<SwaggerAssignSecurityRequirements>();
             c.SchemaFilter<SwaggerModelExamples>();
 
