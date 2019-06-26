@@ -821,7 +821,7 @@ namespace AspNetCore.Base
 
                 //[FromBody] or [ApiController]
                 //https://stackoverflow.com/questions/31952002/asp-net-core-mvc-how-to-get-raw-json-bound-to-a-string-without-a-type
-                options.InputFormatters.Insert(0, new RawStringRequestBodyInputFormatter());
+                //options.InputFormatters.Insert(0, new RawStringRequestBodyInputFormatter());
                 options.InputFormatters.Insert(0, new RawBytesRequestBodyInputFormatter());
 
                 //options.Filters.Add(typeof(ModelValidationFilter));
@@ -1452,22 +1452,15 @@ namespace AspNetCore.Base
                 //3. access results at http: //localhost:2012
                 app.UseStackifyPrefix();
 
-                // Non Api
-                app.UseWhen(context => context.Request.IsMvc(),
-                    appBranch =>
+                app.UseOutbound(appBranch =>
+                {
+                    appBranch.UseWhen(context => context.Request.IsMvc(), mvcBranch => mvcBranch.UseDeveloperExceptionPage());
+                    appBranch.UseWhen(context => context.Request.IsApi(), apiBranch =>
                     {
-                        appBranch.UseDeveloperExceptionPage();
-                    }
-               );
-
-                // Web Api
-                app.UseWhen(context => context.Request.IsApi(),
-                    appBranch =>
-                    {
-                        appBranch.UseProblemDetailsExceptionHandler(options => options.ShowExceptionDetails = true);
-                        appBranch.UseProblemDetailsErrorResponseHandler();
-                    }
-               );
+                        apiBranch.UseProblemDetailsExceptionHandler(options => options.ShowExceptionDetails = true);
+                        apiBranch.UseProblemDetailsErrorResponseHandler(options => options.HandleContentResponses = false);
+                    });
+                });
 
                 app.UseDatabaseErrorPage();
 
@@ -1476,22 +1469,15 @@ namespace AspNetCore.Base
             }
             else
             {
-                // Non Api
-                app.UseWhen(context => context.Request.IsMvc(),
-                     appBranch =>
-                     {
-                         appBranch.UseExceptionHandler("/Error");
-                     }
-                );
-
-                // Web Api
-                app.UseWhen(context => context.Request.IsApi(),
-                    appBranch =>
+                app.UseOutbound(appBranch =>
+                {
+                    appBranch.UseWhen(context => context.Request.IsMvc(), mvcBranch => mvcBranch.UseExceptionHandler("/Error"));
+                    appBranch.UseWhen(context => context.Request.IsApi(), apiBranch =>
                     {
-                        appBranch.UseProblemDetailsExceptionHandler(options => options.ShowExceptionDetails = false);
-                        appBranch.UseProblemDetailsErrorResponseHandler();
-                    }
-               );
+                        apiBranch.UseProblemDetailsExceptionHandler(options => options.ShowExceptionDetails = false);
+                        apiBranch.UseProblemDetailsErrorResponseHandler(options => options.HandleContentResponses = false);
+                    });
+                });
 
                 if (switchSettings.EnableHsts)
                 {
