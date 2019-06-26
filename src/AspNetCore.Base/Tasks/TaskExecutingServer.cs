@@ -12,11 +12,11 @@ namespace AspNetCore.Base.Tasks
     public class TaskExecutingServer : IServer
     {
         // Inject the original IServer implementation (KestrelServer/IISHttpServer)
-        internal IServer Server {get;}
+        private readonly IServer _server;
         private readonly IServiceProvider _serviceProvider;
         public TaskExecutingServer(IServer server, IServiceProvider serviceProvider)
         {
-             Server = server;
+            _server = server;
             _serviceProvider = serviceProvider;
         }
 
@@ -26,12 +26,14 @@ namespace AspNetCore.Base.Tasks
             await _serviceProvider.InitAsync();
 
             // Now start the Kestrel server properly
-            await Server.StartAsync(application, cancellationToken);
+            await _server.StartAsync(application, cancellationToken);
         }
 
         // Delegate implementation to default IServer
-        public IFeatureCollection Features => Server.Features;
-        public void Dispose() => Server.Dispose();
-        public Task StopAsync(CancellationToken cancellationToken) => Server.StopAsync(cancellationToken);
+        public IFeatureCollection Features => _server.Features;
+        public void Dispose() => _server.Dispose();
+        public Task StopAsync(CancellationToken cancellationToken) => _server.StopAsync(cancellationToken);
+
+        public Type ServerType() => _server?.GetType();
     }
 }

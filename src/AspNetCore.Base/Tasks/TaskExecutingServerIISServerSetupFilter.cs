@@ -21,7 +21,7 @@ namespace AspNetCore.Base.Tasks
             return app =>
             {
                 var server = app.ApplicationServices.GetRequiredService<IServer>();
-                if ((server?.GetType() != typeof(TaskExecutingServer)) || (server is TaskExecutingServer taskExecutingServer && taskExecutingServer.Server?.GetType().Name != "IISHttpServer"))
+                if ((server?.GetType() != typeof(TaskExecutingServer)) || (server is TaskExecutingServer taskExecutingServer && taskExecutingServer.ServerType()?.Name != "IISHttpServer"))
                 {
                     throw new InvalidOperationException("Application is running inside IIS process but is not configured to use IIS server.");
                 }
