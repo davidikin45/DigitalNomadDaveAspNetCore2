@@ -105,6 +105,7 @@ Publish DND.Web
 * [Identity Server 4](http://docs.identityserver.io/en/release/) - .NET Core Identity Provider
 * [NCrunch](https://www.ncrunch.net/) - Concurrent testing tool for Visual Studio
 * [RobotsTxtMiddleware](https://github.com/karl-sjogren/robots-txt-middleware/blob/master/README.md)
+* [Conveyor](https://marketplace.visualstudio.com/items?itemName=vs-publisher-1448185.ConveyorbyKeyoti)
 
 ## Authors
 

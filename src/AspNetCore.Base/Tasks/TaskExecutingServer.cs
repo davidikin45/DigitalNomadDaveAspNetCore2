@@ -11,12 +11,12 @@ namespace AspNetCore.Base.Tasks
     //This allows initialization tasks to run AFTER IStartupFilters have run and the middleware pipeline has been configured.
     public class TaskExecutingServer : IServer
     {
-        // Inject the original IServer implementation (KestrelServer)
-        private readonly IServer _server;
+        // Inject the original IServer implementation (KestrelServer/IISHttpServer)
+        internal IServer Server {get;}
         private readonly IServiceProvider _serviceProvider;
         public TaskExecutingServer(IServer server, IServiceProvider serviceProvider)
         {
-            _server = server;
+             Server = server;
             _serviceProvider = serviceProvider;
         }
 
@@ -26,12 +26,12 @@ namespace AspNetCore.Base.Tasks
             await _serviceProvider.InitAsync();
 
             // Now start the Kestrel server properly
-            await _server.StartAsync(application, cancellationToken);
+            await Server.StartAsync(application, cancellationToken);
         }
 
         // Delegate implementation to default IServer
-        public IFeatureCollection Features => _server.Features;
-        public void Dispose() => _server.Dispose();
-        public Task StopAsync(CancellationToken cancellationToken) => _server.StopAsync(cancellationToken);
+        public IFeatureCollection Features => Server.Features;
+        public void Dispose() => Server.Dispose();
+        public Task StopAsync(CancellationToken cancellationToken) => Server.StopAsync(cancellationToken);
     }
 }
