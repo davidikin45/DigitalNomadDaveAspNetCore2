@@ -1406,7 +1406,10 @@ namespace AspNetCore.Base
 
             //dotnet watch run
             // Before any other output generating middleware handlers
-            app.UseLiveReload();
+            if(HostingEnvironment.IsDevelopment())
+            {
+                app.UseLiveReload();
+            }
 
             //--------------------------------------------- ROUTING -----------------------------//
             //.NET Core 3.0
