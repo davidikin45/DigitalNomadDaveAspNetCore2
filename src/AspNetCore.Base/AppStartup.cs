@@ -1411,12 +1411,15 @@ namespace AspNetCore.Base
                 app.UseLiveReload();
             }
 
+            //https://github.com/aspnet/AspNetCore/blob/c565386a3ed135560bc2e9017aa54a950b4e35dd/src/Mvc/Mvc.Core/src/Routing/UrlHelperFactory.cs
+            //There seems to be a big differences between UrlHelper and EndpointRoutingUrlHelper
+
             //--------------------------------------------- ROUTING -----------------------------//
             //.NET Core 3.0
             // 1. Runs matching. An endpoint is selected and set on the HttpContext if a match is found.
             //app.UseClientSideBlazorFiles<Client.Startup>();
             //app.UseRouting();
-            app.UseEndpointRouting();
+            //app.UseEndpointRouting();
 
             if (HostingEnvironment.IsProduction())
             {
