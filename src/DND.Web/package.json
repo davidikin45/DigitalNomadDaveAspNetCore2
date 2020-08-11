@@ -37,7 +37,7 @@
     "oidc-client": "^1.6.1",
     "respond.js": "^1.4.2",
     "rxjs": "^6.3.3",
-    "tinymce": "^4.9.2",
+    "tinymce": "^4.9.11",
     "prismjs": "^1.15.0",
     "underscore": "^1.9.1",
     "zone.js": "^0.8.29"
