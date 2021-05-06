@@ -39,7 +39,7 @@
     "rxjs": "^6.3.3",
     "tinymce": "^4.9.2",
     "prismjs": "^1.15.0",
-    "underscore": "^1.9.1",
+    "underscore": "^1.12.1",
     "zone.js": "^0.8.29"
   }
 }
